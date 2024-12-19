@@ -21,6 +21,8 @@ Below is a brief summary of my experience. For the full CV, please see the PDF v
 - His Majesty The King’s gold medal for best doctoral thesis in the Faculty of Mathematics
 and Natural Sciences at the University of Oslo in 2021
 
+**Publications**
+- Published 51 papers in Cosmology as of December 2024, with a total of 722 citations and an h-index of 17 (NASA/ADS). Topics include Bayesian data analysis, cosmological parameter inference, and machine learning applications in astrophysics.
 **Skills:**
 - Programming: Python, Fortran, C++
 - ML frameworks: PyTorch
