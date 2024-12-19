@@ -5,7 +5,7 @@ title: CV
 
 # Curriculum Vitae
 
-[Download my CV as PDF](cv.pdf)
+[Download my CV as PDF](CV_htihle.pdf)
 
 Below is a brief summary of my experience. For the full CV, please see the PDF version above.
 
@@ -18,7 +18,8 @@ Below is a brief summary of my experience. For the full CV, please see the PDF v
 - Master in Astronomy (2016), Institute of Theoretical Astrophysics, UiO
 
 **Awards:**
-- His Majesty The King’s gold medal (2022) for best doctoral thesis at UiO
+- His Majesty The King’s gold medal for best doctoral thesis in the Faculty of Mathematics
+and Natural Sciences at the University of Oslo in 2021
 
 **Skills:**
 - Programming: Python, Fortran, C++
@@ -26,4 +27,4 @@ Below is a brief summary of my experience. For the full CV, please see the PDF v
 - HPC: MPI, OpenMP
 - Statistical modeling, Bayesian inference
 
-For the full details, including publications and teaching experience, please refer to the [complete CV PDF](cv.pdf).
+For the full details, including publications and teaching experience, please refer to the [complete CV PDF](CV_htihle.pdf).
