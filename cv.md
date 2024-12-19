@@ -22,7 +22,7 @@ Below is a brief summary of my experience. For the full CV, please see the PDF v
 and Natural Sciences at the University of Oslo in 2021
 
 **Publications**
-- Published 51 papers in Cosmology as of December 2024, with a total of 722 citations and an h-index of 17 (NASA/ADS). Topics include robust end-to-end data analysis for cosmological experiments, Bayesian data analysis and cosmologican parameter inference.
+- Published 51 papers in Cosmology as of December 2024, with a total of 722 citations and an h-index of 17 (NASA/ADS). Topics include robust end-to-end data analysis for cosmological experiments, Bayesian data analysis and cosmologican parameter inference
 
 **Skills:**
 - Programming: Python, Fortran, C++
