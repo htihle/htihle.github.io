@@ -14,8 +14,8 @@ Below is a brief summary of my experience. For the full CV, please see the PDF v
 - Postdoctoral Fellow in Cosmology (2021--2023), University of Oslo
 
 **Education:**
-- PhD in Cosmology (2021), Institute of Theoretical Astrophysics, UiO
-- Master in Astronomy (2016), Institute of Theoretical Astrophysics, UiO
+- PhD in Cosmology (2021), Institute of Theoretical Astrophysics, University of Oslo
+- Master in Astronomy (2016), Institute of Theoretical Astrophysics, University of Oslo
 
 **Awards:**
 - His Majesty The King’s gold medal for best doctoral thesis in the Faculty of Mathematics
