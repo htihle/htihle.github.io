@@ -10,5 +10,6 @@ Welcome to my personal website! I’m an AI researcher and former astrophysicist
 **Sections:**
 - [CV](cv.html)
 - [Blog](blog.html)
+- [WeirdML](weirdml.html)
 
 Feel free to explore the links above and learn more about my background, publications, and interests.
