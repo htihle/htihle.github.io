@@ -4,7 +4,7 @@ title: WeirdML
 ---
 
 
-# LLM Machine Learning Task Benchmark
+# WeirdML Benchmark
 
 ## Introduction
 
