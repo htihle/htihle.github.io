@@ -25,7 +25,10 @@ The evaluation uses an automated pipeline that:
 4. Provides feedback to the LLM for improvement
 
 ### System Architecture
-
+<div style="text-align: center">
+    <img src="../images/evaluation_setup_diagram.png" width="500"/>
+    <p><em>This is a centered image with caption</em></p>
+</div>
 The system executes code in a Docker container with strict resource limits (TITAN V GPU with 12GB memory, 600-second timeout). This ensures fair comparison between models and tests their ability to work within realistic constraints.
 
 Each LLM gets multiple attempts (typically 5) per task, allowing them to learn from feedback and improve their solutions. The final performance metrics are based on the best performing attempt.
