@@ -3,7 +3,7 @@ description: ""
 theme: minima
 author: ""
 header_pages:
-  - home.md
+  - index.md
   - blog.md
   - cv.md
-  - weirdlm
+  - weirdml.md
