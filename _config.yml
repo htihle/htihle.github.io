@@ -3,6 +3,6 @@ description: ""
 theme: minima
 author: ""
 header_pages:
-  - /index.md
-  - /blog.md
-  - /cv.md
+ - /index.md
+ - /blog.md
+ - /cv.md
