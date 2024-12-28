@@ -25,8 +25,6 @@ The evaluation uses an automated pipeline that:
 
 ### System Architecture
 
-{% include_relative assets/system-diagram.mmd %}
-
 The system executes code in a Docker container with strict resource limits (TITAN V GPU with 12GB memory, 600-second timeout). This ensures fair comparison between models and tests their ability to work within realistic constraints.
 
 Each LLM gets multiple attempts (typically 5) per task, allowing them to learn from feedback and improve their solutions. The final performance metrics are based on the best performing attempt.
@@ -57,23 +55,23 @@ Below are the current benchmark results across different models. Note that these
 
 ### Overall Performance
 
-[Plot: Average accuracy across all tasks]
+
 
 This plot shows the mean accuracy across all tasks for each evaluated model.
 
 ### Task-Specific Performance
 
-[Plot: Individual task accuracies]
+
 
 Shows the performance breakdown by task, highlighting which models excel at particular types of problems.
 
 ### Failure Analysis
 
-[Plot: Average failure rates]
+
 
 Analysis of failure rates, showing how often models fail to produce working solutions within the given constraints.
 
 ## Conclusions
 
-[To be added based on complete evaluation results]
+
 
