@@ -72,6 +72,3 @@ Shows the performance breakdown by task, highlighting which models excel at part
 Analysis of failure rates, showing how often models fail to produce working solutions within the given constraints.
 
 ## Conclusions
-
-
-
