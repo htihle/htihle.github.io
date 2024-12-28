@@ -2,11 +2,6 @@
 layout: default
 title: WeirdML
 ---
----
-layout: page
-title: LLM ML Task Benchmark
-permalink: /benchmark/
----
 
 # LLM Machine Learning Task Benchmark
 
