@@ -37,7 +37,7 @@ Each LLM gets multiple attempts (typically 5) per task, allowing them to learn f
 
 ### Average results
 <div style="text-align: center">
-    <img src="../images/average_accuracy_across_tasks.png" width="500"/>
+    <img src="../images/average_accuracy_across_tasks.png" width="700"/>
     <p><em>Evaluation pipeline showing the flow from LLM code generation through isolated execution to metric evaluation and feedback, with fixed computational constraints enforced via Docker.</em></p>
 </div>
 ### Tasks
@@ -45,32 +45,20 @@ Each LLM gets multiple attempts (typically 5) per task, allowing them to learn f
 #### Shapes (Easy)
 A shape classification task where models must identify one of five shapes (circle, square, triangle, pentagon, star) from a set of 2D coordinates. The shapes are always centered and have fixed orientation and size, making this the simpler variant of the shape recognition tasks.
 
-### Shapes (Hard)
+#### Shapes (Hard)
 Similar to Shapes (Easy), but with random positioning, orientation, and size of the shapes. This tests the model's ability to create translation, rotation, and scale invariant features.
 
-### Image Patch Shuffling (Easy)
+#### Image Patch Shuffling (Easy)
 Models must arrange 9 shuffled grayscale image patches (9x9 pixels each) to reconstruct the original 27x27 image. All patches are guaranteed to be part of a single, coherent image.
 
-### Image Patch Shuffling (Hard)
+#### Image Patch Shuffling (Hard)
 A more challenging version where patches are in RGB and taken from a random 27x27 subset of a larger 64x64 image, requiring more sophisticated visual understanding and spatial reasoning.
 
-### Chess Game Outcome Prediction
+#### Chess Game Outcome Prediction
 Predicts the outcome of chess games (white wins, black wins, or draw) from game move sequences. The data consists of games played by beginners (rated below 1300), with moves in standard algebraic notation.
 
-### Unsupervised Digit Recognition
+#### Unsupervised Digit Recognition
 A semi-supervised learning task where models must classify digits with only 26 labeled examples and a large set of unlabeled data. The challenge is complicated by uneven class distribution in the unlabeled set.
-
-## Results
-
-Below are the current benchmark results across different models. Note that these are preliminary results and will be updated as more models are evaluated.
-
-### Overall Performance
-
-
-
-This plot shows the mean accuracy across all tasks for each evaluated model.
-
-### Task-Specific Performance
 
 
 
