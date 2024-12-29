@@ -33,9 +33,13 @@ The system executes code in a Docker container with strict resource limits (TITA
 
 Each LLM gets multiple attempts (typically 5) per task, allowing them to learn from feedback and improve their solutions. The final performance metrics are based on the best performing attempt.
 
-## Tasks
+## Results
 
-### Shapes (Easy)
+### Average results
+
+### Tasks
+
+#### Shapes (Easy)
 A shape classification task where models must identify one of five shapes (circle, square, triangle, pentagon, star) from a set of 2D coordinates. The shapes are always centered and have fixed orientation and size, making this the simpler variant of the shape recognition tasks.
 
 ### Shapes (Hard)
