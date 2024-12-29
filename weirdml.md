@@ -27,7 +27,7 @@ The evaluation uses an automated pipeline that:
 ### System Architecture
 <div style="text-align: center">
     <img src="../images/evaluation_setup_diagram.png" width="500"/>
-    <p><em></em></p>
+    <p><em>Evaluation pipeline showing the flow from LLM code generation through isolated execution to metric evaluation and feedback, with fixed computational constraints enforced via Docker.</em></p>
 </div>
 The system executes code in a Docker container with strict resource limits (TITAN V GPU with 12GB memory, 600-second timeout). This ensures fair comparison between models and tests their ability to work within realistic constraints.
 
@@ -38,7 +38,7 @@ Each LLM gets multiple attempts (typically 5) per task, allowing them to learn f
 ### Average results
 <div style="text-align: center">
     <img src="../images/average_accuracy_across_tasks.png" width="800"/>
-    <p><em>Evaluation pipeline showing the flow from LLM code generation through isolated execution to metric evaluation and feedback, with fixed computational constraints enforced via Docker.</em></p>
+    <p><em>Average accuracy across all tasks for each model. Points indicate performance on individual tasks, bars show the mean across tasks.</em></p>
 </div>
 ### Tasks
 
