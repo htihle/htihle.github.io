@@ -36,14 +36,24 @@ Each LLM gets multiple attempts (typically 5) per task, allowing them to learn f
 ## Results
 
 ### Average results
+
+
+
 <div style="text-align: center">
     <img src="../images/average_accuracy_across_tasks.png" width="800"/>
     <p><em>Average accuracy across all tasks for each model. Points indicate performance on individual tasks, bars show the mean across tasks.</em></p>
 </div>
+
 ### Tasks
 The LLMs are evaluated on several different machine learning tasks. These tasks are intended to be possible to solve with a very limited amount of data, while still being hard to solveT They should also require the LLMs to think clearly and actually understand the problem, not just apply a standard ML recipe. 
 
 #### Shapes (Easy)
+<div style="text-align: center">
+    <img src="../images/shapes_easy_max_accuracy_comparison.png" width="800"/>
+    <p><em>Maximum accuracy achieved on the Shapes (Easy) task by each model.</em></p>
+</div>
+
+
 A shape classification task where models must identify one of five shapes (circle, square, triangle, pentagon, star) from a set of 2D coordinates. The shapes are always centered and have fixed orientation and size, making this the simpler variant of the shape recognition tasks.
 
 #### Shapes (Hard)
