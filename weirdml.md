@@ -50,7 +50,10 @@ The LLMs are evaluated on several different machine learning tasks. These tasks 
 #### Shapes (Easy)
 <div style="text-align: center">
     <img src="../images/shapes_easy_max_accuracy_comparison.png" width="800"/>
-    <p><em>Maximum accuracy achieved on the Shapes (Easy) task by each model.</em></p>
+    <p><em>Maximum accuracy achieved on the Shapes (Easy) task by each model. The bars show
+    the mean value over all the runs. Error bars represent the standard deviation over runs
+    (not the error on the mean). The grey dots represent individual runs, and the violin plots
+    shows the distribution of accuracies over all the runs.</em></p>
 </div>
 
 
