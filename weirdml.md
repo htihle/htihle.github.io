@@ -21,7 +21,7 @@ Each task is presented with a clear problem description and example code for loa
 
 <div style="text-align: center">
     <img src="../images/average_accuracy_across_tasks.png" width="800"/>
-    <p><em>Average accuracy across all tasks for each model. Points indicate performance on individual tasks, bars show the mean across tasks.</em></p>
+    <p><em>Average accuracy across all tasks for each model. Grey markers indicate performance on individual tasks, bars show the mean across tasks.</em></p>
 </div>
 
 
@@ -77,8 +77,9 @@ Here the model needs to come up with a way to encode the data that is invariant 
     <p><em>Maximum accuracy for each run on the Image Patch Shuffling (Easy) task by each model. The bars show the mean value over all the runs. Error bars represent the standard deviation over runs (not the error on the mean). The grey dots represent individual runs, and the violin plots shows the distribution of accuracies over all the runs.</em></p>
 </div>
 
+Models must arrange 9 shuffled grayscale image patches (9x9 pixels each) to reconstruct the original 27x27 image. All patches are guaranteed to be part of a single, coherent image. 
 
-Models must arrange 9 shuffled grayscale image patches (9x9 pixels each) to reconstruct the original 27x27 image. All patches are guaranteed to be part of a single, coherent image.
+The original images here are from the fashion MNIST dataset, which is a greyscale dataset of 28x28 images of fashion items, with the items of clothing in the middle against a black background. This means that the position of an individual patch can often be inferred from the patch itself, since for example, a patch in the left of the image will tend to contain the left side of the item of clothing etc. This allows you to get a decent score even if you are not combining the information from the different patches in a good way.
 
 ### Image Patch Shuffling (Hard)
 <div style="text-align: center">
@@ -87,7 +88,7 @@ Models must arrange 9 shuffled grayscale image patches (9x9 pixels each) to reco
 </div>
 
 
-A more challenging version where patches are in RGB and taken from a random 27x27 subset of a larger 64x64 image, requiring more sophisticated visual understanding and spatial reasoning.
+A more challenging version where patches are in RGB and taken from a random 27x27 subset of a larger 64x64 image. The setup here is very similar to the easy version, but now you cannot infer the position of a patch from the patch itself, as the patches are taken from a random subset of the image (so a left patch can be taken from the center of the image). The original images are now also taken from imagnette (a subset of imagenet), which has a much more varied background and which makes it harder to infer the position of the individual patches. This means that the model needs to combine information from the different patches, and use the fact that the patches are supposed to fit well next to each other to make a good prediction.
 
 ### Chess Game Outcome Prediction
 <div style="text-align: center">
@@ -105,17 +106,15 @@ Here the models need to split the string into moves, then convert the string for
 </div>
 A semi-supervised learning task where models must classify digits with only 26 labeled examples and a large set of unlabeled data. The challenge is complicated by uneven class distribution in the unlabeled set. 
 
-This is perhaps the most straightforward task, as a fairly standard semi-supervised learning recipe can be applied, but it is at least a dataset that the models have not seen before, 
-and making semi-supervised learning work is not trivial.
+This is perhaps the most straightforward task, as a fairly standard semi-supervised learning recipe can be applied, but it is at least a dataset that the models have not seen before, and making semi-supervised learning work is not trivial.
 
 
-## Failure Analysis
+## Failure Rates
 <div style="text-align: center">
     <img src="../images/average_failure_rate_across_tasks.png" width="800"/>
-    <p><em>Failure rate for each model on each task. The bars show the mean value over all the runs. Error bars represent the standard deviation over runs (not the error on the mean). The grey dots represent individual runs, and the violin plots shows the distribution of failure rates over all the runs.</em></p>
+    <p><em>Failure rate for each model on each task. The bars show the mean value over all the tasks. The grey markers represent failure rates on individual tasks.</em></p>
 </div>
 
+Failure here means an LLM response that does not produce any valid results. This could be that either the LLM response did not contain any valid python code, the code produced an error when run, or the code produced results that were not in the correct format (or for some other reason resulted in an accuracy of 0). 
 
-
-Analysis of failure rates, showing how often models fail to produce working solutions within the given constraints.
-
+Note that the failure rate here is defined for each submission (of which there are 5 per run), and not for each run. This means that a model can have fairly high failure rates and still get a good score, as long as it is able to produce some valid submissions, which produce good results, within the 5 tries it gets.
