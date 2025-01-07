@@ -90,11 +90,19 @@ Models must arrange 9 shuffled grayscale image patches (9x9 pixels each) to reco
 A more challenging version where patches are in RGB and taken from a random 27x27 subset of a larger 64x64 image, requiring more sophisticated visual understanding and spatial reasoning.
 
 ### Chess Game Outcome Prediction
+<div style="text-align: center">
+    <img src="../images/chess_winners_max_accuracy_comparison.png" width="800"/>
+    <p><em>Maximum accuracy for each run on the Chess Game Outcome Prediction task by each model. The bars show the mean value over all the runs. Error bars represent the standard deviation over runs (not the error on the mean). The grey dots represent individual runs, and the violin plots shows the distribution of accuracies over all the runs.</em></p>
+</div>
 Predicts the outcome of chess games (white wins, black wins, or draw) from game move sequences. The data consists of games played by beginners (rated below 1300), with moves in standard algebraic notation.
 
 Here the models need to split the string into moves, then convert the string for each move into some kind of hand-crafted or learned features, and finally use these features to predict the outcome of the game, while dealing with the vaiable length of the chess games. Once some good features are found, there should be plenty of patterns that can be used to do significantly better than chance on predicting the outcome of the games.
 
 ### Unsupervised Digit Recognition
+<div style="text-align: center">
+    <img src="../images/digits_unsup_max_accuracy_comparison.png" width="800"/>
+    <p><em>Maximum accuracy for each run on the Unsupervised Digit Recognition task by each model. The bars show the mean value over all the runs. Error bars represent the standard deviation over runs (not the error on the mean). The grey dots represent individual runs, and the violin plots shows the distribution of accuracies over all the runs.</em></p>
+</div>
 A semi-supervised learning task where models must classify digits with only 26 labeled examples and a large set of unlabeled data. The challenge is complicated by uneven class distribution in the unlabeled set. 
 
 This is perhaps the most straightforward task, as a fairly standard semi-supervised learning recipe can be applied, but it is at least a dataset that the models have not seen before, 
@@ -102,6 +110,10 @@ and making semi-supervised learning work is not trivial.
 
 
 ## Failure Analysis
+<div style="text-align: center">
+    <img src="../images/average_failure_rate_across_tasks.png" width="800"/>
+    <p><em>Failure rate for each model on each task. The bars show the mean value over all the runs. Error bars represent the standard deviation over runs (not the error on the mean). The grey dots represent individual runs, and the violin plots shows the distribution of failure rates over all the runs.</em></p>
+</div>
 
 
 
