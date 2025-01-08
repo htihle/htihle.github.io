@@ -83,7 +83,7 @@ Here the model needs to come up with a way to encode the data that is (at least 
 
 ### Image Patch Shuffling (Easy)
 <div style="text-align: center">
-    <img src="../images/scrambled_vs_unscrambled_easy.png" width="600"/>
+    <img src="../images/scrambled_vs_unscrambled_easy.png" width="500"/>
     <p><em>Example data from the Image Patch Shuffling (Easy) task. Models must arrange 9 shuffled grayscale image patches (9x9 pixels each) to reconstruct the original 27x27 image.</em></p>
 </div>
 
@@ -99,7 +99,7 @@ The original images here are from the fashion MNIST dataset, which is a greyscal
 
 ### Image Patch Shuffling (Hard)
 <div style="text-align: center">
-    <img src="../images/scrambled_vs_unscrambled_hard.png" width="600"/>
+    <img src="../images/scrambled_vs_unscrambled_hard.png" width="500"/>
     <p><em>Example data from the Image Patch Shuffling (Hard) task. Models must arrange 9 shuffled RGB image patches (9x9 pixels each) from a random 27x27 subset of a larger 64x64 image.</em></p>
 </div>
 
@@ -116,7 +116,7 @@ A more challenging version where patches are in RGB and taken from a random 27x2
     <p><em>Example data from the Chess Game Outcome Prediction task. Models must predict the outcome of chess games (white wins, black wins, or draw) from game move sequences given as strings (here truncated).</em></p>
 </div>
 
-Predicts the outcome of chess games (white wins, black wins, or draw) from game move sequences. The data consists of games played by beginners (rated below 1300), with moves in standard algebraic notation.
+Predicts the outcome of chess games (white wins, black wins, or draw) from game move sequences. The data consists of games played by beginners (rated below 1300), with moves in standard algebraic notation. Note that with 50% probability, the last move (for a single player) is removed, to prevent models using who moves last as a signal for the outcome.
 
 Here the models need to split the string into moves, then convert the string for each move into some kind of hand-crafted or learned features, and finally use these features to predict the outcome of the game, while dealing with the vaiable length of the chess games. Once some good features are found, there should be plenty of patterns that can be used to do significantly better than chance on predicting the outcome of the games.
 
