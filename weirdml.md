@@ -41,18 +41,19 @@ The evaluation uses an automated pipeline that:
 </div>
 The system executes code in a Docker container with strict resource limits (TITAN V GPU with 12GB memory, 600-second timeout). This ensures fair comparison between models and tests their ability to work within realistic constraints.
 
-In each 'run' is 5 iterations, i.e. the LLM gets 5 submissions, and 4 rounds of feedback, allowing them to learn from feedback and improve their solutions. The accuracy of each run is the maximum accuracy achieved over all the submissions in that run.
+Each 'run' is 5 iterations, i.e. the LLM gets 5 submissions, and 4 rounds of feedback, allowing them to learn from feedback and improve their solutions. The accuracy of each run is the maximum accuracy achieved over all the submissions in that run.
 
-For each task we give each model 15 runs, in order to take into account the large variance in performance that we see for the same model on the same task. The final score for each model is the mean accuracy over all the runs.
+For each task we give each model (at least) 15 runs, in order to take into account the large variance in performance that we see for the same model on the same task. The final score for each model on that task is the mean accuracy over all the runs.
 
 
 ## Tasks
 The LLMs are evaluated on several different machine learning tasks. These tasks are intended to be possible to solve with a very limited amount of data, while still being hard to solve. They should also require the LLMs to think clearly and actually understand the data and its properties, not just blindly apply a standard ML recipe. 
 
 ### Shapes (Easy)
+
 <div style="text-align: center">
-    <img src="../images/shapes_easy_max_accuracy_comparison.png" width="800"/>
-    <p><em>Maximum accuracy for each run on the Shapes (Easy) task by each model. The bars show the mean value over all the runs. Error bars represent the standard deviation over runs (not the error on the mean). The grey dots represent individual runs, and the violin plots shows the distribution of accuracies over all the runs.</em></p>
+    <img src="../images/train_examples_easy.png" width="800"/>
+    <p><em>Example data from the Shapes (Easy) task. The shapes are always centered and have fixed orientation and size, making this the simpler variant of the shape recognition tasks.</em></p>
 </div>
 
 
@@ -60,16 +61,25 @@ A shape classification task where models must identify one of five shapes (circl
 
 Here the model needs to come up with a way to encode the data that is invariant to permutations of the points. The distribution of points along the shape also varies greatly, so the model needs to combine information from many points to make a good prediction. 
 
+<div style="text-align: center">
+    <img src="../images/shapes_easy_max_accuracy_comparison.png" width="800"/>
+    <p><em>Maximum accuracy for each run on the Shapes (Easy) task by each model. The bars show the mean value over all the runs. Error bars represent the standard deviation over runs (not the error on the mean). The grey dots represent individual runs, and the violin plots shows the distribution of accuracies over all the runs.</em></p>
+</div>
+
 ### Shapes (Hard)
+<div style="text-align: center">
+    <img src="../images/train_examples_hard.png" width="800"/>
+    <p><em>Example data from the Shapes (Hard) task. The shapes are randomly positioned, oriented, and sized, making this a more challenging variant of the shape recognition tasks.</em></p>
+</div>
+
+Similar to Shapes (Easy), but with random positioning, orientation, and size of the shapes. This tests the model's ability to create translation, rotation, and scale invariant features.
+
+Here the model needs to come up with a way to encode the data that is (at least somewhat) invariant to translations, rotations, and scaling. Here it is crucial for the different points to be processed together, as it is the relative positions of the points that determine the shape. Good data augmentation is also crucial on this one. 
+
 <div style="text-align: center">
     <img src="../images/shapes_hard_max_accuracy_comparison.png" width="800"/>
     <p><em>Maximum accuracy for each run on the Shapes (Hard) task by each model. The bars show the mean value over all the runs. Error bars represent the standard deviation over runs (not the error on the mean). The grey dots represent individual runs, and the violin plots shows the distribution of accuracies over all the runs.</em></p>
 </div>
-
-
-Similar to Shapes (Easy), but with random positioning, orientation, and size of the shapes. This tests the model's ability to create translation, rotation, and scale invariant features.
-
-Here the model needs to come up with a way to encode the data that is invariant to translations, rotations, and scaling. Here it is crucial for the different points to be processed together, as it is the relative positions of the points that determine the shape. Good data augmentation is also crucial on this one. 
 
 ### Image Patch Shuffling (Easy)
 <div style="text-align: center">
