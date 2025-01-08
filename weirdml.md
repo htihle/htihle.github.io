@@ -52,7 +52,7 @@ The LLMs are evaluated on several different machine learning tasks. These tasks 
 ### Shapes (Easy)
 
 <div style="text-align: center">
-    <img src="../images/train_examples_easy.png" width="800"/>
+    <img src="../images/train_examples_easy.png" width="600"/>
     <p><em>Example data from the Shapes (Easy) task. The shapes are always centered and have fixed orientation and size, making this the simpler variant of the shape recognition tasks.</em></p>
 </div>
 
@@ -68,7 +68,7 @@ Here the model needs to come up with a way to encode the data that is invariant 
 
 ### Shapes (Hard)
 <div style="text-align: center">
-    <img src="../images/train_examples_hard.png" width="800"/>
+    <img src="../images/train_examples_hard.png" width="600"/>
     <p><em>Example data from the Shapes (Hard) task. The shapes are randomly positioned, oriented, and sized, making this a more challenging variant of the shape recognition tasks.</em></p>
 </div>
 
@@ -83,41 +83,58 @@ Here the model needs to come up with a way to encode the data that is (at least 
 
 ### Image Patch Shuffling (Easy)
 <div style="text-align: center">
-    <img src="../images/shuffle_easy_max_accuracy_comparison.png" width="800"/>
-    <p><em>Maximum accuracy for each run on the Image Patch Shuffling (Easy) task by each model. The bars show the mean value over all the runs. Error bars represent the standard deviation over runs (not the error on the mean). The grey dots represent individual runs, and the violin plots shows the distribution of accuracies over all the runs.</em></p>
+    <img src="../images/scrambled_vs_unscrambled_easy.png" width="600"/>
+    <p><em>Example data from the Image Patch Shuffling (Easy) task. Models must arrange 9 shuffled grayscale image patches (9x9 pixels each) to reconstruct the original 27x27 image.</em></p>
 </div>
+
 
 Models must arrange 9 shuffled grayscale image patches (9x9 pixels each) to reconstruct the original 27x27 image. All patches are guaranteed to be part of a single, coherent image. 
 
 The original images here are from the fashion MNIST dataset, which is a greyscale dataset of 28x28 images of fashion items, with the items of clothing in the middle against a black background. This means that the position of an individual patch can often be inferred from the patch itself, since for example, a patch in the left of the image will tend to contain the left side of the item of clothing etc. This allows you to get a decent score even if you are not combining the information from the different patches in a good way.
 
+<div style="text-align: center">
+    <img src="../images/shuffle_easy_max_accuracy_comparison.png" width="800"/>
+    <p><em>Maximum accuracy for each run on the Image Patch Shuffling (Easy) task by each model. The bars show the mean value over all the runs. Error bars represent the standard deviation over runs (not the error on the mean). The grey dots represent individual runs, and the violin plots shows the distribution of accuracies over all the runs.</em></p>
+</div>
+
 ### Image Patch Shuffling (Hard)
+<div style="text-align: center">
+    <img src="../images/scrambled_vs_unscrambled_hard.png" width="600"/>
+    <p><em>Example data from the Image Patch Shuffling (Hard) task. Models must arrange 9 shuffled RGB image patches (9x9 pixels each) from a random 27x27 subset of a larger 64x64 image.</em></p>
+</div>
+
+A more challenging version where patches are in RGB and taken from a random 27x27 subset of a larger 64x64 image. The setup here is very similar to the easy version, but now you cannot infer the position of a patch from the patch itself, as the patches are taken from a random subset of the image (so a left patch can be taken from the center of the image). The original images are now also taken from imagnette (a subset of imagenet), which has a much more varied background and which makes it harder to infer the position of the individual patches. This means that the model needs to combine information from the different patches, and use the fact that the patches are supposed to fit well next to each other to make a good prediction.
+
 <div style="text-align: center">
     <img src="../images/shuffle_hard_max_accuracy_comparison.png" width="800"/>
     <p><em>Maximum accuracy for each run on the Image Patch Shuffling (Hard) task by each model. The bars show the mean value over all the runs. Error bars represent the standard deviation over runs (not the error on the mean). The grey dots represent individual runs, and the violin plots shows the distribution of accuracies over all the runs.</em></p>
 </div>
 
-
-A more challenging version where patches are in RGB and taken from a random 27x27 subset of a larger 64x64 image. The setup here is very similar to the easy version, but now you cannot infer the position of a patch from the patch itself, as the patches are taken from a random subset of the image (so a left patch can be taken from the center of the image). The original images are now also taken from imagnette (a subset of imagenet), which has a much more varied background and which makes it harder to infer the position of the individual patches. This means that the model needs to combine information from the different patches, and use the fact that the patches are supposed to fit well next to each other to make a good prediction.
-
 ### Chess Game Outcome Prediction
-<div style="text-align: center">
-    <img src="../images/chess_winners_max_accuracy_comparison.png" width="800"/>
-    <p><em>Maximum accuracy for each run on the Chess Game Outcome Prediction task by each model. The bars show the mean value over all the runs. Error bars represent the standard deviation over runs (not the error on the mean). The grey dots represent individual runs, and the violin plots shows the distribution of accuracies over all the runs.</em></p>
-</div>
+
 Predicts the outcome of chess games (white wins, black wins, or draw) from game move sequences. The data consists of games played by beginners (rated below 1300), with moves in standard algebraic notation.
 
 Here the models need to split the string into moves, then convert the string for each move into some kind of hand-crafted or learned features, and finally use these features to predict the outcome of the game, while dealing with the vaiable length of the chess games. Once some good features are found, there should be plenty of patterns that can be used to do significantly better than chance on predicting the outcome of the games.
 
+<div style="text-align: center">
+    <img src="../images/chess_winners_max_accuracy_comparison.png" width="800"/>
+    <p><em>Maximum accuracy for each run on the Chess Game Outcome Prediction task by each model. The bars show the mean value over all the runs. Error bars represent the standard deviation over runs (not the error on the mean). The grey dots represent individual runs, and the violin plots shows the distribution of accuracies over all the runs.</em></p>
+</div>
+
 ### Unsupervised Digit Recognition
 <div style="text-align: center">
-    <img src="../images/digits_unsup_max_accuracy_comparison.png" width="800"/>
-    <p><em>Maximum accuracy for each run on the Unsupervised Digit Recognition task by each model. The bars show the mean value over all the runs. Error bars represent the standard deviation over runs (not the error on the mean). The grey dots represent individual runs, and the violin plots shows the distribution of accuracies over all the runs.</em></p>
+    <img src="../images/train_test_data.png" width="600"/>
+    <p><em>Example data from the Unsupervised Digit Recognition task. Models must classify digits with only 26 labeled examples and a large set of unlabeled data.</em></p>
 </div>
+
 A semi-supervised learning task where models must classify digits with only 26 labeled examples and a large set of unlabeled data. The challenge is complicated by uneven class distribution in the unlabeled set. 
 
 This is perhaps the most straightforward task, as a fairly standard semi-supervised learning recipe can be applied, but it is at least a dataset that the models have not seen before, and making semi-supervised learning work is not trivial.
 
+<div style="text-align: center">
+    <img src="../images/digits_unsup_max_accuracy_comparison.png" width="800"/>
+    <p><em>Maximum accuracy for each run on the Unsupervised Digit Recognition task by each model. The bars show the mean value over all the runs. Error bars represent the standard deviation over runs (not the error on the mean). The grey dots represent individual runs, and the violin plots shows the distribution of accuracies over all the runs.</em></p>
+</div>
 
 ## Failure Rates
 <div style="text-align: center">
