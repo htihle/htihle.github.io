@@ -30,4 +30,4 @@ and Natural Sciences at the University of Oslo in 2021
 - HPC: MPI, OpenMP
 - Statistical modeling, Bayesian inference
 
-For the full details, including publications and teaching experience, please refer to the [complete CV PDF](CV_htihle.pdf).
+For the full details please refer to the [complete CV PDF](CV_htihle.pdf).

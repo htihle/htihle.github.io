@@ -111,6 +111,10 @@ A more challenging version where patches are in RGB and taken from a random 27x2
 </div>
 
 ### Chess Game Outcome Prediction
+<div style="text-align: center">
+    <img src="../images/chess-games.png" width="600"/>
+    <p><em>Example data from the Chess Game Outcome Prediction task. Models must predict the outcome of chess games (white wins, black wins, or draw) from game move sequences given as strings (here truncated).</em></p>
+</div>
 
 Predicts the outcome of chess games (white wins, black wins, or draw) from game move sequences. The data consists of games played by beginners (rated below 1300), with moves in standard algebraic notation.
 
