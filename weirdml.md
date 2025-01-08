@@ -39,7 +39,9 @@ The evaluation uses an automated pipeline that:
     <img src="../images/evaluation_setup_diagram.png" width="500"/>
     <p><em>Evaluation pipeline showing the flow from LLM code generation through isolated execution to metric evaluation and feedback, with fixed computational constraints enforced via Docker.</em></p>
 </div>
-The system executes code in a Docker container with strict resource limits (TITAN V GPU with 12GB memory, 600-second timeout). This ensures fair comparison between models and tests their ability to work within realistic constraints.
+The system executes code in a Docker container with strict resource limits (TITAN V GPU with 12GB memory, 600-second timeout). This ensures fair comparison between models and tests their ability to work within realistic constraints. 
+
+[Full system prompt](prompts/system_prompt.md)
 
 Each 'run' is 5 iterations, i.e. the LLM gets 5 submissions, and 4 rounds of feedback, allowing them to learn from feedback and improve their solutions. The accuracy of each run is the maximum accuracy achieved over all the submissions in that run.
 
