@@ -1,5 +1,5 @@
 ---
-title: "Task Prompt: Shuffle (Easy)"
+title: "Task Prompt: Shuffle (Hard)"
 ---
 ~~~~
 This is a challenge to test how good you are at doing machine learning on an unknown dataset. The data consists of scrambled image patches that need to be arranged in the correct order.
