@@ -57,7 +57,7 @@ The LLMs are evaluated on several different machine learning tasks. These tasks 
 </div>
 
 
-A shape classification task where models must identify one of five shapes (circle, square, triangle, pentagon, star) from a set of 512 2D coordinates. Only some of the points make up the shape, the other points are noise. The shapes are always centered and have fixed orientation and size, making this the simpler variant of the shape recognition tasks.
+A shape classification task ([task prompt](prompts/task_prompt_shapes_easy.md))where models must identify one of five shapes (circle, square, triangle, pentagon, star) from a set of 512 2D coordinates. Only some of the points make up the shape, the other points are noise. The shapes are always centered and have fixed orientation and size, making this the simpler variant of the shape recognition tasks.
 
 Here the model needs to come up with a way to encode the data that is invariant to permutations of the points. The distribution of points along the shape also varies greatly, so the model needs to combine information from many points to make a good prediction. 
 
@@ -72,7 +72,7 @@ Here the model needs to come up with a way to encode the data that is invariant 
     <p><em>Example data from the Shapes (Hard) task. The shapes are randomly positioned, oriented, and sized, making this a more challenging variant of the shape recognition tasks.</em></p>
 </div>
 
-Similar to Shapes (Easy), but with random positioning, orientation, and size of the shapes. This tests the model's ability to create translation, rotation, and scale invariant features.
+Similar to Shapes (Easy), but with random positioning, orientation, and size of the shapes ([task prompt](prompts/task_prompt_shapes_hard.md)). This tests the model's ability to create translation, rotation, and scale invariant features.
 
 Here the model needs to come up with a way to encode the data that is (at least somewhat) invariant to translations, rotations, and scaling. Here it is crucial for the different points to be processed together, as it is the relative positions of the points that determine the shape. Good data augmentation is also crucial on this one. 
 
@@ -88,7 +88,7 @@ Here the model needs to come up with a way to encode the data that is (at least 
 </div>
 
 
-Models must arrange 9 shuffled grayscale image patches (9x9 pixels each) to reconstruct the original 27x27 image. All patches are guaranteed to be part of a single, coherent image. 
+Models must arrange 9 shuffled grayscale image patches (9x9 pixels each) to reconstruct the original 27x27 image. All patches are guaranteed to be part of a single, coherent image ([task prompt](prompts/task_prompt_shuffle_easy.md)).
 
 The original images here are from the fashion MNIST dataset, which is a greyscale dataset of 28x28 images of fashion items, with the items of clothing in the middle against a black background. This means that the position of an individual patch can often be inferred from the patch itself, since for example, a patch in the left of the image will tend to contain the left side of the item of clothing etc. This allows you to get a decent score even if you are not combining the information from the different patches in a good way.
 
@@ -103,7 +103,7 @@ The original images here are from the fashion MNIST dataset, which is a greyscal
     <p><em>Example data from the Image Patch Shuffling (Hard) task. Models must arrange 9 shuffled RGB image patches (9x9 pixels each) from a random 27x27 subset of a larger 64x64 image.</em></p>
 </div>
 
-A more challenging version where patches are in RGB and taken from a random 27x27 subset of a larger 64x64 image. The setup here is very similar to the easy version, but now you cannot infer the position of a patch from the patch itself, as the patches are taken from a random subset of the image (so a left patch can be taken from the center of the image). The original images are now also taken from imagnette (a subset of imagenet), which has a much more varied background and which makes it harder to infer the position of the individual patches. This means that the model needs to combine information from the different patches, and use the fact that the patches are supposed to fit well next to each other to make a good prediction.
+A more challenging version where patches are in RGB and taken from a random 27x27 subset of a larger 64x64 image ([task prompt](prompts/task_prompt_shuffle_hard.md)). The setup here is very similar to the easy version, but now you cannot infer the position of a patch from the patch itself, as the patches are taken from a random subset of the image (so a left patch can be taken from the center of the image). The original images are now also taken from imagnette (a subset of imagenet), which has a much more varied background and which makes it harder to infer the position of the individual patches. This means that the model needs to combine information from the different patches, and use the fact that the patches are supposed to fit well next to each other to make a good prediction.
 
 <div style="text-align: center">
     <img src="../images/shuffle_hard_max_accuracy_comparison.png" width="800"/>
@@ -116,7 +116,7 @@ A more challenging version where patches are in RGB and taken from a random 27x2
     <p><em>Example data from the Chess Game Outcome Prediction task. Models must predict the outcome of chess games (white wins, black wins, or draw) from game move sequences given as strings (here truncated).</em></p>
 </div>
 
-Predicts the outcome of chess games (white wins, black wins, or draw) from game move sequences. The data consists of games played by beginners (rated below 1300), with moves in standard algebraic notation. Note that with 50% probability, the last move (for a single player) is removed, to prevent models using who moves last as a signal for the outcome.
+Predict the outcome of chess games (white wins, black wins, or draw) from game move sequences ([task prompt](prompts/task_prompt_chess_winners.md)). The data consists of games played by beginners (rated below 1300), with moves in standard algebraic notation. Note that with 50% probability, the last move (for a single player) is removed, to prevent models using who moves last as a signal for the outcome.
 
 Here the models need to split the string into moves, then convert the string for each move into some kind of hand-crafted or learned features, and finally use these features to predict the outcome of the game, while dealing with the vaiable length of the chess games. Once some good features are found, there should be plenty of patterns that can be used to do significantly better than chance on predicting the outcome of the games.
 
@@ -131,7 +131,7 @@ Here the models need to split the string into moves, then convert the string for
     <p><em>Example data from the Unsupervised Digit Recognition task. Models must classify digits with only 26 labeled examples and a large set of unlabeled data.</em></p>
 </div>
 
-A semi-supervised learning task where models must classify digits with only 26 labeled examples and a large set of unlabeled data. The challenge is complicated by uneven class distribution in the unlabeled set. 
+A semi-supervised learning task where models must classify digits with only 26 labeled examples and a large set of unlabeled data ([task prompt](prompts/task_prompt_digits_unsup.md)). The challenge is complicated by uneven class distribution in the unlabeled set. 
 
 This is perhaps the most straightforward task, as a fairly standard semi-supervised learning recipe can be applied, but it is at least a dataset that the models have not seen before, and making semi-supervised learning work is not trivial.
 
