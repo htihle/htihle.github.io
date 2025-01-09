@@ -1,5 +1,5 @@
 ---
-title: Task Prompt: Shapes (Easy)
+title: Task Prompt Shapes (Easy)
 ---
 ~~~~
 This is a challenge to test how good you are at doing machine learning on an unknown dataset. 
