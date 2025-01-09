@@ -1,5 +1,5 @@
 ---
-title: Task Prompt: Chess Game Outcome Prediction
+title: "Task Prompt: Chess Game Outcome Prediction"
 ---
 ~~~~
 This is a challenge to test how good you are at doing machine learning on an unknown dataset. The data consists of chess games 

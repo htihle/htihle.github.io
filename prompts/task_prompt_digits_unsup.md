@@ -1,5 +1,5 @@
 ---
-title: Task Prompt: Unsupervised Digit Recognition
+title: "Task Prompt: Unsupervised Digit Recognition"
 ---
 ~~~~
 This is a challenge to test how good you are at doing machine learning on an unknown dataset. The data consists of images of digits displayed over a varying background.

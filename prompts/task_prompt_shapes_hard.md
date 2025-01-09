@@ -1,5 +1,5 @@
 ---
-title: Task Prompt: Shapes (Hard)
+title: "Task Prompt: Shapes (Hard)"
 ---
 ~~~~
 This is a challenge to test how good you are at doing machine learning on an unknown dataset. 
