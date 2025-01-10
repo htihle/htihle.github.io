@@ -24,61 +24,59 @@ Each task is presented with a clear problem description and example code for loa
     <p><em>Average accuracy across all tasks for each model. Grey markers indicate performance on individual tasks, bars show the mean across tasks.</em></p>
 </div>
 
-<div style="text-align: center" class='task-performance-table'>
-    <html>
-    <head>
+<div style="text-align: center" class='task-performance-table-outer'>
+    <div class='task-performance-table'>
         <style>
-            body { 
-                font-family: Arial, sans-serif;
-                font-size: 12px;  /* Smaller base font size */
+            .task-performance-table {
+                font-size: 12px;  /* Scoped to just this table */
             }
-            table { 
+            .task-performance-table table { 
                 border-collapse: collapse; 
                 width: 100%;
                 margin: 20px 0;
                 table-layout: fixed;  /* Enable fixed column widths */
             }
-            th, td { 
+            .task-performance-table th, 
+            .task-performance-table td { 
                 padding: 4px;  /* Reduced padding */
                 text-align: center;
                 border: 1px solid #ddd;
-                overflow: hidden;
-                text-overflow: ellipsis;
-                white-space: nowrap;
+                white-space: normal;  /* Allow text wrapping */
+                word-wrap: break-word;
             }
-            th:first-child, td:first-child {
+            .task-performance-table th:first-child, 
+            .task-performance-table td:first-child {
                 width: 25%;  /* Make model column wider */
             }
-            th:not(:first-child), td:not(:first-child) {
+            .task-performance-table th:not(:first-child), 
+            .task-performance-table td:not(:first-child) {
                 width: 7%;  /* Other columns share remaining space */
             }
-            th { 
+            .task-performance-table th { 
                 background-color: #f5f5f5;
                 font-weight: bold;
-                font-size: 12px;  /* Match base font size */
             }
-            tr:nth-child(even) { background-color: #f9f9f9; }
-            .model-cell {
+            .task-performance-table tr:nth-child(even) { 
+                background-color: #f9f9f9; 
+            }
+            .task-performance-table .model-cell {
                 text-align: left;
                 font-weight: bold;
                 padding-left: 15px;
-                color: black !important;  /* Force black text */
+                color: black !important;
             }
-            .header-cell {
+            .task-performance-table .header-cell {
                 background-color: #f0f0f0;
                 font-weight: bold;
                 color: black;
             }
         </style>
-    </head>
-    <body>
-    <table>
-        <tr>
-            <th class="header-cell">Model</th>
+        <table>
+            <tr>
+                <th class="header-cell">Model</th>
     <th class="header-cell">Shapes Easy</th><th class="header-cell">Shapes Hard</th><th class="header-cell">Shuffle Easy</th><th class="header-cell">Shuffle Hard</th><th class="header-cell">Digits Unsup</th><th class="header-cell">Chess Winners</th><th class="header-cell">Average</th></tr><tr style="background-color: #d75f3a25"><td class="model-cell">claude-3-5-sonnet-20241022</td><td>84.79%</td><td>29.12%</td><td>47.39%</td><td>11.46%</td><td>80.27%</td><td>52.62%</td><td><strong>50.94%</strong></td></tr><tr style="background-color: #4c4c4c25"><td class="model-cell">o1-preview-2024-09-12</td><td>98.70%</td><td>24.70%</td><td>50.02%</td><td>12.07%</td><td>34.40%</td><td>53.50%</td><td><strong>45.56%</strong></td></tr><tr style="background-color: #4c4c4c25"><td class="model-cell">o1-mini-2024-09-12</td><td>86.92%</td><td>23.80%</td><td>44.57%</td><td>11.42%</td><td>43.20%</td><td>57.14%</td><td><strong>44.51%</strong></td></tr><tr style="background-color: #d75f3a25"><td class="model-cell">claude-3-5-haiku-20241022</td><td>84.39%</td><td>23.85%</td><td>52.23%</td><td>10.07%</td><td>43.33%</td><td>48.66%</td><td><strong>43.75%</strong></td></tr><tr style="background-color: #2dcc7025"><td class="model-cell">gemini-2.0-flash-thinking-exp-1219</td><td>68.48%</td><td>21.63%</td><td>45.84%</td><td>11.20%</td><td>55.54%</td><td>53.37%</td><td><strong>42.68%</strong></td></tr><tr style="background-color: #2dcc7025"><td class="model-cell">gemini-2.0-flash-exp</td><td>49.46%</td><td>21.76%</td><td>38.65%</td><td>9.97%</td><td>60.78%</td><td>54.02%</td><td><strong>39.11%</strong></td></tr><tr style="background-color: #7f7f7f25"><td class="model-cell">deepseek-v3</td><td>72.74%</td><td>21.71%</td><td>32.78%</td><td>10.77%</td><td>33.40%</td><td>52.31%</td><td><strong>37.29%</strong></td></tr><tr style="background-color: #4c4c4c25"><td class="model-cell">gpt-4o-2024-11-20</td><td>68.95%</td><td>23.28%</td><td>36.75%</td><td>10.90%</td><td>29.77%</td><td>47.22%</td><td><strong>36.15%</strong></td></tr><tr style="background-color: #2dcc7025"><td class="model-cell">gemini-exp-1206</td><td>43.25%</td><td>21.82%</td><td>38.65%</td><td>11.86%</td><td>37.55%</td><td>49.95%</td><td><strong>33.85%</strong></td></tr><tr style="background-color: #7f7f7f25"><td class="model-cell">grok-2-1212</td><td>70.59%</td><td>21.40%</td><td>14.53%</td><td>5.40%</td><td>14.36%</td><td>39.45%</td><td><strong>27.62%</strong></td></tr><tr style="background-color: #ff7e0025"><td class="model-cell">qwq:32b-preview-q8_0</td><td>57.06%</td><td>18.44%</td><td>16.56%</td><td>6.46%</td><td>10.94%</td><td>45.32%</td><td><strong>25.80%</strong></td></tr><tr style="background-color: #ff7e0025"><td class="model-cell">qwen2.5-coder:32b-instruct-q8_0</td><td>55.75%</td><td>18.67%</td><td>16.16%</td><td>6.52%</td><td>10.53%</td><td>44.89%</td><td><strong>25.42%</strong></td></tr><tr style="background-color: #4c4c4c25"><td class="model-cell">gpt-4o-mini-2024-07-18</td><td>32.93%</td><td>19.95%</td><td>18.83%</td><td>4.87%</td><td>27.00%</td><td>38.28%</td><td><strong>23.64%</strong></td></tr><tr style="background-color: #0079f725"><td class="model-cell">llama3.3:70b-instruct-q8_0</td><td>40.86%</td><td>20.85%</td><td>9.86%</td><td>2.52%</td><td>22.35%</td><td>44.44%</td><td><strong>23.48%</strong></td></tr><tr style="background-color: #0079f725"><td class="model-cell">llama3.1:405b-instruct-q4_K_M</td><td>41.91%</td><td>19.41%</td><td>5.19%</td><td>2.27%</td><td>31.85%</td><td>37.40%</td><td><strong>23.00%</strong></td></tr><tr style="background-color: #2dcc7025"><td class="model-cell">gemini-1.5-flash-002</td><td>42.03%</td><td>21.31%</td><td>3.56%</td><td>11.27%</td><td>-</td><td>-</td><td><strong>19.54%</strong></td></tr><tr style="background-color: #7f7f7f25"><td class="model-cell">phi4:14b-q8_0</td><td>26.48%</td><td>5.73%</td><td>3.30%</td><td>2.44%</td><td>12.92%</td><td>28.08%</td><td><strong>13.16%</strong></td></tr><tr style="background-color: #0079f725"><td class="model-cell">llama3.1:70b-instruct-q8_0</td><td>25.61%</td><td>9.61%</td><td>0.69%</td><td>-</td><td>-</td><td>-</td><td><strong>11.97%</strong></td></tr><tr style="background-color: #2dcc7025"><td class="model-cell">gemma2:27b-instruct-q8_0</td><td>21.51%</td><td>8.76%</td><td>0.00%</td><td>1.49%</td><td>0.00%</td><td>0.00%</td><td><strong>5.30%</strong></td></tr><tr style="background-color: #0079f725"><td class="model-cell">llama3.1:8b-instruct-q8_0</td><td>6.77%</td><td>2.22%</td><td>0.66%</td><td>0.76%</td><td>1.35%</td><td>0.00%</td><td><strong>1.96%</strong></td></tr>
-    </table>
-    </body>
-    </html>
+        </table>
+    </div>
     <p><em>Table caption.</em></p>
 </div>
 
