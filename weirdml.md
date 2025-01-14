@@ -193,7 +193,28 @@ This is perhaps the most straightforward task, as a fairly standard semi-supervi
     <p><em>Maximum accuracy for each run on the Unsupervised Digit Recognition task by each model. The bars show the mean value over all the runs. Error bars represent the standard deviation over runs (not the error on the mean). The grey dots represent individual runs, and the violin plots shows the distribution of accuracies over all the runs.</em></p>
 </div>
 
-## Failure Rates
+## Further Analysis
+We have performed some very basic additional analysis of the results here. 
+
+### Model Performance by Number of Iterations
+<div style="text-align: center">
+    <img src="../images/iteration_comparison.png" width="800"/>
+    <p><em>Caption.</em></p>
+</div>
+
+### Maximum of k First Submissions (max@k)
+Similar to how pass@k means that at least one of k tries passes, max@k can be defined as the maximum accuracy of k tries. Here we use this to mean k first iterations (so the model gets no feedback). 3 of the models had over 50 runs on all the tasks, so there we actually have a decent number of first tries to look at.
+
+Comparing the performance of 5 first tries to 5 iterations with feedback tells you if the model actually uses the feedback productively or if another completely independent try is better. As the models get smarter, they will be better at using the feedback efficiently, and the difference between the two measures should increase, so this is something to keep an eye on.
+<div style="text-align: center">
+    <img src="../images/maxk_comparison.png" width="800"/>
+    <p><em>Caption.</em></p>
+</div>
+In the figure we see that for these three models, the 5 iteration result is better than the 5 first tries result, so the models are able to use the feedback, but the difference is small suggesting that most of the benefit of more iterations comes from just getting more tries, and not from the actual feedback. 
+
+It is interesting to note that the model with the largest benefit of 5 iterations over 5 independent tries is the gemini-2.0-flash-thinking model. This suggest that the reasoning model is using the feedback more efficiently than the other models, and that its better overall results compared to gemini-2.0-flash is mostly due to this. Based on this one datapoint, we should not conclude much, but this observation is also consistent with o1-mini and o1-preview, OpenAIs reasoning models, having a larger relative improvement from 1 iteration to 5 iterations than for example claude-3-5-sonnet.
+
+### Failure Rates
 <div style="text-align: center">
     <img src="../images/average_failure_rate_across_tasks.png" width="800"/>
     <p><em>Failure rate for each model on each task. The bars show the mean value over all the tasks. The grey markers represent failure rates on individual tasks.</em></p>
