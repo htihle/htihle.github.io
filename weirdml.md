@@ -118,6 +118,7 @@ Here the model needs to come up with a way to encode the data that is invariant 
     <img src="../images/shapes_easy_max_accuracy_comparison.png" width="800"/>
     <p><em>Maximum accuracy for each run on the Shapes (Easy) task by each model. The bars show the mean value over all the runs. Error bars represent the standard deviation over runs (not the error on the mean). The grey dots represent individual runs, and the violin plots shows the distribution of accuracies over all the runs.</em></p>
 </div>
+We can see from the model performance that this is the easiest task. If you are not careful in your architecture, it is very easy to completely overfit on the training data, but if you do something somewhat reasonable, you should be able to get a decent score on this task. o1-preview got an average accuracy of 98% after 5 runs on this task, which is probably about the ceiling for this task.
 
 ### Shapes (Hard)
 <div style="text-align: center">
@@ -134,6 +135,10 @@ Here the model needs to come up with a way to encode the data that is (at least 
     <p><em>Maximum accuracy for each run on the Shapes (Hard) task by each model. The bars show the mean value over all the runs. Error bars represent the standard deviation over runs (not the error on the mean). The grey dots represent individual runs, and the violin plots shows the distribution of accuracies over all the runs.</em></p>
 </div>
 
+While similar in structure to the easy version, this task is much harder. In the easy task, when the shapes are always in the same positions, the model can learn what positions correspond to what shapes. This is not possible here, now you need to use the relative position of the different points in a rotationally invariant and scale invariant way, which is much harder. 
+
+The task is definitely solvable, but no models get consistently good results, and only a few models manage to sometimes get good runs here, with the best scores a bit above 60%, from claude-3-5-sonnet and o1-mini. Another notable result is qwq:32b managing a score of about 40% for its best run, which is impressive from such a small model. 
+
 ### Image Patch Shuffling (Easy)
 <div style="text-align: center">
     <img src="../images/scrambled_vs_unscrambled_easy.png" width="500"/>
@@ -149,6 +154,7 @@ The original images here are from the fashion MNIST dataset, which is a greyscal
     <img src="../images/shuffle_easy_max_accuracy_comparison.png" width="800"/>
     <p><em>Maximum accuracy for each run on the Image Patch Shuffling (Easy) task by each model. The bars show the mean value over all the runs. Error bars represent the standard deviation over runs (not the error on the mean). The grey dots represent individual runs, and the violin plots shows the distribution of accuracies over all the runs.</em></p>
 </div>
+This is a task with the larges variations in the results for each single model. All models sometimes fail, or at leas get very low scores on this task, but most models also sometimes get a very good result. The patterns in the data should be easy to find if you have a reasonable architecture, but it may be a bit complicated to put all the pieces of the code together without making any mistakes, which the relatively high failure rate on this task suggests.
 
 ### Image Patch Shuffling (Hard)
 <div style="text-align: center">
@@ -162,6 +168,12 @@ A more challenging version where patches are in RGB and taken from a random 27x2
     <img src="../images/shuffle_hard_max_accuracy_comparison.png" width="800"/>
     <p><em>Maximum accuracy for each run on the Image Patch Shuffling (Hard) task by each model. The bars show the mean value over all the runs. Error bars represent the standard deviation over runs (not the error on the mean). The grey dots represent individual runs, and the violin plots shows the distribution of accuracies over all the runs.</em></p>
 </div>
+
+This is the task that the models struggle the most with. No models do significantly better than chance here. The main insight that (as far as I have seen) none of the models use is that they are given all the patches, and their correct positions, for the training data. This means that they can do the following data augmentation procedure:
+1. Use the patches and the correct positions to recreate the original image
+2. Apply standard image augmentation techniques to the recreated image
+3. Divide into new patches and shuffle them in a new random order
+Using this procedure will increase the effective size of the training set by a large factor. 
 
 ### Chess Game Outcome Prediction
 <div style="text-align: center">
@@ -196,25 +208,8 @@ This is perhaps the most straightforward task, as a fairly standard semi-supervi
 ## Further Analysis
 We have performed some very basic additional analysis of the results here. 
 
-### Model Performance by Number of Iterations
-<div style="text-align: center">
-    <img src="../images/iteration_comparison.png" width="800"/>
-    <p><em>Caption.</em></p>
-</div>
 
-### Maximum of k First Submissions (max@k)
-Similar to how pass@k means that at least one of k tries passes, max@k can be defined as the maximum accuracy of k tries. Here we use this to mean k first iterations (so the model gets no feedback). 3 of the models had over 50 runs on all the tasks, so there we actually have a decent number of first tries to look at.
-
-Comparing the performance of 5 first tries to 5 iterations with feedback tells you if the model actually uses the feedback productively or if another completely independent try is better. As the models get smarter, they will be better at using the feedback efficiently, and the difference between the two measures should increase, so this is something to keep an eye on.
-<div style="text-align: center">
-    <img src="../images/maxk_comparison.png" width="800"/>
-    <p><em>Caption.</em></p>
-</div>
-In the figure we see that for these three models, the 5 iteration result is better than the 5 first tries result, so the models are able to use the feedback, but the difference is small suggesting that most of the benefit of more iterations comes from just getting more tries, and not from the actual feedback. 
-
-It is interesting to note that the model with the largest benefit of 5 iterations over 5 independent tries is the gemini-2.0-flash-thinking model. This suggest that the reasoning model is using the feedback more efficiently than the other models, and that its better overall results compared to gemini-2.0-flash is mostly due to this. Based on this one datapoint, we should not conclude much, but this observation is also consistent with o1-mini and o1-preview, OpenAIs reasoning models, having a larger relative improvement from 1 iteration to 5 iterations than for example claude-3-5-sonnet.
-
-### Failure Rates
+### Failure Rate
 <div style="text-align: center">
     <img src="../images/average_failure_rate_across_tasks.png" width="800"/>
     <p><em>Failure rate for each model on each task. The bars show the mean value over all the tasks. The grey markers represent failure rates on individual tasks.</em></p>
@@ -223,3 +218,24 @@ It is interesting to note that the model with the largest benefit of 5 iteration
 Failure here means an LLM response that does not produce any valid results. This could be that either the LLM response did not contain any valid python code, the code produced an error when run, or the code produced results that were not in the correct format (or for some other reason resulted in an accuracy of 0). 
 
 Note that the failure rate here is defined for each submission (of which there are 5 per run), and not for each run. This means that a model can have fairly high failure rates and still get a good score, as long as it is able to produce some valid submissions, which produce good results, within the 5 tries it gets.
+
+### Model Performance by Number of Iterations
+<div style="text-align: center">
+    <img src="../images/iteration_comparison.png" width="800"/>
+    <p><em>Mean accuracy across all tasks for each model after 1, 2, 3, 4, and 5 iterations.</em></p>
+</div>
+Here we see the mean accuracy over all the tasks after different number of iterations (the 5 iteration result here is the main result shown above). We see that the models do substantially better with more iterations. While there is clearly diminishing returns, it also seems that the accuracy will continue to increase with more than 5 iterations. Some models, like o1-preview show a steep increase in accuracy from 1 to 5 iterations, while others, like deepseek-v3, show much less improvement. 
+
+Several factors are at play here, including the models ability to utilize the feedback, the models general failure rate, and many iterations simply giving you more tries to get a good result. Teasing out the different factors is hard based on the limited data here, but the next section does bring some more light to the question. Adding more tasks and more detailed analysis of the results in the future will also help.
+
+### Maximum of k First Submissions (max@k)
+Similar to how pass@k means that at least one of k tries passes, max@k can be defined as the maximum accuracy of k tries. Here we use this to mean k first iterations (so the model gets no feedback). 3 of the models had over 50 runs on all the tasks, so there we actually have a decent number of first tries to look at for those models.
+
+Comparing the performance of 5 first tries to 5 iterations with feedback tells you if the model actually uses the feedback productively or if another completely independent try is better. As the models get smarter, they will be better at using the feedback efficiently, and the difference between the two measures should increase, so this is something to keep an eye on.
+<div style="text-align: center">
+    <img src="../images/maxk_comparison.png" width="800"/>
+    <p><em>Maximuim mean accuracy across all tasks for each model after different number of first tries (max@k). Dashed lines show the mean result after 5 iterations for comparison.</em></p>
+</div>
+In the figure we see that for these three models, the 5 iteration result is better than the 5 first tries result, so the models are able to use the feedback, but the difference is small suggesting that most of the benefit of more iterations comes from just getting more tries, and not from the actual feedback. 
+
+It is interesting to note that the model with the largest benefit of 5 iterations over 5 independent tries is the gemini-2.0-flash-thinking model. This suggest that the reasoning model is using the feedback more efficiently than the other models, and that its better overall results compared to gemini-2.0-flash is mostly due to this. Based on this one datapoint, we should not conclude much, but this observation is also consistent with o1-mini and o1-preview, OpenAIs reasoning models, having a larger relative improvement from 1 iteration to 5 iterations than for example claude-3-5-sonnet.
