@@ -173,7 +173,8 @@ This is the task that the models struggle the most with. No models do significan
 1. Use the patches and the correct positions to recreate the original image
 2. Apply standard image augmentation techniques to the recreated image
 3. Divide into new patches and shuffle them in a new random order
-Using this procedure will increase the effective size of the training set by a large factor. 
+
+Using this procedure will increase the effective size of the training set by a large factor. Combining this with crafting specific features that measure the smooth trasitions between the edges of the different patches, should allow the models to do significantly better on this task. It is unclear to me what the ceiling is for this task, but just looking at a few of the images, it seems that it should be possible to get a pretty good score here, if you use the right approach. 
 
 ### Chess Game Outcome Prediction
 <div style="text-align: center">
@@ -190,6 +191,8 @@ Here the models need to split the string into moves, then convert the string for
     <p><em>Maximum accuracy for each run on the Chess Game Outcome Prediction task by each model. The bars show the mean value over all the runs. Error bars represent the standard deviation over runs (not the error on the mean). The grey dots represent individual runs, and the violin plots shows the distribution of accuracies over all the runs.</em></p>
 </div>
 
+Simply guessing white wins always will give you about 50% here, which is why I put the "random chance" line at 50% for this task. Most of the models manage to, at least sometimes get to about 60% accuracy, but struggle to do better than this. The best run is from claude-3-5-sonnet, which gets an accuracy of 74% using 20 handcrafted features. I suspect that with better handcrafted features (in principle you could track to full board state and craft features from that) you should be able to reach 90% accuracy or more, even with only 1000 games, but this is just a guess. 
+
 ### Unsupervised Digit Recognition
 <div style="text-align: center">
     <img src="../images/train_test_data.png" width="600"/>
@@ -205,9 +208,10 @@ This is perhaps the most straightforward task, as a fairly standard semi-supervi
     <p><em>Maximum accuracy for each run on the Unsupervised Digit Recognition task by each model. The bars show the mean value over all the runs. Error bars represent the standard deviation over runs (not the error on the mean). The grey dots represent individual runs, and the violin plots shows the distribution of accuracies over all the runs.</em></p>
 </div>
 
+This task had by far the highest failure rate, with the models strugglig to implement a complete semi-supervised training pipeline without making any mistakes. Once you get a working pipeline, however, you can get very good results, as it is a fairly easy dataset to classify. Given the high failure rate of the other models it is even more impressive how consistently great the results from claude-3-5-sonnet are, getting an average accuracy of 80%, and a median of over 90%. 
+
 ## Further Analysis
 We have performed some very basic additional analysis of the results here. 
-
 
 ### Failure Rate
 <div style="text-align: center">
@@ -226,7 +230,7 @@ Note that the failure rate here is defined for each submission (of which there a
 </div>
 Here we see the mean accuracy over all the tasks after different number of iterations (the 5 iteration result here is the main result shown above). We see that the models do substantially better with more iterations. While there is clearly diminishing returns, it also seems that the accuracy will continue to increase with more than 5 iterations. Some models, like o1-preview show a steep increase in accuracy from 1 to 5 iterations, while others, like deepseek-v3, show much less improvement. 
 
-Several factors are at play here, including the models ability to utilize the feedback, the models general failure rate, and many iterations simply giving you more tries to get a good result. Teasing out the different factors is hard based on the limited data here, but the next section does bring some more light to the question. Adding more tasks and more detailed analysis of the results in the future will also help.
+Several factors are at play here, including the models ability to utilize the feedback, the models general failure rate, and many iterations simply giving you more tries to get a good result. Teasing out the different factors is hard based on the limited data here, but the next section does bring some more light to the question. All of this is surely very task dependent as well. Adding more tasks and more detailed analysis of the results in the future will also help.
 
 ### Maximum of k First Submissions (max@k)
 Similar to how pass@k means that at least one of k tries passes, max@k can be defined as the maximum accuracy of k tries. Here we use this to mean k first iterations (so the model gets no feedback). 3 of the models had over 50 runs on all the tasks, so there we actually have a decent number of first tries to look at for those models.
