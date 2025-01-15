@@ -94,7 +94,7 @@ The evaluation uses an automated pipeline that:
 </div>
 The system executes code in a Docker container with strict resource limits (TITAN V GPU with 12GB memory, 600-second timeout). This ensures fair comparison between models and tests their ability to work within realistic constraints. 
 
-Each 'run' is 5 iterations, i.e. the LLM gets 5 submissions, and 4 rounds of feedback, allowing them to learn from feedback and improve their solutions ([full system prompt](prompts/system_prompt.md)). The accuracy of each run is the maximum test accuracy achieved over all the 5 submissions in that run.
+Each 'run' is 5 iterations, i.e., the LLM gets 5 submissions, and 4 rounds of feedback, allowing them to learn from feedback and improve their solutions ([full system prompt](prompts/system_prompt.md)). The accuracy of each run is the maximum test accuracy achieved over all the 5 submissions in that run.
 
 For each task we give each model (at least) 15 runs, in order to take into account the large variance in performance that we see for the same model on the same task. The final score for each model on that task is the mean accuracy over all the runs.
 
@@ -154,7 +154,7 @@ The original images here are from the fashion MNIST dataset, which is a greyscal
     <img src="../images/shuffle_easy_max_accuracy_comparison.png" width="800"/>
     <p><em>Maximum accuracy for each run on the Image Patch Shuffling (Easy) task by each model. The bars show the mean value over all the runs. Error bars represent the standard deviation over runs (not the error on the mean). The grey dots represent individual runs, and the violin plots shows the distribution of accuracies over all the runs.</em></p>
 </div>
-This is a task with the larges variations in the results for each single model. All models sometimes fail, or at leas get very low scores on this task, but most models also sometimes get a very good result. The patterns in the data should be easy to find if you have a reasonable architecture, but it may be a bit complicated to put all the pieces of the code together without making any mistakes, which the relatively high failure rate on this task suggests.
+This is a task with the largest variations in the results for each single model. All models sometimes fail, or at leas get very low scores on this task, but most models also sometimes get a very good result. The patterns in the data should be easy to find if you have a reasonable architecture, but it may be a bit complicated to put all the pieces of the code together without making any mistakes, which the relatively high failure rate on this task suggests.
 
 ### Image Patch Shuffling (Hard)
 <div style="text-align: center">
@@ -169,7 +169,7 @@ A more challenging version where patches are in RGB and taken from a random 27x2
     <p><em>Maximum accuracy for each run on the Image Patch Shuffling (Hard) task by each model. The bars show the mean value over all the runs. Error bars represent the standard deviation over runs (not the error on the mean). The grey dots represent individual runs, and the violin plots shows the distribution of accuracies over all the runs.</em></p>
 </div>
 
-This is the task that the models struggle the most with. No models do significantly better than chance here. The main insight that (as far as I have seen) none of the models use is that they are given all the patches, and their correct positions, for the training data. This means that they can do the following data augmentation procedure:
+This is the task that the models struggle the most with. No models do significantly better than chance here. The main insight that (as far as I have seen) none of the models use is that they are given all the patches, and their correct positions, for the training data. This means that you can do the following data augmentation procedure:
 1. Use the patches and the correct positions to recreate the original image
 2. Apply standard image augmentation techniques to the recreated image
 3. Divide into new patches and shuffle them in a new random order
@@ -184,14 +184,14 @@ Using this procedure will increase the effective size of the training set by a l
 
 Predict the outcome of chess games (white wins, black wins, or draw) from game move sequences ([task prompt](prompts/task_prompt_chess_winners.md)). The data consists of games played by beginners (rated below 1300), with moves in standard algebraic notation. Note that with 50% probability, the last move (for a single player) is removed, to prevent models using who moves last as a signal for the outcome. The training set has 1000 games.
 
-Here the models need to split the string into moves, then convert the string for each move into some kind of hand-crafted or learned features, and finally use these features to predict the outcome of the game, while dealing with the vaiable length of the chess games. Once some good features are found, there should be plenty of patterns that can be used to do significantly better than chance on predicting the outcome of the games.
+Here the models need to split the string into moves, then convert the string for each move into some kind of hand-crafted or learned features, and finally use these features to predict the outcome of the game, while dealing with the variable length of the chess games. Once some good features are found, there should be plenty of patterns that can be used to do significantly better than chance on predicting the outcome of the games.
 
 <div style="text-align: center">
     <img src="../images/chess_winners_max_accuracy_comparison.png" width="800"/>
     <p><em>Maximum accuracy for each run on the Chess Game Outcome Prediction task by each model. The bars show the mean value over all the runs. Error bars represent the standard deviation over runs (not the error on the mean). The grey dots represent individual runs, and the violin plots shows the distribution of accuracies over all the runs.</em></p>
 </div>
 
-Simply guessing white wins always will give you about 50% here, which is why I put the "random chance" line at 50% for this task. Most of the models manage to, at least sometimes get to about 60% accuracy, but struggle to do better than this. The best run is from claude-3-5-sonnet, which gets an accuracy of 74% using 20 handcrafted features. I suspect that with better handcrafted features (in principle you could track to full board state and craft features from that) you should be able to reach 90% accuracy or more, even with only 1000 games, but this is just a guess. 
+Simply guessing white wins always will give you about 50% here, which is why I put the "random chance" line at 50% for this task. Most of the models manage to, at least sometimes get to about 60% accuracy, but struggle to do better than this. The best run is from claude-3-5-sonnet, which gets an accuracy of 74% using 20 handcrafted features. I suspect that with better handcrafted features (in principle you could track the full board state and craft features from that) you should be able to reach 90% accuracy or more, even with only 1000 games, but this is just a guess. 
 
 ### Unsupervised Digit Recognition
 <div style="text-align: center">
@@ -208,7 +208,7 @@ This is perhaps the most straightforward task, as a fairly standard semi-supervi
     <p><em>Maximum accuracy for each run on the Unsupervised Digit Recognition task by each model. The bars show the mean value over all the runs. Error bars represent the standard deviation over runs (not the error on the mean). The grey dots represent individual runs, and the violin plots shows the distribution of accuracies over all the runs.</em></p>
 </div>
 
-This task had by far the highest failure rate, with the models strugglig to implement a complete semi-supervised training pipeline without making any mistakes. Once you get a working pipeline, however, you can get very good results, as it is a fairly easy dataset to classify. Given the high failure rate of the other models it is even more impressive how consistently great the results from claude-3-5-sonnet are, getting an average accuracy of 80%, and a median of over 90%. 
+This task had by far the highest failure rate, with the models struggling to implement a complete semi-supervised training pipeline without making any mistakes. Once you get a working pipeline, however, you can get very good results, as it is a fairly easy dataset to classify. Given the high failure rate of the other models it is even more impressive how consistently great the results from claude-3-5-sonnet are, getting an average accuracy of 80%, and a median of over 90%. 
 
 ## Further Analysis
 We have performed some very basic additional analysis of the results here. 
@@ -230,7 +230,7 @@ Note that the failure rate here is defined for each submission (of which there a
 </div>
 Here we see the mean accuracy over all the tasks after different number of iterations (the 5 iteration result here is the main result shown above). We see that the models do substantially better with more iterations. While there is clearly diminishing returns, it also seems that the accuracy will continue to increase with more than 5 iterations. Some models, like o1-preview show a steep increase in accuracy from 1 to 5 iterations, while others, like deepseek-v3, show much less improvement. 
 
-Several factors are at play here, including the models ability to utilize the feedback, the models general failure rate, and many iterations simply giving you more tries to get a good result. Teasing out the different factors is hard based on the limited data here, but the next section does bring some more light to the question. All of this is surely very task dependent as well. Adding more tasks and more detailed analysis of the results in the future will also help.
+Several factors are at play here, including the models ability to utilize the feedback, the models general failure rate, and many iterations simply giving you more tries to get a good result. Teasing out the different factors is hard based on the limited data here, but the next section does bring some more light to the question. All of this is surely very task dependent as well. Adding more tasks and more detailed analysis of the results in the future will help.
 
 ### Maximum of k First Submissions (max@k)
 Similar to how pass@k means that at least one of k tries passes, max@k can be defined as the maximum accuracy of k tries. Here we use this to mean k first iterations (so the model gets no feedback). 3 of the models had over 50 runs on all the tasks, so there we actually have a decent number of first tries to look at for those models.
@@ -242,4 +242,4 @@ Comparing the performance of 5 first tries to 5 iterations with feedback tells y
 </div>
 In the figure we see that for these three models, the 5 iteration result is better than the 5 first tries result, so the models are able to use the feedback, but the difference is small suggesting that most of the benefit of more iterations comes from just getting more tries, and not from the actual feedback. 
 
-It is interesting to note that the model with the largest benefit of 5 iterations over 5 independent tries is the gemini-2.0-flash-thinking model. This suggest that the reasoning model is using the feedback more efficiently than the other models, and that its better overall results compared to gemini-2.0-flash is mostly due to this. Based on this one datapoint, we should not conclude much, but this observation is also consistent with o1-mini and o1-preview, OpenAIs reasoning models, having a larger relative improvement from 1 iteration to 5 iterations than for example claude-3-5-sonnet.
+It is interesting to note that the model with the largest benefit of 5 iterations over 5 independent tries is gemini-2.0-flash-thinking, Googles reasoning model. This suggest that the reasoning model is using the feedback more efficiently than the other models, and that its better overall results compared to gemini-2.0-flash is mostly due to this. Based on this one datapoint, we should not conclude much, but this observation is also consistent with o1-mini and o1-preview, OpenAIs reasoning models, having a larger relative improvement from 1 iteration to 5 iterations than for example claude-3-5-sonnet.
