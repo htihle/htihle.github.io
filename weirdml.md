@@ -96,7 +96,7 @@ The system executes code in a Docker container with strict resource limits (TITA
 
 Each 'run' is 5 iterations, i.e., the LLM gets 5 submissions, and 4 rounds of feedback, allowing them to learn from feedback and improve their solutions ([full system prompt](prompts/system_prompt.md)). The accuracy of each run is the maximum test accuracy achieved over all the 5 submissions in that run.
 
-For each task we give each model (at least) 15 runs, in order to take into account the large variance in performance that we see for the same model on the same task. The final score for each model on that task is the mean accuracy over all the runs.
+For each task we give each model (at least) 15 runs (due to the high cost, o1-preview only gets 5 runs), in order to take into account the large variance in performance that we see for the same model on the same task. The final score for each model on that task is the mean accuracy over all the runs.
 
 
 ## Tasks
