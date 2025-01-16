@@ -240,11 +240,11 @@ Several factors are at play here, including the models ability to utilize the fe
 ### Maximum of k First Submissions (max@k)
 Similar to how pass@k means that at least one of k tries passes, max@k can be defined as the maximum accuracy of k tries. Here we use this to mean k first iterations (so the model gets no feedback). 3 of the models had over 50 runs on all the tasks, so there we actually have a decent number of first tries to look at for those models.
 
-Comparing the performance of 5 first tries to 5 iterations with feedback tells you if the model actually uses the feedback productively or if another completely independent try is better. As the models get smarter, they will be better at using the feedback efficiently, and the difference between the two measures should increase, so this is something to keep an eye on.
+Comparing the performance of 5 first tries to 5 iterations with feedback tells you if the model actually uses the feedback productively or if it is better to use completely independent tries. As the models get smarter, they will be better at using the feedback efficiently, and the difference between the two measures should increase, so this is something to keep an eye on.
 <div style="text-align: center">
     <img src="../images/maxk_comparison.png" width="800"/>
     <p><em>Maximuim mean accuracy across all tasks for each model after different number of first tries (max@k). Dashed lines show the mean result after 5 iterations for comparison.</em></p>
 </div>
-In the figure we see that for these three models, the 5 iteration result is better than the 5 first tries result, so the models are able to use the feedback, but the difference is small suggesting that most of the benefit of more iterations comes from just getting more tries, and not from the actual feedback. 
+In the figure we see that for these three models, the 5 iteration result is better than the 5 first tries result, so the models are able to use the feedback, but the difference is small, suggesting that most of the benefit of more iterations comes from just getting more tries, and not from the actual feedback. 
 
 It is interesting to note that the model with the largest benefit of 5 iterations over 5 independent tries is gemini-2.0-flash-thinking, Googles reasoning model. This suggest that the reasoning model is using the feedback more efficiently than the other models, and that its better overall results compared to gemini-2.0-flash is mostly due to this. Based on this one datapoint, we should not conclude much, but this observation is also consistent with o1-mini and o1-preview, OpenAIs reasoning models, having a larger relative improvement from 1 iteration to 5 iterations than for example claude-3-5-sonnet.
