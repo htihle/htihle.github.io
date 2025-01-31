@@ -16,7 +16,7 @@ How good are Large Language Models (LLMs) at doing machine learning on novel dat
 
 Each task comes with a task prompt describing the problem precisely and some example code for loading data and saving predictions. The different tasks pose various challenges: some require heavy data augmentation, others need careful feature engineering, or require combining information from many different parts of the input.
 
-## UPDATED RESULTS! 
+## UPDATED RESULTS
 
 <div style="text-align: center">
     <img src="../images/average_accuracy_across_tasks_updated.png" width="800"/>
