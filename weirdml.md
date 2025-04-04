@@ -22,7 +22,6 @@ Each task comes with a task prompt describing the problem precisely and some exa
     <img src="../images/average_accuracy_across_tasks_updated.png" width="800"/>
     <p><em>Average accuracy across all tasks for each model. Grey markers indicate performance on individual tasks, bars show the mean across tasks.</em></p>
 </div>
-These are updated results with newly available models. All results and discussion below is from the original release, and does not consider these updates. 
 
 <div style="text-align: center" class='task-performance-table-outer'>
     <div class='task-performance-table'>
@@ -79,6 +78,8 @@ These are updated results with newly available models. All results and discussio
     </div>
     <p><em>Average accuracy across all six tasks for each model.</em></p>
 </div>
+
+These are updated results with newly available models. All results and discussion below is from the original release, and does not consider these updates. 
     
 ## Results
 
