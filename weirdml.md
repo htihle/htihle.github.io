@@ -24,6 +24,62 @@ Each task comes with a task prompt describing the problem precisely and some exa
 </div>
 These are updated results with newly available models. All results and discussion below is from the original release, and does not consider these updates. 
 
+<div style="text-align: center" class='task-performance-table-outer'>
+    <div class='task-performance-table'>
+        <style>
+            .task-performance-table {
+                font-size: 12px;  /* Scoped to just this table */
+            }
+            .task-performance-table table { 
+                border-collapse: collapse; 
+                width: 100%;
+                margin: 20px 0;
+                table-layout: fixed;  /* Enable fixed column widths */
+            }
+            .task-performance-table th, 
+            .task-performance-table td { 
+                padding: 4px;  /* Reduced padding */
+                text-align: center;
+                border: 1px solid #ddd;
+                white-space: normal;  /* Allow text wrapping */
+                word-wrap: break-word;
+            }
+            .task-performance-table th:first-child, 
+            .task-performance-table td:first-child {
+                width: 25%;  /* Make model column wider */
+            }
+            .task-performance-table th:not(:first-child), 
+            .task-performance-table td:not(:first-child) {
+                width: 7%;  /* Other columns share remaining space */
+            }
+            .task-performance-table th { 
+                background-color: #f5f5f5;
+                font-weight: bold;
+            }
+            .task-performance-table tr:nth-child(even) { 
+                background-color: #f9f9f9; 
+            }
+            .task-performance-table .model-cell {
+                text-align: left;
+                font-weight: bold;
+                padding-left: 15px;
+                color: black !important;
+            }
+            .task-performance-table .header-cell {
+                background-color: #f0f0f0;
+                font-weight: bold;
+                color: black;
+            }
+        </style>
+        <table>
+            <tr>
+                <th class="header-cell">Model</th>
+    <th class="header-cell">Shapes Easy</th><th class="header-cell">Shapes Hard</th><th class="header-cell">Shuffle Easy</th><th class="header-cell">Shuffle Hard</th><th class="header-cell">Digits Unsup</th><th class="header-cell">Chess Winners</th><th class="header-cell">Average</th></tr><tr style="background-color: #2dcc7025"><td class="model-cell">gemini-2.5-pro-exp-03-25</td><td>96.70%</td><td>37.33%</td><td>79.83%</td><td>11.77%</td><td>85.55%</td><td>55.09%</td><td><strong>61.05%</strong></td></tr><tr style="background-color: #4c4c4c25"><td class="model-cell">gpt-4.5-preview-2025-02-27</td><td>94.86%</td><td>33.88%</td><td>75.42%</td><td>11.89%</td><td>85.24%</td><td>60.30%</td><td><strong>60.26%</strong></td></tr><tr style="background-color: #4c4c4c25"><td class="model-cell">o1-2024-12-17 (high)</td><td>93.86%</td><td>41.12%</td><td>50.66%</td><td>19.97%</td><td>89.40%</td><td>61.80%</td><td><strong>59.47%</strong></td></tr><tr style="background-color: #d75f3a25"><td class="model-cell">claude-3-7-sonnet-20250219 (thinking 8k)</td><td>95.74%</td><td>33.24%</td><td>45.48%</td><td>11.35%</td><td>83.00%</td><td>65.32%</td><td><strong>55.69%</strong></td></tr><tr style="background-color: #d75f3a25"><td class="model-cell">claude-3-7-sonnet-20250219</td><td>92.99%</td><td>32.10%</td><td>29.15%</td><td>11.99%</td><td>85.19%</td><td>66.77%</td><td><strong>53.03%</strong></td></tr><tr style="background-color: #7f7f7f25"><td class="model-cell">deepseek-R1</td><td>95.21%</td><td>24.47%</td><td>56.61%</td><td>12.17%</td><td>66.51%</td><td>53.67%</td><td><strong>51.44%</strong></td></tr><tr style="background-color: #4c4c4c25"><td class="model-cell">o3-mini-2025-01-31 (high)</td><td>94.65%</td><td>30.61%</td><td>24.17%</td><td>11.76%</td><td>87.39%</td><td>59.42%</td><td><strong>51.33%</strong></td></tr><tr style="background-color: #d75f3a25"><td class="model-cell">claude-3-5-sonnet-20241022</td><td>84.79%</td><td>29.12%</td><td>47.39%</td><td>11.46%</td><td>80.27%</td><td>52.62%</td><td><strong>50.94%</strong></td></tr><tr style="background-color: #4c4c4c25"><td class="model-cell">o1-preview-2024-09-12</td><td>98.02%</td><td>32.00%</td><td>56.03%</td><td>11.80%</td><td>36.08%</td><td>58.96%</td><td><strong>48.82%</strong></td></tr><tr style="background-color: #4c4c4c25"><td class="model-cell">o1-mini-2024-09-12</td><td>87.73%</td><td>26.49%</td><td>44.51%</td><td>11.44%</td><td>47.41%</td><td>55.89%</td><td><strong>45.58%</strong></td></tr><tr style="background-color: #2dcc7025"><td class="model-cell">gemini-2.0-flash-thinking-exp-01-21</td><td>50.17%</td><td>21.53%</td><td>35.85%</td><td>11.09%</td><td>86.41%</td><td>58.37%</td><td><strong>43.90%</strong></td></tr><tr style="background-color: #d75f3a25"><td class="model-cell">claude-3-5-haiku-20241022</td><td>84.39%</td><td>23.85%</td><td>52.23%</td><td>10.07%</td><td>43.33%</td><td>48.66%</td><td><strong>43.75%</strong></td></tr><tr style="background-color: #2dcc7025"><td class="model-cell">gemini-2.0-flash-exp</td><td>49.25%</td><td>21.76%</td><td>38.74%</td><td>9.83%</td><td>60.75%</td><td>53.98%</td><td><strong>39.05%</strong></td></tr><tr style="background-color: #7f7f7f25"><td class="model-cell">deepseek-v3</td><td>72.65%</td><td>21.70%</td><td>32.99%</td><td>10.78%</td><td>33.82%</td><td>52.30%</td><td><strong>37.37%</strong></td></tr><tr style="background-color: #4c4c4c25"><td class="model-cell">gpt-4o-2024-11-20</td><td>68.95%</td><td>23.28%</td><td>36.75%</td><td>10.90%</td><td>29.77%</td><td>47.22%</td><td><strong>36.15%</strong></td></tr><tr style="background-color: #ff7e0025"><td class="model-cell">qwq:32b-preview-q8_0</td><td>57.06%</td><td>18.44%</td><td>16.56%</td><td>6.46%</td><td>10.94%</td><td>45.32%</td><td><strong>25.80%</strong></td></tr><tr style="background-color: #ff7e0025"><td class="model-cell">qwen2.5-coder:32b-instruct-q8_0</td><td>55.75%</td><td>18.67%</td><td>16.16%</td><td>6.52%</td><td>10.53%</td><td>44.89%</td><td><strong>25.42%</strong></td></tr><tr style="background-color: #4c4c4c25"><td class="model-cell">gpt-4o-mini-2024-07-18</td><td>32.93%</td><td>19.95%</td><td>18.83%</td><td>4.87%</td><td>27.00%</td><td>38.28%</td><td><strong>23.64%</strong></td></tr><tr style="background-color: #0079f725"><td class="model-cell">llama3.3:70b-instruct-q8_0</td><td>40.86%</td><td>20.85%</td><td>9.86%</td><td>2.52%</td><td>22.35%</td><td>44.44%</td><td><strong>23.48%</strong></td></tr><tr style="background-color: #0079f725"><td class="model-cell">llama3.1:405b-instruct-q4_K_M</td><td>41.91%</td><td>19.41%</td><td>5.19%</td><td>2.27%</td><td>31.85%</td><td>37.40%</td><td><strong>23.00%</strong></td></tr><tr style="background-color: #7f7f7f25"><td class="model-cell">phi4:14b-q8_0</td><td>26.48%</td><td>5.73%</td><td>3.30%</td><td>2.44%</td><td>12.92%</td><td>28.08%</td><td><strong>13.16%</strong></td></tr><tr style="background-color: #2dcc7025"><td class="model-cell">gemma-3-27b-it</td><td>32.75%</td><td>20.95%</td><td>0.87%</td><td>0.74%</td><td>0.00%</td><td>23.54%</td><td><strong>13.14%</strong></td></tr><tr style="background-color: #0079f725"><td class="model-cell">llama3.1:8b-instruct-q8_0</td><td>6.77%</td><td>2.22%</td><td>0.66%</td><td>0.76%</td><td>1.35%</td><td>0.00%</td><td><strong>1.96%</strong></td></tr>
+        </table>
+    </div>
+    <p><em>Average accuracy across all six tasks for each model.</em></p>
+</div>
+    
 ## Results
 
 <div style="text-align: center">
