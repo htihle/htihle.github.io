@@ -4,7 +4,7 @@ title: Home
 order: 1
 ---
 
-<img src="images/havardihle_lr.jpg" alt="Håvard Tveit Ihle" style="float: right; width: 120px; margin: 25px 20px 150px 5px;">
+<img src="images/havardihle_lr.jpg" alt="Håvard Tveit Ihle" style="float: right; width: 120px; margin: 35px 20px 150px 5px;">
 
 # Håvard Tveit Ihle 
 
