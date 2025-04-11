@@ -5,7 +5,7 @@ title: WeirdML
 
 
 # WeirdML Benchmark
-Most recent updates and discussion of the results can be found on [![X Logo](https://www.iconpacks.net/icons/2/free-twitter-x-logo-black-square-outline-icon-20848-thumb.png)](https://x.com/htihle).
+Most recent updates and discussion of the results can be found on [X](https://x.com/htihle).
 
 ## Introduction
 
