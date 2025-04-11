@@ -5,7 +5,7 @@ title: WeirdML
 
 
 # WeirdML Benchmark
-Most recent updates and discussion of the results can be found on [![X](https://img.shields.io/badge/X-000000?style=for-the-badge&logo=twitter&logoColor=white)](https://x.com/htihle)
+Most recent updates and discussion of the results can be found on [![X](https://cdn.iconfinder.com/data/icons/logos-3/512/x-logo.png)](https://x.com/htihle)
 
 ## Introduction
 
