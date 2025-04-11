@@ -4,7 +4,7 @@ title: Home
 order: 1
 ---
 
-# Håvard Tveit Ihle 
+# Håvard Tveit Ihle <img src="images/havardihle_lr.jpg" alt="Håvard Tveit Ihle" style="float: right; width: 100px; height: 100px; border-radius: 50%; margin-left: 15px; object-fit: cover;">
 
 Welcome to my website! I’m an AI researcher and former astrophysicist currently working at the Norwegian Defence Research Establishment. My primary interests lie in evaluation, generalization, robustness, and interpretability of machine learning models. Previously, I worked on data analysis for cosmological experiments (COMAP, Cosmoglobe), focusing on pipelines that process raw telescope data into constraints on astrophysical parameters.
 
