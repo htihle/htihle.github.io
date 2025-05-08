@@ -6,7 +6,9 @@ title: WeirdML
 
 # WeirdML Benchmark
 
-**New Developments:** We're pleased to announce that WeirdML is now included in [Epoch AI's Benchmarking Hub](https://epoch.ai/data/ai-benchmarking-dashboard), we're also grateful to METR for supporting the API costs of this project.
+<div class="highlight">
+  <strong>New Developments:</strong> We're pleased to announce that WeirdML is now included in <a href="https://epoch.ai/data/ai-benchmarking-dashboard">Epoch AI's Benchmarking Hub</a>, we're also grateful to <a href="https://metr.org">METR</a> for supporting the API costs of this project.
+</div>
 
 Most recent updates and discussion of the results can be found on [<img src="https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/x.svg" width="11px" />](https://x.com/htihle).
 
