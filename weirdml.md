@@ -2,6 +2,15 @@
 layout: default
 title: WeirdML
 ---
+<style>
+.highlight {
+    background-color: #f3f7fc;
+    border-left: 4px solid #0366d6;
+    padding: 15px;
+    margin: 20px 0;
+    border-radius: 0 5px 5px 0;
+}
+</style>
 
 
 # WeirdML Benchmark
