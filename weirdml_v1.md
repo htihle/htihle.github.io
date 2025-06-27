@@ -1,6 +1,6 @@
 ---
 layout: default
-title: WeirdML
+title: WeirdML v1
 ---
 <style>
 .highlight {
