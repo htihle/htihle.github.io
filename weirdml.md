@@ -67,7 +67,7 @@ The evaluation uses an automated pipeline that:
 4. Provides feedback (terminal output from the code execution and test accuracy) to the LLM for improvement
 
 <div style="text-align: center">
-    <img src="../images_v2/evaluation_setup.png" width="500"/>
+    <img src="images_v2/evaluation_setup.png" width="500"/>
     <p><em>Evaluation pipeline showing the flow from LLM code generation through isolated execution to metric evaluation and feedback, with fixed computational constraints enforced via Docker.</em></p>
 </div>
 
