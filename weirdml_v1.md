@@ -14,7 +14,11 @@ title: WeirdML v1
 </style>
 
 
-# WeirdML Benchmark
+# WeirdML Benchmark (Archived v1)
+<div class="highlight">
+  <strong>This page is an archive of the results and analysis for WeirdML v1. [WeirdML v2](weirdml.html) is now out and is the version that will be updated going forwards.</strong> 
+</div>
+
 
 <div class="highlight">
   <strong>New Developments:</strong> We're pleased to announce that WeirdML is now included in <a href="https://epoch.ai/data/ai-benchmarking-dashboard">Epoch AI's Benchmarking Hub</a>, we're also grateful to <a href="https://metr.org">METR</a> for supporting the API costs of this project.

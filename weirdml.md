@@ -50,7 +50,7 @@ Each task comes with a task prompt describing the problem precisely and some exa
 
 <div style="text-align: center">
     <img src="../images_v2/weirdml_cost_vs_accuracy.png" width="800"/>
-    <p><em>This scatter plot visualizes the trade-off between the cost and the overall average accuracy across all tasks for each model. The X-axis (Average Cost per Run) is on a logarithmic scale, representing the total estimated cost in USD for a complete run including all iterations. The Y-axis (Average Max Accuracy) shows the overall mean accuracy, as detailed in the Model Performance Summary figure.</em></p>
+    <p><em>This scatter plot visualizes the trade-off between the cost and the overall average accuracy across all tasks for each model. The X-axis (Average Cost per Run) is on a logarithmic scale, representing the total estimated cost in USD for a complete run including all iterations. The Y-axis (Average Max Accuracy) shows the overall mean accuracy, as detailed in the Model Performance Summary figure. The actual datapoints are in the middle of each company logo, not the text.</em></p>
 </div>
 
 <div style="text-align: center">
