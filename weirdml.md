@@ -28,7 +28,7 @@ Most recent updates and discussion of the results can be found on [<img src="htt
 *   **Detailed tracking of metadata:** In addition to accuracy, we now track a bunch of metadata about the runs like the average cost per run, the code lengths, and the code execution times. These new data gives some more insights into the differences of the models in how they solve the tasks, and how they use the resources available to them.
 *   **New figures:** New figures including an overview table summarizing model performance across all tasks, and a scatter plot visualizing the trade-off between cost and accuracy. 
 
-<p>For the original WeirdML v1 results and analysis, please visit the archived page: [WeirdML v1](weirdml_v1.html)</p>
+For the original WeirdML v1 results and analysis, please visit the archived page: [WeirdML v1](weirdml_v1.html)
 
 ## Introduction
 
