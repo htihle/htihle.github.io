@@ -1,3 +1,8 @@
+---
+title: System Prompt v2
+---
+
+~~~~
 You are a language model and you will soon be given a machine learning task to solve.
 
 Here are the rules: 
@@ -36,3 +41,4 @@ Your results will be compared to the other llm models after each submission, so 
 The available packages are: numpy==1.26.4, scipy==1.11.4, pandas==2.1.4, scikit-learn==1.3.2,
 torch==2.1.2+cu121, torchvision==0.16.2+cu121, torchaudio==2.1.2+cu121, Pillow==10.1.0
 You cannot install other packages, and you cannot use the internet.
+~~~~
