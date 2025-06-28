@@ -14,9 +14,9 @@ title: WeirdML v1
 </style>
 
 
-# WeirdML Benchmark (Archived v1)
+# WeirdML Benchmark v1 (Archived)
 <div class="highlight">
-  <strong>This page is an archive of the results and analysis for WeirdML v1. [WeirdML v2](weirdml.html) is now out and is the version that will be updated going forwards.</strong> 
+  <strong>This page is an archive of the results and analysis for WeirdML v1. <a href="weirdml.html">WeirdML v2</a> is now out and will be updated going forwards.</strong> 
 </div>
 
 
