@@ -4,31 +4,185 @@ title: WeirdML Data Table
 permalink: /weirdml_table.html
 ---
 
-<h1>WeirdML Data (Interactive Table)</h1>
-<p><a href="{{ "/data/weirdml_data.csv" | relative_url }}">Download CSV</a></p>
-
-<div class="table-scroll">
-  <table id="csv-table">
-    <thead></thead>
-    <tbody></tbody>
-  </table>
+<div class="container">
+  <h1>WeirdML Data</h1>
+  <div class="download-section">
+    <a href="{{ "/data/weirdml_data.csv" | relative_url }}" class="download-btn">📊 Download CSV</a>
+  </div>
+  
+  <div class="table-container">
+    <table id="csv-table">
+      <thead></thead>
+      <tbody></tbody>
+    </table>
+  </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js" integrity="sha384-6y3Kxk6q1cJtKpX3T7..." crossorigin="anonymous"></script>
 
 <style>
-.table-scroll{max-width:100%;overflow:auto;border:1px solid #ddd;}
-table{border-collapse:collapse;font-size:14px;}
-th,td{border:1px solid #ddd;padding:4px 8px;white-space:nowrap;}
-thead th{position:sticky;top:0;background:#fff;z-index:3;}
-tbody th{position:sticky;left:0;background:#fff;z-index:2;}
-thead th:first-child{left:0;z-index:4;}
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    margin: 0;
+    padding: 20px;
+    background: #f8f9fa;
+    color: #333;
+  }
+
+  .container {
+    max-width: 100%;
+    margin: 0 auto;
+  }
+
+  h1 {
+    font-size: 24px;
+    margin: 0 0 16px 0;
+    color: #2c3e50;
+    font-weight: 600;
+  }
+
+  .download-section {
+    margin-bottom: 16px;
+  }
+
+  .download-btn {
+    display: inline-block;
+    padding: 8px 16px;
+    background: #3498db;
+    color: white;
+    text-decoration: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    transition: background-color 0.2s;
+  }
+
+  .download-btn:hover {
+    background: #2980b9;
+  }
+
+  .table-container {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    overflow: auto;
+    max-height: 80vh;
+    border: 1px solid #e1e5e9;
+  }
+
+  #csv-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 11px;
+    line-height: 1.3;
+  }
+
+  th, td {
+    border: 1px solid #e1e5e9;
+    padding: 6px 8px;
+    text-align: left;
+    vertical-align: top;
+    margin: 0;
+  }
+
+  /* Header styling - model names */
+  thead th {
+    background: #34495e;
+    color: white;
+    font-weight: 600;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    font-size: 10px;
+    min-width: 80px;
+    max-width: 120px;
+    word-wrap: break-word;
+    white-space: normal;
+    line-height: 1.2;
+    text-align: center;
+  }
+
+  /* Corner cell */
+  thead th:first-child {
+    background: #2c3e50;
+    position: sticky;
+    left: 0;
+    z-index: 11;
+    min-width: 140px;
+    max-width: 140px;
+  }
+
+  /* Metric labels - sticky left column */
+  tbody th {
+    background: #ecf0f1;
+    color: #2c3e50;
+    font-weight: 600;
+    position: sticky;
+    left: 0;
+    z-index: 9;
+    border-right: 2px solid #bdc3c7;
+    font-size: 11px;
+    min-width: 140px;
+    max-width: 140px;
+    white-space: normal;
+    word-wrap: break-word;
+  }
+
+  tbody td {
+    background: white;
+    font-family: 'Monaco', 'Menlo', monospace;
+    font-size: 10px;
+    text-align: center;
+    min-width: 80px;
+    max-width: 120px;
+    word-wrap: break-word;
+  }
+
+  /* Zebra striping for rows */
+  tbody tr:nth-child(even) td {
+    background: #f8f9fa;
+  }
+
+  tbody tr:nth-child(even) th {
+    background: #dee2e6;
+  }
+
+  /* Hover effects */
+  tbody tr:hover td {
+    background: #e3f2fd !important;
+  }
+
+  tbody tr:hover th {
+    background: #bbdefb !important;
+  }
+
+  /* Better number formatting */
+  .number {
+    font-weight: 500;
+  }
+
+  .accuracy {
+    color: #27ae60;
+  }
+
+  .cost {
+    color: #e74c3c;
+  }
+
+  .time {
+    color: #f39c12;
+  }
 </style>
 
 <script>
 const LABELS = {
   shapes_easy_acc: "Shapes (Easy)",
-  shapes_hard_acc: "Shapes (Hard)",
+  shapes_hard_acc: "Shapes (Hard)", 
   shuffle_easy_acc: "Shuffle (Easy)",
   shuffle_hard_acc: "Shuffle (Hard)",
   digits_unsup_acc: "Digits (Unsupervised)",
@@ -56,49 +210,96 @@ const LABELS = {
   "API source": "API Source"
 };
 
+function formatValue(value, metric) {
+  if (!value || value === '') return '—';
+  
+  // Format numbers appropriately
+  if (!isNaN(value)) {
+    const num = parseFloat(value);
+    if (metric.includes('acc') && num <= 1) {
+      // Accuracy values - show as percentage with 1 decimal
+      return (num * 100).toFixed(1) + '%';
+    } else if (metric.includes('cost')) {
+      // Cost values - show with appropriate decimal places
+      return '$' + num.toFixed(num < 0.01 ? 4 : 2);
+    } else if (metric.includes('time')) {
+      // Time values
+      return num.toFixed(2) + 's';
+    } else if (metric.includes('code_len')) {
+      // Code length - no decimals
+      return Math.round(num).toLocaleString();
+    } else {
+      // Other numbers
+      return num.toFixed(3);
+    }
+  }
+  
+  return value;
+}
+
+function getCellClass(metric) {
+  if (metric.includes('acc')) return 'number accuracy';
+  if (metric.includes('cost')) return 'number cost';
+  if (metric.includes('time')) return 'number time';
+  return 'number';
+}
+
 (async () => {
-  const url = '{{ "/data/weirdml_data.csv" | relative_url }}?v={{ site.time | date: "%s" }}';
-  const csvText = await fetch(url).then(r => r.text());
-  const parsed = Papa.parse(csvText, { header: true, skipEmptyLines: true });
-  const rows = parsed.data;
-  if (!rows.length) return;
+  try {
+    const url = '{{ "/data/weirdml_data.csv" | relative_url }}?v={{ site.time | date: "%s" }}';
+    const csvText = await fetch(url).then(r => r.text());
+    const parsed = Papa.parse(csvText, { header: true, skipEmptyLines: true });
+    const rows = parsed.data;
+    
+    if (!rows.length) {
+      document.querySelector('.table-container').innerHTML = '<p style="padding: 20px; text-align: center; color: #666;">No data available</p>';
+      return;
+    }
 
-  // Keys from CSV
-  const keys = Object.keys(rows[0]);
+    const keys = Object.keys(rows[0]);
+    const modelKey = 'display_name';
+    const skipKeys = new Set([modelKey, 'internal_model_name']);
+    
+    const models = rows.map(r => r[modelKey] || 'Unknown');
+    const metrics = keys.filter(k => !skipKeys.has(k));
 
-  // Use 'display_name' as model column, ignore 'internal_model_name'
-  const modelKey = 'display_name';
-  const skipKeys = new Set([modelKey, 'internal_model_name']);
+    const thead = document.querySelector('#csv-table thead');
+    const tbody = document.querySelector('#csv-table tbody');
 
-  const models = rows.map(r => r[modelKey]);
-  const metrics = keys.filter(k => !skipKeys.has(k));
-
-  const thead = document.querySelector('#csv-table thead');
-  const tbody = document.querySelector('#csv-table tbody');
-
-  // Header row (models)
-  const headerTr = document.createElement('tr');
-  headerTr.appendChild(document.createElement('th')); // corner
-  models.forEach(m => {
-    const th = document.createElement('th');
-    th.textContent = m;
-    headerTr.appendChild(th);
-  });
-  thead.appendChild(headerTr);
-
-  // Metric rows
-  metrics.forEach(metric => {
-    const tr = document.createElement('tr');
-    const th = document.createElement('th');
-    th.textContent = LABELS[metric] || metric; // fallback to raw if missing
-    tr.appendChild(th);
-
-    rows.forEach(r => {
-      const td = document.createElement('td');
-      td.textContent = r[metric];
-      tr.appendChild(td);
+    // Create header row
+    const headerTr = document.createElement('tr');
+    const cornerTh = document.createElement('th');
+    cornerTh.textContent = 'Metric / Model';
+    headerTr.appendChild(cornerTh);
+    
+    models.forEach(model => {
+      const th = document.createElement('th');
+      th.textContent = model;
+      headerTr.appendChild(th);
     });
-    tbody.appendChild(tr);
-  });
+    thead.appendChild(headerTr);
+
+    // Create metric rows
+    metrics.forEach(metric => {
+      const tr = document.createElement('tr');
+      const th = document.createElement('th');
+      th.textContent = LABELS[metric] || metric;
+      tr.appendChild(th);
+
+      rows.forEach(row => {
+        const td = document.createElement('td');
+        const rawValue = row[metric];
+        td.textContent = formatValue(rawValue, metric);
+        td.className = getCellClass(metric);
+        tr.appendChild(td);
+      });
+      
+      tbody.appendChild(tr);
+    });
+    
+  } catch (error) {
+    console.error('Error loading data:', error);
+    document.querySelector('.table-container').innerHTML = '<p style="padding: 20px; text-align: center; color: #e74c3c;">Error loading data</p>';
+  }
 })();
 </script>
