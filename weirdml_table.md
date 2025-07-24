@@ -62,7 +62,7 @@ permalink: /weirdml_table.html
     display: inline-block;
     padding: 8px 16px;
     border:1px solid #3498db;
-    color: white;
+    color: black;
     text-decoration: none;
     border-radius: 6px;
     font-size: 14px;
