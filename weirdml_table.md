@@ -106,7 +106,6 @@ permalink: /weirdml_table.html
     white-space: normal;
     line-height: 1.1;
     text-align: center;
-    padding: 3px 4px;
   }
 
   /* Corner cell */
