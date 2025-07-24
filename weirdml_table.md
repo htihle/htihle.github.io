@@ -87,7 +87,7 @@ permalink: /weirdml_table.html
     width: 100%;
     border-collapse: separate;
     border-spacing: 0;
-    margin-bottom: 4px;
+    margin-bottom: 0;
     font-size: 11px;
     line-height: 1.3;
   }
