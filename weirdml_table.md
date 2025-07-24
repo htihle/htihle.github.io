@@ -6,7 +6,7 @@ permalink: /weirdml_table.html
 
 <div class="container">
 <div class="header">
-  <h6>WeirdML Data</h6>
+  <h4>WeirdML Data</h4>
   <a href="{{ "/data/weirdml_data.csv" | relative_url }}" class="download-btn">📊 Download CSV</a>
 </div>
   
