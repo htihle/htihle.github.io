@@ -58,6 +58,7 @@ Each task comes with a task prompt describing the problem precisely and some exa
     <p><em>Accuracy progression over five iterations.For each of the five highlighted models the marker shows the mean of the per-task “best-so-far” test accuracy after iteration n, averaged over all runs and all 19 WeirdML tasks; the vertical whiskers are 95 % bootstrap confidence intervals. A single iteration (leftmost point) captures zero-shot code generation, while later points incorporate up to four rounds of feedback in the form of the test accuracy and terminal output from the python execution. </em></p>
 </div>
 [Download the full WeirdML data (CSV)]({{ "/data/weirdml_data.csv" | relative_url }})
+See the **interactive table view** [here](/weirdml_table.html).
 
 ## Evaluation Setup
 
