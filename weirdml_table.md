@@ -60,7 +60,7 @@ permalink: /weirdml_table.html
     color: black;
     text-decoration: none;
     border-radius: 6px;
-    font-size: 14px;
+    font-size: 10px;
     font-weight: 500;
     transition: background-color 0.2s;
   }
