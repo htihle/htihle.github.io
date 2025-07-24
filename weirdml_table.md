@@ -5,10 +5,13 @@ permalink: /weirdml_table.html
 ---
 
 <div class="container">
+<div class="header">
   <h1>WeirdML Data</h1>
   <div class="download-section">
     <a href="{{ "/data/weirdml_data.csv" | relative_url }}" class="download-btn">📊 Download CSV</a>
   </div>
+
+</div>
   
   <div class="table-container">
     <table id="csv-table">
@@ -33,6 +36,12 @@ permalink: /weirdml_table.html
     color: #333;
   }
 
+  .header {
+    display: flex;
+    justify-content: space-between;
+  }
+
+
   .container {
     max-width: 100%;
     margin: 0 auto;
@@ -52,7 +61,7 @@ permalink: /weirdml_table.html
   .download-btn {
     display: inline-block;
     padding: 8px 16px;
-    background: #3498db;
+    border:1px solid #3498db;
     color: white;
     text-decoration: none;
     border-radius: 6px;
@@ -106,6 +115,7 @@ permalink: /weirdml_table.html
     white-space: normal;
     line-height: 1.1;
     text-align: center;
+    padding: 0px;
   }
 
   /* Corner cell */
@@ -132,7 +142,7 @@ permalink: /weirdml_table.html
     max-width: 140px;
     white-space: normal;
     word-wrap: break-word;
-    padding: 2px 6px;
+    padding: 0px;
     line-height: 1.1;
   }
 
@@ -144,7 +154,7 @@ permalink: /weirdml_table.html
     min-width: 80px;
     max-width: 120px;
     word-wrap: break-word;
-    padding: 2px 4px;
+    padding: 0px;
     line-height: 1.1;
   }
 
