@@ -84,10 +84,11 @@ permalink: /weirdml_table.html
 
   th, td {
     border: 1px solid #e1e5e9;
-    padding: 6px 8px;
+    padding: 2px 6px;
     text-align: left;
-    vertical-align: top;
+    vertical-align: middle;
     margin: 0;
+    line-height: 1.1;
   }
 
   /* Header styling - model names */
@@ -103,8 +104,9 @@ permalink: /weirdml_table.html
     max-width: 120px;
     word-wrap: break-word;
     white-space: normal;
-    line-height: 1.2;
+    line-height: 1.1;
     text-align: center;
+    padding: 3px 4px;
   }
 
   /* Corner cell */
@@ -131,6 +133,8 @@ permalink: /weirdml_table.html
     max-width: 140px;
     white-space: normal;
     word-wrap: break-word;
+    padding: 2px 6px;
+    line-height: 1.1;
   }
 
   tbody td {
@@ -141,11 +145,21 @@ permalink: /weirdml_table.html
     min-width: 80px;
     max-width: 120px;
     word-wrap: break-word;
+    padding: 2px 4px;
+    line-height: 1.1;
   }
 
   /* Zebra striping for rows */
   tbody tr:nth-child(even) td {
     background: #f8f9fa;
+  }
+
+  tbody tr:nth-child(even) td.avg-accuracy {
+    background-color: #d4edda !important;
+  }
+
+  tbody tr:nth-child(even) td.std-error {
+    background-color: #ffeeba !important;
   }
 
   tbody tr:nth-child(even) th {
@@ -168,6 +182,18 @@ permalink: /weirdml_table.html
 
   .accuracy {
     color: #27ae60;
+  }
+
+  .avg-accuracy {
+    background-color: #e8f5e8 !important;
+    color: #1e7e34;
+    font-weight: 600;
+  }
+
+  .std-error {
+    background-color: #fff3cd !important;
+    color: #856404;
+    font-weight: 600;
   }
 
   .cost {
@@ -238,6 +264,8 @@ function formatValue(value, metric) {
 }
 
 function getCellClass(metric) {
+  if (metric === 'avg_acc') return 'number avg-accuracy';
+  if (metric === 'avg_acc_standard_error') return 'number std-error';
   if (metric.includes('acc')) return 'number accuracy';
   if (metric.includes('cost')) return 'number cost';
   if (metric.includes('time')) return 'number time';
