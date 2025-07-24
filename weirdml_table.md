@@ -139,8 +139,7 @@ permalink: /weirdml_table.html
     z-index: 9;
     border-right: 2px solid #bdc3c7;
     font-size: 11px;
-    min-width: 140px;
-    max-width: 140px;
+    width: fit-content;
     white-space: normal;
     word-wrap: break-word;
     padding: 0px;
