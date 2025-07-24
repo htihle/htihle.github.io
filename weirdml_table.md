@@ -79,7 +79,7 @@ permalink: /weirdml_table.html
     border-radius: 8px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     overflow: auto;
-    max-height: min(90vh, fit-content);
+    max-height: fit-content;
     border: 1px solid #e1e5e9;
   }
 
