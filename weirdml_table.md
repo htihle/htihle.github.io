@@ -44,7 +44,7 @@ permalink: /weirdml_table.html
     margin-bottom: 16px;
   }
 
-  h6 {
+  h4 {
     margin: 0;
     color: #2c3e50;
   }
