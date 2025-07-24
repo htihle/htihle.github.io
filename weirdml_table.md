@@ -125,8 +125,7 @@ permalink: /weirdml_table.html
     position: sticky;
     left: 0;
     z-index: 11;
-    min-width: 140px;
-    max-width: 140px;
+    width: fit-content;
   }
 
   /* Metric labels - sticky left column */
