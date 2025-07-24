@@ -6,7 +6,7 @@ permalink: /weirdml_table.html
 
 <div class="container">
 <div class="header">
-  <h4>WeirdML Data</h4>
+  <h6>WeirdML Data</h6>
   <a href="{{ "/data/weirdml_data.csv" | relative_url }}" class="download-btn">📊 Download CSV</a>
 </div>
   
@@ -44,12 +44,14 @@ permalink: /weirdml_table.html
     margin-bottom: 16px;
   }
 
-  h4 {
+  h6 {
+    margin: 0;
     color: #2c3e50;
   }
 
   .download-btn {
     display: inline-block;
+    height: fit-content;
     padding: 4px 8px;
     border: 1px solid #3498db;
     color: black;
