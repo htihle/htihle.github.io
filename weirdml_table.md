@@ -1,5 +1,5 @@
 ---
-layout: default
+layout: no-footer
 title: WeirdML Data Table
 permalink: /weirdml_table.html
 ---
