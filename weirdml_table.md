@@ -45,10 +45,8 @@ permalink: /weirdml_table.html
   }
 
   h4 {
-    font-size: 24px;
     margin: 0 0 16px 0;
     color: #2c3e50;
-    font-weight: 600;
   }
 
   .download-btn {
