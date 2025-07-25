@@ -1,5 +1,4 @@
 ---
-layout: no-footer
 title: WeirdML Data Table
 permalink: /weirdml_table.html
 ---
@@ -184,22 +183,22 @@ permalink: /weirdml_table.html
   }
 
   .avg-accuracy {
-    background-color: #e8f5e8 !important;
+    background-color:rgb(17, 215, 17) !important;
     font-weight: 600;
   }
 
   .std-error {
     background-color: #fff3cd !important;
-    color: #856404;
+    color:rgb(4, 208, 253);
     font-weight: 600;
   }
 
   .cost {
-    color: #e74c3c;
+    color:rgb(0, 0, 255);
   }
 
   .time {
-    color: #f39c12;
+    color:rgb(12, 197, 248);
   }
 </style>
 
