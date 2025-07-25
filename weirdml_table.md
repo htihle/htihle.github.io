@@ -1,4 +1,5 @@
 ---
+layout: no-footer
 title: WeirdML Data Table
 permalink: /weirdml_table.html
 ---
@@ -152,16 +153,20 @@ permalink: /weirdml_table.html
     background: #e8e9eb;
   }
 
-  tbody tr:nth-child(even) td.avg-accuracy {
-    background-color: #c2d9c7 !important;
-  }
-
-  tbody tr:nth-child(even) td.std-error {
-    background-color: #f0d695 !important;
-  }
-
   tbody tr:nth-child(even) th {
     background: #d1d5d8;
+  }
+
+  /* Special cell styling - these need !important to override zebra striping */
+  .avg-accuracy {
+    background-color: rgb(17, 215, 17) !important;
+    font-weight: 600;
+  }
+
+  .std-error {
+    background-color: #fff3cd !important;
+    color: rgb(4, 208, 253);
+    font-weight: 600;
   }
 
   /* Hover effects */
@@ -182,23 +187,12 @@ permalink: /weirdml_table.html
     font-weight: 600;
   }
 
-  .avg-accuracy {
-    background-color:rgb(17, 215, 17) !important;
-    font-weight: 600;
-  }
-
-  .std-error {
-    background-color: #fff3cd !important;
-    color:rgb(4, 208, 253);
-    font-weight: 600;
-  }
-
   .cost {
-    color:rgb(0, 0, 255);
+    color: rgb(0, 0, 255);
   }
 
   .time {
-    color:rgb(12, 197, 248);
+    color: rgb(12, 197, 248);
   }
 </style>
 
