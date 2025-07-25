@@ -53,7 +53,7 @@ permalink: /weirdml_table.html
     display: inline-block;
     height: fit-content;
     padding: 4px 8px;
-    border: 1px solid #3498db;
+    border: 1px solid #5a7da0;
     color: black;
     text-decoration: none;
     border-radius: 6px;
@@ -63,7 +63,7 @@ permalink: /weirdml_table.html
   }
 
   .download-btn:hover {
-    background: #2980b9;
+    background: #e8f0f7;
   }
 
   .table-container {
@@ -95,7 +95,7 @@ permalink: /weirdml_table.html
 
   /* Header styling - model names */
   thead th {
-    background: #34495e;
+    background: #4a5f7a;
     color: white;
     font-weight: 600;
     position: sticky;
@@ -113,7 +113,7 @@ permalink: /weirdml_table.html
 
   /* Corner cell */
   thead th:first-child {
-    background: #2c3e50;
+    background: #3d4f63;
     position: sticky;
     left: 0;
     z-index: 11;
@@ -158,23 +158,23 @@ permalink: /weirdml_table.html
   }
 
   .avg-accuracy {
-    background-color: rgb(128, 255, 128) !important;
+    background-color: rgba(144, 198, 144, 0.3) !important;
     font-weight: 600;
   }
 
   .std-error {
-    background-color: #fff3cd !important;
-    color: rgb(4, 208, 253);
+    background-color: #fff9e6 !important;
+    color: #5a8da1;
     font-weight: 600;
   }
 
   /* Hover effects */
   tbody tr:hover td {
-    background: #e3f2fd !important;
+    background: #e8f2fa !important;
   }
 
   tbody tr:hover th {
-    background: #bbdefb !important;
+    background: #d6e7f5 !important;
   }
 
   /* Better number formatting */
@@ -187,11 +187,11 @@ permalink: /weirdml_table.html
   }
 
   .cost {
-    color: rgb(0, 0, 255);
+    color: #4a5cb8;
   }
 
   .time {
-    color: rgb(12, 197, 248);
+    color: #4a8fa8;
   }
 </style>
 
@@ -228,24 +228,24 @@ const LABELS = {
 
 function getAccuracyColor(percentage) {
   // Convert percentage (0-100) to color gradient
-  // 0-50: Red to Yellow
-  // 50-100: Yellow to Green
+  // 0-50: Muted Red to Muted Yellow
+  // 50-100: Muted Yellow to Muted Green
   
   const value = Math.max(0, Math.min(100, percentage));
   
   if (value <= 50) {
-    // Red to Yellow
+    // Muted Red to Muted Yellow
     const ratio = value / 50;
-    const r = 255;
-    const g = Math.round(255 * ratio);
-    const b = 0;
+    const r = 180;
+    const g = Math.round(120 + (60 * ratio));
+    const b = 80;
     return `rgb(${r}, ${g}, ${b})`;
   } else {
-    // Yellow to Green
+    // Muted Yellow to Muted Green
     const ratio = (value - 50) / 50;
-    const r = Math.round(255 * (1 - ratio));
-    const g = 200;
-    const b = 0;
+    const r = Math.round(180 * (1 - ratio) + 100 * ratio);
+    const g = Math.round(180 * (1 - ratio) + 160 * ratio);
+    const b = Math.round(80 * (1 - ratio) + 100 * ratio);
     return `rgb(${r}, ${g}, ${b})`;
   }
 }
