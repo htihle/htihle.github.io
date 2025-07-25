@@ -158,7 +158,7 @@ permalink: /weirdml_table.html
   }
 
   .avg-accuracy {
-    background-color: rgb(0, 125, 0) !important;
+    background-color: rgb(128, 255, 128) !important;
     font-weight: 600;
   }
 
@@ -311,7 +311,7 @@ function getCellClass(metric) {
     // Create header row
     const headerTr = document.createElement('tr');
     const cornerTh = document.createElement('th');
-    cornerTh.textContent = 'Metric / Model';
+    cornerTh.textContent = 'Metric \\ Model';
     headerTr.appendChild(cornerTh);
     
     models.forEach(model => {
