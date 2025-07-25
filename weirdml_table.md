@@ -159,7 +159,7 @@ permalink: /weirdml_table.html
   }
 
   .avg-accuracy {
-    background-color:rgb(170, 255, 170) !important;
+    background-color:rgb(180, 255, 200) !important;
     font-weight: 700;
     /* color: #4a4a8a; */
   }
