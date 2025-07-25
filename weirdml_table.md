@@ -53,17 +53,18 @@ permalink: /weirdml_table.html
     display: inline-block;
     height: fit-content;
     padding: 4px 8px;
-    border: 1px solid #5a7da0;
-    color: black;
+    border: 1px solid #2980b9;
+    color: #2980b9;
     text-decoration: none;
     border-radius: 6px;
     font-size: 10px;
     font-weight: 500;
-    transition: background-color 0.2s;
+    transition: all 0.2s;
   }
 
   .download-btn:hover {
-    background: #e8f0f7;
+    background: #2980b9;
+    color: white;
   }
 
   .table-container {
@@ -95,7 +96,7 @@ permalink: /weirdml_table.html
 
   /* Header styling - model names */
   thead th {
-    background: #4a5f7a;
+    background: #2c3e50;
     color: white;
     font-weight: 600;
     position: sticky;
@@ -113,7 +114,7 @@ permalink: /weirdml_table.html
 
   /* Corner cell */
   thead th:first-child {
-    background: #3d4f63;
+    background: #1a252f;
     position: sticky;
     left: 0;
     z-index: 11;
@@ -128,7 +129,7 @@ permalink: /weirdml_table.html
     position: sticky;
     left: 0;
     z-index: 9;
-    border-right: 2px solid #bdc3c7;
+    border-right: 2px solid #95a5a6;
     font-size: 11px;
     width: fit-content;
     white-space: nowrap;
@@ -150,31 +151,32 @@ permalink: /weirdml_table.html
 
   /* Enhanced zebra striping with more contrast */
   tbody tr:nth-child(even) td {
-    background: #e8e9eb;
+    background: #f0f2f4;
   }
 
   tbody tr:nth-child(even) th {
-    background: #d1d5d8;
+    background: #d5dade;
   }
 
   .avg-accuracy {
-    background-color: rgba(144, 198, 144, 0.3) !important;
+    background-color: #d4edda !important;
     font-weight: 600;
+    color: #155724;
   }
 
   .std-error {
-    background-color: #fff9e6 !important;
-    color: #5a8da1;
+    background-color: #fff3cd !important;
+    color: #17a2b8;
     font-weight: 600;
   }
 
   /* Hover effects */
   tbody tr:hover td {
-    background: #e8f2fa !important;
+    background: #d1ecf1 !important;
   }
 
   tbody tr:hover th {
-    background: #d6e7f5 !important;
+    background: #bee5eb !important;
   }
 
   /* Better number formatting */
@@ -187,11 +189,11 @@ permalink: /weirdml_table.html
   }
 
   .cost {
-    color: #4a5cb8;
+    color: #0056b3;
   }
 
   .time {
-    color: #4a8fa8;
+    color: #138496;
   }
 </style>
 
@@ -228,24 +230,23 @@ const LABELS = {
 
 function getAccuracyColor(percentage) {
   // Convert percentage (0-100) to color gradient
-  // 0-50: Muted Red to Muted Yellow
-  // 50-100: Muted Yellow to Muted Green
+  // Using a more sophisticated gradient for better visibility
   
   const value = Math.max(0, Math.min(100, percentage));
   
   if (value <= 50) {
-    // Muted Red to Muted Yellow
+    // Dark red to orange
     const ratio = value / 50;
-    const r = 180;
-    const g = Math.round(120 + (60 * ratio));
-    const b = 80;
+    const r = Math.round(220 - (40 * ratio));
+    const g = Math.round(53 + (112 * ratio));
+    const b = Math.round(69 - (19 * ratio));
     return `rgb(${r}, ${g}, ${b})`;
   } else {
-    // Muted Yellow to Muted Green
+    // Orange to green
     const ratio = (value - 50) / 50;
-    const r = Math.round(180 * (1 - ratio) + 100 * ratio);
-    const g = Math.round(180 * (1 - ratio) + 160 * ratio);
-    const b = Math.round(80 * (1 - ratio) + 100 * ratio);
+    const r = Math.round(180 - (100 * ratio));
+    const g = Math.round(165 - (35 * ratio));
+    const b = Math.round(50 + (40 * ratio));
     return `rgb(${r}, ${g}, ${b})`;
   }
 }
