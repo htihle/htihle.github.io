@@ -1,5 +1,5 @@
 ---
-layout: no-footer
+layout: nothing
 title: WeirdML Data Table
 permalink: /weirdml_table.html
 ---
@@ -159,7 +159,7 @@ permalink: /weirdml_table.html
 
   /* Special cell styling - these need !important to override zebra striping */
   .avg-accuracy {
-    background-color: rgb(17, 215, 17) !important;
+    background-color: rgb(0, 125, 0) !important;
     font-weight: 600;
   }
 
