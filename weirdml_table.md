@@ -148,21 +148,21 @@ permalink: /weirdml_table.html
     line-height: 1.1;
   }
 
-  /* Zebra striping for rows */
+  /* Enhanced zebra striping with more contrast */
   tbody tr:nth-child(even) td {
-    background: #f8f9fa;
+    background: #e8e9eb;
   }
 
   tbody tr:nth-child(even) td.avg-accuracy {
-    background-color: #d4edda !important;
+    background-color: #c2d9c7 !important;
   }
 
   tbody tr:nth-child(even) td.std-error {
-    background-color: #ffeeba !important;
+    background-color: #f0d695 !important;
   }
 
   tbody tr:nth-child(even) th {
-    background: #dee2e6;
+    background: #d1d5d8;
   }
 
   /* Hover effects */
@@ -180,12 +180,11 @@ permalink: /weirdml_table.html
   }
 
   .accuracy {
-    color: #27ae60;
+    font-weight: 600;
   }
 
   .avg-accuracy {
     background-color: #e8f5e8 !important;
-    color: #1e7e34;
     font-weight: 600;
   }
 
@@ -234,6 +233,30 @@ const LABELS = {
   exec_time_median_s: "Exec Time Median (s)",
   "API source": "API Source"
 };
+
+function getAccuracyColor(percentage) {
+  // Convert percentage (0-100) to color gradient
+  // 0-50: Red to Yellow
+  // 50-100: Yellow to Green
+  
+  const value = Math.max(0, Math.min(100, percentage));
+  
+  if (value <= 50) {
+    // Red to Yellow
+    const ratio = value / 50;
+    const r = 255;
+    const g = Math.round(255 * ratio);
+    const b = 0;
+    return `rgb(${r}, ${g}, ${b})`;
+  } else {
+    // Yellow to Green
+    const ratio = (value - 50) / 50;
+    const r = Math.round(255 * (1 - ratio));
+    const g = 200;
+    const b = 0;
+    return `rgb(${r}, ${g}, ${b})`;
+  }
+}
 
 function formatValue(value, metric) {
   if (!value || value === '') return '—';
@@ -318,6 +341,13 @@ function getCellClass(metric) {
         const rawValue = row[metric];
         td.textContent = formatValue(rawValue, metric);
         td.className = getCellClass(metric);
+        
+        // Apply color gradient to accuracy values
+        if (metric.includes('acc') && !isNaN(rawValue) && rawValue !== '') {
+          const percentage = parseFloat(rawValue) * 100;
+          td.style.color = getAccuracyColor(percentage);
+        }
+        
         tr.appendChild(td);
       });
       
