@@ -159,21 +159,9 @@ permalink: /weirdml_table.html
   }
 
   .avg-accuracy {
-    background: linear-gradient(135deg, #f0f4ff 0%, #e8f5e9 100%) !important;
+    background-color: #e6e6fa !important;
     font-weight: 700;
-    border: 1px solid #a1c4a7;
-    position: relative;
-  }
-  
-  .avg-accuracy::before {
-    content: '';
-    position: absolute;
-    top: -1px;
-    left: -1px;
-    right: -1px;
-    bottom: -1px;
-    background: linear-gradient(135deg, rgba(130, 100, 180, 0.15) 0%, rgba(40, 180, 100, 0.15) 100%);
-    pointer-events: none;
+    /* color: #4a4a8a; */
   }
 
   .std-error {
