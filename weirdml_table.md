@@ -157,7 +157,6 @@ permalink: /weirdml_table.html
     background: #d1d5d8;
   }
 
-  /* Special cell styling - these need !important to override zebra striping */
   .avg-accuracy {
     background-color: rgb(0, 125, 0) !important;
     font-weight: 600;
