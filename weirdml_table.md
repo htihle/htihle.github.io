@@ -230,23 +230,37 @@ const LABELS = {
 
 function getAccuracyColor(percentage) {
   // Convert percentage (0-100) to color gradient
-  // Using a more sophisticated gradient for better visibility
+  // Using a more vibrant gradient with better distinction around 50%
   
   const value = Math.max(0, Math.min(100, percentage));
   
-  if (value <= 50) {
-    // Dark red to orange
-    const ratio = value / 50;
-    const r = Math.round(220 - (40 * ratio));
-    const g = Math.round(53 + (112 * ratio));
-    const b = Math.round(69 - (19 * ratio));
+  if (value <= 40) {
+    // Red to orange-red
+    const ratio = value / 40;
+    const r = Math.round(220 - (20 * ratio));
+    const g = Math.round(60 + (60 * ratio));
+    const b = 60;
+    return `rgb(${r}, ${g}, ${b})`;
+  } else if (value <= 60) {
+    // Orange-red to yellow-orange (making 50% area more vibrant)
+    const ratio = (value - 40) / 20;
+    const r = Math.round(200 - (20 * ratio));
+    const g = Math.round(120 + (60 * ratio));
+    const b = Math.round(60 - (10 * ratio));
+    return `rgb(${r}, ${g}, ${b})`;
+  } else if (value <= 80) {
+    // Yellow-orange to light green
+    const ratio = (value - 60) / 20;
+    const r = Math.round(180 - (80 * ratio));
+    const g = Math.round(180 + (20 * ratio));
+    const b = Math.round(50 + (30 * ratio));
     return `rgb(${r}, ${g}, ${b})`;
   } else {
-    // Orange to green
-    const ratio = (value - 50) / 50;
-    const r = Math.round(180 - (100 * ratio));
-    const g = Math.round(165 - (35 * ratio));
-    const b = Math.round(50 + (40 * ratio));
+    // Light green to vibrant green
+    const ratio = (value - 80) / 20;
+    const r = Math.round(100 - (60 * ratio));
+    const g = Math.round(200 + (20 * ratio));
+    const b = Math.round(80 - (20 * ratio));
     return `rgb(${r}, ${g}, ${b})`;
   }
 }
