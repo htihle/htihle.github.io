@@ -65,24 +65,24 @@ I have now added basically all the relevant frontier models back in time. Older 
 
 <div style="text-align: center">
     <img src="../images_v2/weirdml_date_vs_accuracy.png" width="800"/>
-    <p><em>This scatter plot shows the relationship between model release dates and their achieved accuracy. Each icon corresponds to a model positioned according to its release date on the X-axis and its overall accuracy on the Y-axis, providing an overview of how model performance has progressed chronologically.</em></p>
+    <p><em>This scatter plot shows the relationship between model release dates and their achieved accuracy. Each icon corresponds to a model positioned according to its release date on the X-axis and its overall accuracy on the Y-axis, providing an overview of how model performance has progressed chronologically. The actual datapoints are in the middle of each company logo, not the text.</em></p>
 </div>
 
 <div style="text-align: center">
     <img src="../images_v2/weirdml_accuracy_cost_frontier_evolution.png" width="800"/>
-    <p><em>This figure illustrates the evolution of the cost-accuracy frontier over time, showing snapshots at six-month intervals from July 2023 to July 2025. Each colored curve represents the most cost-effective models (lowest cost for highest accuracy) available up to that date, highlighting rapid advancements in model efficiency and accuracy over the period. The icons represent individual models placed according to their cost per run (logarithmic X-axis) and overall accuracy (Y-axis).</em></p>
+    <p><em>This figure illustrates the evolution of the cost-accuracy frontier over time, showing snapshots at six-month intervals from July 2023 to July 2025. Each colored curve represents the most cost-effective models (lowest cost for highest accuracy) available up to that date, highlighting rapid advancements in model efficiency and accuracy over the period. The icons represent individual models placed according to their cost per run (logarithmic X-axis) and overall accuracy (Y-axis). The actual datapoints are in the middle of each company logo, not the text.</em></p>
 </div>
 
 ### Open vs Closed Models
 
 <div style="text-align: center">
     <img src="../images_v2/weirdml_date_vs_accuracy_with_frontiers.png" width="800"/>
-    <p><em>This scatter plot compares the progress of open-weights versus closed-weights models over time, plotting their release dates against their achieved accuracy. The step-like frontier curves represent the best accuracy achieved by open-weights (blue) and closed-weights (green) models, respectively, at any given time. Shaded regions emphasize periods where closed models held a clear accuracy advantage, highlighting the competitive dynamics between open and closed approaches.</em></p>
+    <p><em>This scatter plot compares the progress of open-weights versus closed-weights models over time, plotting their release dates against their achieved accuracy. The step-like frontier curves represent the best accuracy achieved by open-weights (blue) and closed-weights (green) models, respectively, at any given time. Shaded regions emphasize periods where closed models held a clear accuracy advantage, highlighting the competitive dynamics between open and closed approaches. The actual datapoints are in the middle of each company logo, not the text.</em></p>
 </div>
 
 <div style="text-align: center">
     <img src="../images_v2/weirdml_open_model_delay_timeline.png" width="900"/>
-    <p><em>This timeline visualizes the delays experienced by open-weights models in reaching various accuracy thresholds initially achieved by closed-weights models. Each horizontal line indicates the period from when a closed-weights model first reached an accuracy threshold (left icon) until an open-weights model achieved the same level (right icon). The annotated delays in months clearly illustrate the gap between closed-weights innovation and open-weights replication over time.</em></p>
+    <p><em>This timeline visualizes the delays experienced by open-weights models in reaching various accuracy thresholds initially achieved by closed-weights models. Each horizontal line indicates the period from when a closed-weights model first reached an accuracy threshold (left icon) until an open-weights model achieved the same level (right icon). The annotated delays in months quantifies the gap between closed-weights models and open-weights models over time.</em></p>
 </div>
 
 
