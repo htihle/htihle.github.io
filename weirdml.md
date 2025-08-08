@@ -42,6 +42,8 @@ Each task comes with a task prompt describing the problem precisely and some exa
 
 
 ## Results
+[Explore the full WeirdML data](/weirdml_table.html)
+([CSV]({{ "/data/weirdml_data.csv" | relative_url }}))
 ### Topline Results
 <div style="text-align: center">
     <img src="../images_v2/weirdml_model_summary.png" width="1500"/>
@@ -57,8 +59,6 @@ Each task comes with a task prompt describing the problem precisely and some exa
     <img src="../images_v2/weirdml_accuracy_progression.png" width="800"/>
     <p><em>Accuracy progression over five iterations.For each of the five highlighted models the marker shows the mean of the per-task “best-so-far” test accuracy after iteration n, averaged over all runs and all 19 WeirdML tasks; the vertical whiskers are 95 % bootstrap confidence intervals. A single iteration (leftmost point) captures zero-shot code generation, while later points incorporate up to four rounds of feedback in the form of the test accuracy and terminal output from the python execution. </em></p>
 </div>
-[Explore the full WeirdML data](/weirdml_table.html)
-([CSV]({{ "/data/weirdml_data.csv" | relative_url }}))
 
 ### Evolution of frontier over time 
 I have now added basically all the relevant frontier models back in time. Older models than mid-2023 are not included since they generally have too small context windows to solve the tasks, they would probably score very low as well. Notable missing models are o1-pro (this is too expensive to run) and gemini-1.0-ultra (not available in API any more).
