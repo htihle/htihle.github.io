@@ -225,6 +225,7 @@ const LABELS = {
   code_len_p50: "Code Length P50",
   code_len_p90: "Code Length P90",
   exec_time_median_s: "Exec Time Median (s)",
+  release_date: "Release Date",
   "API source": "API Source"
 };
 
@@ -322,7 +323,8 @@ function getCellClass(metric) {
 
     const keys = Object.keys(rows[0]);
     const modelKey = 'display_name';
-    const skipKeys = new Set([modelKey, 'internal_model_name']);
+    const skipKeys = new Set([modelKey, 'internal_model_name', 'model_slug']);
+   
     
     const models = rows.map(r => r[modelKey] || 'Unknown');
     const metrics = keys.filter(k => !skipKeys.has(k));
