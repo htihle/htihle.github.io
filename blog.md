@@ -7,6 +7,7 @@ title: Blog
 
 Below are my blog posts on [LessWrong](https://www.lesswrong.com/):
 
+- [Inference costs for hard coding tasks halve roughly every two months](https://www.lesswrong.com/posts/ifSBamvobbyB9KWjK/inference-costs-for-hard-coding-tasks-halve-roughly-every)
 - [Is the gap between open and closed models growing? Evidence from WeirdML](https://www.lesswrong.com/posts/NLnGRDRXATW2pqXuE/is-the-gap-between-open-and-closed-models-growing-evidence)
 - [Introducing the WeirdML Benchmark](https://www.lesswrong.com/posts/LfQCzph7rc2vxpweS/introducing-the-weirdml-benchmark)
 - [o1-preview is pretty good at doing ML on an unknown dataset](https://www.lesswrong.com/posts/vLB4tkLWYmQrJstCA/o1-preview-is-pretty-good-at-doing-ml-on-an-unknown-dataset)
