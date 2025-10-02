@@ -95,6 +95,7 @@ See blog post for more details: [Inference costs for hard coding tasks halve rou
 <div style="text-align: center">
     <img src="../images_v2/weirdml_cost_to_accuracy_over_time_overlaid_normalized.png" width="800"/>
     <p><em>Here we see the normalized cost (the cost at each time compared to the cost when the threshold was first achieved), and how that evolves over time for each threshold. We can then fit a curve to these data.</em></p>
+</div>
 
 ## Evaluation Setup
 
