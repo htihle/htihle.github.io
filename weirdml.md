@@ -85,6 +85,16 @@ I have now added basically all the relevant frontier models back in time. Older 
     <p><em>This timeline visualizes the delays experienced by open-weights models in reaching various accuracy thresholds initially achieved by closed-weights models. Each horizontal line indicates the period from when a closed-weights model first reached an accuracy threshold (left icon) until an open-weights model achieved the same level (right icon). The annotated delays in months quantifies the gap between closed-weights models and open-weights models over time.</em></p>
 </div>
 
+### Cost decrease over time
+See blog post for more details: [Inference costs for hard coding tasks halve roughly every two months](https://www.lesswrong.com/posts/ifSBamvobbyB9KWjK/inference-costs-for-hard-coding-tasks-halve-roughly-every)
+<div style="text-align: center">
+    <img src="../images_v2/weirdml_cost_to_accuracy_over_time_overlaid.png" width="800"/>
+    <p><em>Here we see the cost to run the cheapest model that could achieve each 5% level of accuracy and how it declines over time. This is the average cost to solve a single task (in 5 iterations/model calls). We show the results for each accuracy level from 5% up to 55%, which is the highest 5% increment achieved to date. </em></p>
+</div>
+
+<div style="text-align: center">
+    <img src="../images_v2/weirdml_cost_to_accuracy_over_time_overlaid_normalized.png" width="800"/>
+    <p><em>Here we see the normalized cost (the cost at each time compared to the cost when the threshold was first achieved), and how that evolves over time for each threshold. We can then fit a curve to these data.</em></p>
 
 ## Evaluation Setup
 
