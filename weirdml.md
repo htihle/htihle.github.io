@@ -56,6 +56,11 @@ Each task comes with a task prompt describing the problem precisely and some exa
 </div>
 
 <div style="text-align: center">
+    <img src="../images_v2/weirdml_tokens_vs_accuracy.png" width="800"/>
+    <p><em>This scatter plot visualizes the trade-off between the number of output tokens and the overall average accuracy across all tasks for each model. The X-axis (Average total output tokens per response) is on a logarithmic scale, representing the total number of output tokens (reasoning tokens plus regular completion tokens). The Y-axis (Average Max Accuracy) shows the overall mean accuracy, as detailed in the Model Performance Summary figure. The actual datapoints are in the middle of each company logo, not the text.</em></p>
+</div>
+
+<div style="text-align: center">
     <img src="../images_v2/weirdml_accuracy_progression.png" width="800"/>
     <p><em>Accuracy progression over five iterations.For each of the five highlighted models the marker shows the mean of the per-task “best-so-far” test accuracy after iteration n, averaged over all runs and all 19 WeirdML tasks; the vertical whiskers are 95 % bootstrap confidence intervals. A single iteration (leftmost point) captures zero-shot code generation, while later points incorporate up to four rounds of feedback in the form of the test accuracy and terminal output from the python execution. </em></p>
 </div>
