@@ -7,6 +7,7 @@ title: Blog
 
 Below are my blog posts on [LessWrong](https://www.lesswrong.com/):
 
+- [Can LLMs Coordinate? A Simple Schelling Point Experiment](https://www.lesswrong.com/posts/fpdjaF7kdtcvmhhfE/can-llms-coordinate-a-simple-schelling-point-experiment)
 - [Inference costs for hard coding tasks halve roughly every two months](https://www.lesswrong.com/posts/ifSBamvobbyB9KWjK/inference-costs-for-hard-coding-tasks-halve-roughly-every)
 - [Is the gap between open and closed models growing? Evidence from WeirdML](https://www.lesswrong.com/posts/NLnGRDRXATW2pqXuE/is-the-gap-between-open-and-closed-models-growing-evidence)
 - [Introducing the WeirdML Benchmark](https://www.lesswrong.com/posts/LfQCzph7rc2vxpweS/introducing-the-weirdml-benchmark)
