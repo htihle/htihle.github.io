@@ -4,13 +4,210 @@ title: WeirdML Data Table
 permalink: /weirdml_table.html
 ---
 
-<div class="container">
-<div class="header">
-  <h4>WeirdML Data</h4>
-  <a href="{{ "/data/weirdml_data.csv" | relative_url }}" class="download-btn">📊 Download CSV</a>
-</div>
-  
-  <div class="table-container">
+<link rel="stylesheet" href="{{ '/assets/css/main.css' | relative_url }}">
+
+<style>
+  body {
+    font-family: var(--font-sans);
+    margin: 0;
+    padding: var(--space-6);
+    background: var(--color-bg);
+    color: var(--color-text);
+  }
+
+  .page-container {
+    max-width: 100%;
+    margin: 0 auto;
+  }
+
+  .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-6);
+    flex-wrap: wrap;
+    gap: var(--space-4);
+  }
+
+  .page-header h1 {
+    margin: 0;
+    font-size: var(--text-2xl);
+    color: var(--color-primary);
+  }
+
+  .header-links {
+    display: flex;
+    gap: var(--space-3);
+  }
+
+  .back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-4);
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+    font-weight: var(--font-medium);
+    text-decoration: none;
+    border-radius: var(--radius-md);
+    transition: all var(--transition-fast);
+  }
+
+  .back-link:hover {
+    color: var(--color-primary);
+    background-color: var(--color-bg-alt);
+    text-decoration: none;
+  }
+
+  .download-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-4);
+    border: 1px solid var(--color-accent);
+    color: var(--color-accent);
+    text-decoration: none;
+    border-radius: var(--radius-md);
+    font-size: var(--text-sm);
+    font-weight: var(--font-medium);
+    transition: all var(--transition-fast);
+  }
+
+  .download-btn:hover {
+    background: var(--color-accent);
+    color: white;
+    text-decoration: none;
+  }
+
+  .table-wrapper {
+    background: var(--color-surface);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-md);
+    overflow: auto;
+    border: 1px solid var(--color-border);
+  }
+
+  #csv-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: var(--text-xs);
+    line-height: 1.4;
+  }
+
+  th, td {
+    border: 1px solid var(--color-border);
+    padding: var(--space-2) var(--space-3);
+    text-align: left;
+    vertical-align: middle;
+  }
+
+  thead th {
+    background: var(--color-primary);
+    color: var(--color-text-inverse);
+    font-weight: var(--font-semibold);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    font-size: var(--text-xs);
+    min-width: 90px;
+    max-width: 130px;
+    word-wrap: break-word;
+    white-space: normal;
+    text-align: center;
+  }
+
+  thead th:first-child {
+    background: var(--color-primary-light);
+    position: sticky;
+    left: 0;
+    z-index: 11;
+    min-width: 150px;
+  }
+
+  tbody th {
+    background: var(--color-bg-alt);
+    color: var(--color-primary);
+    font-weight: var(--font-semibold);
+    position: sticky;
+    left: 0;
+    z-index: 9;
+    border-right: 2px solid var(--color-border);
+    white-space: nowrap;
+    min-width: 150px;
+  }
+
+  tbody td {
+    background: var(--color-surface);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    text-align: center;
+    min-width: 90px;
+    max-width: 130px;
+  }
+
+  tbody tr:nth-child(even) td {
+    background: var(--color-bg);
+  }
+
+  tbody tr:nth-child(even) th {
+    background: var(--color-border-light);
+  }
+
+  tbody tr:hover td {
+    background: var(--color-accent-subtle) !important;
+  }
+
+  tbody tr:hover th {
+    background: #cffafe !important;
+  }
+
+  .avg-accuracy {
+    background-color: #d1fae5 !important;
+    font-weight: var(--font-bold);
+  }
+
+  .std-error {
+    background-color: #fef3c7 !important;
+    color: var(--color-info);
+    font-weight: var(--font-semibold);
+  }
+
+  .loading {
+    padding: var(--space-12);
+    text-align: center;
+    color: var(--color-text-muted);
+  }
+
+  .error {
+    padding: var(--space-12);
+    text-align: center;
+    color: var(--color-error);
+  }
+</style>
+
+<div class="page-container">
+  <div class="page-header">
+    <h1>WeirdML Data</h1>
+    <div class="header-links">
+      <a href="weirdml.html" class="back-link">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="m15 18-6-6 6-6"/>
+        </svg>
+        Back to WeirdML
+      </a>
+      <a href="{{ '/data/weirdml_data.csv' | relative_url }}" class="download-btn">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="7 10 12 15 17 10"/>
+          <line x1="12" x2="12" y1="15" y2="3"/>
+        </svg>
+        Download CSV
+      </a>
+    </div>
+  </div>
+
+  <div class="table-wrapper">
     <table id="csv-table">
       <thead></thead>
       <tbody></tbody>
@@ -18,189 +215,12 @@ permalink: /weirdml_table.html
   </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js" integrity="sha384-6y3Kxk6q1cJtKpX3T7..." crossorigin="anonymous"></script>
-
-<style>
-  * {
-    box-sizing: border-box;
-  }
-
-  body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    margin: 0;
-    padding: 20px;
-    background: #f8f9fa;
-    color: #333;
-  }
-
-  .container {
-    max-width: 100%;
-    margin: 0 auto;
-  }
-
-  .header {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 16px;
-  }
-
-  h4 {
-    margin: 0;
-    color: #2c3e50;
-  }
-
-  .download-btn {
-    display: inline-block;
-    height: fit-content;
-    padding: 4px 8px;
-    border: 1px solid #2980b9;
-    color: #2980b9;
-    text-decoration: none;
-    border-radius: 6px;
-    font-size: 10px;
-    font-weight: 500;
-    transition: all 0.2s;
-  }
-
-  .download-btn:hover {
-    background: #2980b9;
-    color: white;
-  }
-
-  .table-container {
-    background: white;
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    overflow: auto;
-    max-height: fit-content;
-    border: 1px solid #e1e5e9;
-  }
-
-  #csv-table {
-    width: 100%;
-    border-collapse: separate;
-    border-spacing: 0;
-    margin-bottom: 0;
-    font-size: 11px;
-    line-height: 1.3;
-  }
-
-  th, td {
-    border: 1px solid #e1e5e9;
-    padding: 2px 6px;
-    text-align: left;
-    vertical-align: middle;
-    margin: 0;
-    line-height: 1.1;
-  }
-
-  /* Header styling - model names */
-  thead th {
-    background: #2c3e50;
-    color: white;
-    font-weight: 600;
-    position: sticky;
-    top: 0;
-    z-index: 10;
-    font-size: 10px;
-    min-width: 80px;
-    max-width: 120px;
-    word-wrap: break-word;
-    white-space: normal;
-    line-height: 1.1;
-    text-align: center;
-    padding: 0px;
-  }
-
-  /* Corner cell */
-  thead th:first-child {
-    background: #1a252f;
-    position: sticky;
-    left: 0;
-    z-index: 11;
-    width: fit-content;
-  }
-
-  /* Metric labels - sticky left column */
-  tbody th {
-    background: #ecf0f1;
-    color: #2c3e50;
-    font-weight: 600;
-    position: sticky;
-    left: 0;
-    z-index: 9;
-    border-right: 2px solid #95a5a6;
-    font-size: 11px;
-    width: fit-content;
-    white-space: nowrap;
-    padding: 0px;
-    line-height: 1.1;
-  }
-
-  tbody td {
-    background: white;
-    font-family: 'Monaco', 'Menlo', monospace;
-    font-size: 10px;
-    text-align: center;
-    min-width: 80px;
-    max-width: 120px;
-    word-wrap: break-word;
-    padding: 0px;
-    line-height: 1.1;
-  }
-
-  /* Enhanced zebra striping with more contrast */
-  tbody tr:nth-child(even) td {
-    background: #f0f2f4;
-  }
-
-  tbody tr:nth-child(even) th {
-    background: #d5dade;
-  }
-
-  .avg-accuracy {
-    background-color:rgb(180, 255, 200) !important;
-    font-weight: 700;
-    /* color: #4a4a8a; */
-  }
-
-  .std-error {
-    background-color: #fff3cd !important;
-    color: #17a2b8;
-    font-weight: 600;
-  }
-
-  /* Hover effects */
-  tbody tr:hover td {
-    background: #d1ecf1 !important;
-  }
-
-  tbody tr:hover th {
-    background: #bee5eb !important;
-  }
-
-  /* Better number formatting */
-  .number {
-    font-weight: 500;
-  }
-
-  .accuracy {
-    font-weight: 600;
-  }
-
-  .cost {
-    color: #0056b3;
-  }
-
-  .time {
-    color: #138496;
-  }
-</style>
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
 <script>
 const LABELS = {
   shapes_easy_acc: "Shapes (Easy)",
-  shapes_hard_acc: "Shapes (Hard)", 
+  shapes_hard_acc: "Shapes (Hard)",
   shuffle_easy_acc: "Shuffle (Easy)",
   shuffle_hard_acc: "Shuffle (Hard)",
   digits_unsup_acc: "Digits (Unsupervised)",
@@ -230,41 +250,33 @@ const LABELS = {
 };
 
 function getAccuracyColor(percentage) {
-  // Convert percentage (0-100) to color gradient
-  // Red -> Purple -> Blue -> Green for better distinction
-  
   const value = Math.max(0, Math.min(100, percentage));
-  
+
   if (value <= 30) {
-    // Deep red to red-purple
     const ratio = value / 30;
     const r = Math.round(200 - (40 * ratio));
     const g = Math.round(50 + (30 * ratio));
     const b = Math.round(50 + (80 * ratio));
     return `rgb(${r}, ${g}, ${b})`;
   } else if (value <= 50) {
-    // Red-purple to purple/violet
     const ratio = (value - 30) / 20;
     const r = Math.round(160 - (30 * ratio));
     const g = Math.round(80 + (20 * ratio));
     const b = Math.round(130 + (50 * ratio));
     return `rgb(${r}, ${g}, ${b})`;
   } else if (value <= 70) {
-    // Purple to blue
     const ratio = (value - 50) / 20;
     const r = Math.round(130 - (50 * ratio));
     const g = Math.round(100 + (40 * ratio));
     const b = Math.round(180 - (20 * ratio));
     return `rgb(${r}, ${g}, ${b})`;
   } else if (value <= 85) {
-    // Blue to teal/cyan
     const ratio = (value - 70) / 15;
     const r = Math.round(80 - (40 * ratio));
     const g = Math.round(140 + (40 * ratio));
     const b = Math.round(160 - (40 * ratio));
     return `rgb(${r}, ${g}, ${b})`;
   } else {
-    // Teal to vibrant green
     const ratio = (value - 85) / 15;
     const r = Math.round(40 - (20 * ratio));
     const g = Math.round(180 + (40 * ratio));
@@ -275,69 +287,61 @@ function getAccuracyColor(percentage) {
 
 function formatValue(value, metric) {
   if (!value || value === '') return '—';
-  
-  // Format numbers appropriately
+
   if (!isNaN(value)) {
     const num = parseFloat(value);
     if (metric.includes('acc') && num <= 1) {
-      // Accuracy values - show as percentage with 1 decimal
       return (num * 100).toFixed(1) + '%';
     } else if (metric.includes('cost')) {
-      // Cost values - show with appropriate decimal places
       return '$' + num.toFixed(num < 0.01 ? 4 : 2);
     } else if (metric.includes('time')) {
-      // Time values
       return num.toFixed(2) + 's';
     } else if (metric.includes('code_len')) {
-      // Code length - no decimals
       return Math.round(num).toLocaleString();
     } else {
-      // Other numbers
       return num.toFixed(3);
     }
   }
-  
+
   return value;
 }
 
 function getCellClass(metric) {
-  if (metric === 'avg_acc') return 'number avg-accuracy';
-  if (metric === 'avg_acc_standard_error') return 'number std-error';
-  if (metric.includes('acc')) return 'number accuracy';
-  if (metric.includes('cost')) return 'number cost';
-  if (metric.includes('time')) return 'number time';
-  return 'number';
+  if (metric === 'avg_acc') return 'avg-accuracy';
+  if (metric === 'avg_acc_standard_error') return 'std-error';
+  return '';
 }
 
 (async () => {
+  const tbody = document.querySelector('#csv-table tbody');
+  tbody.innerHTML = '<tr><td class="loading" colspan="100">Loading data...</td></tr>';
+
   try {
     const url = '{{ "/data/weirdml_data.csv" | relative_url }}?v={{ site.time | date: "%s" }}';
     const csvText = await fetch(url).then(r => r.text());
     const parsed = Papa.parse(csvText, { header: true, skipEmptyLines: true });
     const rows = parsed.data;
-    
+
     if (!rows.length) {
-      document.querySelector('.table-container').innerHTML = '<p style="padding: 20px; text-align: center; color: #666;">No data available</p>';
+      document.querySelector('.table-wrapper').innerHTML = '<p class="loading">No data available</p>';
       return;
     }
 
     const keys = Object.keys(rows[0]);
     const modelKey = 'display_name';
     const skipKeys = new Set([modelKey, 'internal_model_name', 'model_slug']);
-   
-    
+
     const models = rows.map(r => r[modelKey] || 'Unknown');
     const metrics = keys.filter(k => !skipKeys.has(k));
 
     const thead = document.querySelector('#csv-table thead');
-    const tbody = document.querySelector('#csv-table tbody');
+    tbody.innerHTML = '';
 
-    // Create header row
     const headerTr = document.createElement('tr');
     const cornerTh = document.createElement('th');
-    cornerTh.textContent = 'Metric \\ Model';
+    cornerTh.textContent = 'Metric';
     headerTr.appendChild(cornerTh);
-    
+
     models.forEach(model => {
       const th = document.createElement('th');
       th.textContent = model;
@@ -345,7 +349,6 @@ function getCellClass(metric) {
     });
     thead.appendChild(headerTr);
 
-    // Create metric rows
     metrics.forEach(metric => {
       const tr = document.createElement('tr');
       const th = document.createElement('th');
@@ -357,22 +360,21 @@ function getCellClass(metric) {
         const rawValue = row[metric];
         td.textContent = formatValue(rawValue, metric);
         td.className = getCellClass(metric);
-        
-        // Apply color gradient to accuracy values
+
         if (metric.includes('acc') && !isNaN(rawValue) && rawValue !== '') {
           const percentage = parseFloat(rawValue) * 100;
           td.style.color = getAccuracyColor(percentage);
         }
-        
+
         tr.appendChild(td);
       });
-      
+
       tbody.appendChild(tr);
     });
-    
+
   } catch (error) {
     console.error('Error loading data:', error);
-    document.querySelector('.table-container').innerHTML = '<p style="padding: 20px; text-align: center; color: #e74c3c;">Error loading data</p>';
+    document.querySelector('.table-wrapper').innerHTML = '<p class="error">Error loading data</p>';
   }
 })();
 </script>

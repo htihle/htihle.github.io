@@ -1,10 +1,35 @@
-title: ""
-description: ""
-theme: minima
-author: ""
+title: "Håvard Tveit Ihle"
+description: "AI researcher and former astrophysicist. Working on evaluation, generalization, robustness, and interpretability of machine learning models."
+author: "Håvard Tveit Ihle"
+email: htihle@gmail.com
+url: "https://htihle.github.io"
+
+# Navigation
 header_pages:
   - index.md
   - blog.md
   - cv.md
   - weirdml.md
 
+# Build settings
+markdown: kramdown
+highlighter: rouge
+
+# Plugins
+plugins:
+  - jekyll-feed
+  - jekyll-seo-tag
+
+# Exclude from build
+exclude:
+  - Gemfile
+  - Gemfile.lock
+  - README.md
+  - vendor
+
+# Defaults
+defaults:
+  - scope:
+      path: ""
+    values:
+      layout: "default"

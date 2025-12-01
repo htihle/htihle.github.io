@@ -1,0 +1,25 @@
+<header class="site-header">
+  <div class="container">
+    <div class="header-content">
+      <a href="{{ '/' | relative_url }}" class="site-title">Håvard Tveit Ihle</a>
+
+      <button class="nav-toggle" aria-label="Toggle navigation" onclick="document.querySelector('.site-nav').classList.toggle('active')">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      </button>
+
+      <nav class="site-nav">
+        {% for item in site.header_pages %}
+          {% assign nav_page = site.pages | where: "path", item | first %}
+          {% if nav_page %}
+            <a href="{{ nav_page.url | relative_url }}"
+               class="nav-link {% if page.url == nav_page.url %}active{% endif %}">
+              {{ nav_page.title }}
+            </a>
+          {% endif %}
+        {% endfor %}
+      </nav>
+    </div>
+  </div>
+</header>
