@@ -57,6 +57,6 @@ title: CV
 <div class="cv-section">
   <h3 class="cv-section-title">Publications</h3>
   <p>Published 51 papers in the field of Cosmology as of December 2024, with a total of 722 citations and an h-index of 17. Topics include robust end-to-end data analysis for cosmological experiments, Bayesian data analysis, and cosmological parameter inference.</p>
-  <p><a href="https://ui.adsabs.harvard.edu/search/p_=0&q=orcid%3A0000-0003-3420-7766">View publications on NASA/ADS →</a></p>
+  <p><a href="https://ui.adsabs.harvard.edu/search/p_=0&q=orcid%3A0000-0003-3420-7766">NASA/ADS →</a> · <a href="https://scholar.google.com/citations?user=qTGqzvgAAAAJ&hl=en">Google Scholar →</a></p>
 </div>
 
