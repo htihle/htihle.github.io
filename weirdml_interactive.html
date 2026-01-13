@@ -84,13 +84,13 @@ title: WeirdML Interactive Plot
         }
 
         .control-btn {
-            padding: 8px 16px;
+            padding: 6px 12px;
             border: 2px solid #3498db;
             background: white;
             color: #3498db;
-            border-radius: 6px;
+            border-radius: 5px;
             cursor: pointer;
-            font-size: 0.85rem;
+            font-size: 0.75rem;
             font-weight: 500;
             transition: all 0.2s ease;
         }
@@ -260,8 +260,8 @@ title: WeirdML Interactive Plot
             }
 
             #chart {
-                height: calc(100vh - 180px);
-                min-height: 250px;
+                height: calc(100vh - 220px);
+                min-height: 200px;
             }
 
             .model-label {
@@ -269,18 +269,25 @@ title: WeirdML Interactive Plot
             }
 
             .legend {
-                gap: 8px;
-                padding: 5px;
-                margin-top: 8px;
+                display: flex !important;
+                gap: 6px;
+                padding: 4px;
+                margin-top: 5px;
             }
 
             .legend-item {
-                font-size: 0.7rem;
+                font-size: 0.65rem;
+                gap: 3px;
             }
 
             .legend-icon {
-                width: 16px;
-                height: 16px;
+                width: 14px;
+                height: 14px;
+            }
+
+            .legend-dot {
+                width: 10px;
+                height: 10px;
             }
         }
     </style>
