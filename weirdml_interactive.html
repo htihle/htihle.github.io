@@ -321,7 +321,7 @@ title: WeirdML Interactive Plot
         function getCompany(d) {
             const name = d.display_name.toLowerCase();
 
-            if (name.includes('gpt') || name.includes('o1-') || name.includes('o3') || name.includes('o4')) return 'OpenAI';
+            if (name.includes('gpt') || name.startsWith('o1') || name.startsWith('o3') || name.startsWith('o4')) return 'OpenAI';
             if (name.includes('claude')) return 'Anthropic';
             if (name.includes('gemini')) return 'Google';
             if (name.includes('gemma')) return 'Gemma';
