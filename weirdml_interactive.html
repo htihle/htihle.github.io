@@ -631,38 +631,83 @@ title: WeirdML Interactive Plot
                     }
                 });
 
+            // Helper to add labels with background
+            function addLabelsWithBackground(data, className, anchor, getX) {
+                // Create a group for each label
+                const labelGroups = g.selectAll('.' + className)
+                    .data(data)
+                    .enter()
+                    .append('g')
+                    .attr('class', className);
+
+                // Add background rect (will be sized after text is measured)
+                labelGroups.append('rect')
+                    .attr('class', 'label-bg')
+                    .attr('fill', 'white')
+                    .attr('opacity', 0.7)
+                    .attr('rx', 2)
+                    .attr('ry', 2);
+
+                // Add text
+                labelGroups.append('text')
+                    .attr('class', 'model-label')
+                    .attr('text-anchor', anchor)
+                    .attr('x', d => getX(d))
+                    .attr('y', d => yScale(+d.avg_acc) + 4)
+                    .text(d => d.display_name);
+
+                return labelGroups;
+            }
+
             // Add labels for frontier models (on LEFT side of icons)
             const frontierLabelData = validData.filter(d => frontier.has(d.display_name));
-            const frontierLabels = g.selectAll('.model-label-frontier')
-                .data(frontierLabelData)
-                .enter()
-                .append('text')
-                .attr('class', 'model-label')
-                .attr('text-anchor', 'end')
-                .attr('x', d => xScale(getXValue(d)) - getIconSize(d, true) / 2 - 6)
-                .attr('y', d => yScale(+d.avg_acc) + 4)
-                .text(d => d.display_name);
+            const frontierGroups = addLabelsWithBackground(
+                frontierLabelData,
+                'label-group-frontier',
+                'end',
+                d => xScale(getXValue(d)) - getIconSize(d, true) / 2 - 6
+            );
 
             // Adjust frontier label positions to reduce overlap
-            adjustLabels(frontierLabels, xScale, yScale, innerWidth, innerHeight, 'left');
+            adjustLabels(frontierGroups.select('text'), xScale, yScale, innerWidth, innerHeight, 'left');
+
+            // Size background rects after text positioning
+            frontierGroups.each(function() {
+                const group = d3.select(this);
+                const text = group.select('text');
+                const bbox = text.node().getBBox();
+                group.select('rect')
+                    .attr('x', bbox.x - 2)
+                    .attr('y', bbox.y - 1)
+                    .attr('width', bbox.width + 4)
+                    .attr('height', bbox.height + 2);
+            });
 
             // Add labels for highlighted models (on RIGHT side of icons)
-            // Exclude models already on frontier to avoid duplicate labels
             const highlightLabelData = validData.filter(d =>
                 alwaysHighlight.has(d.display_name) && !frontier.has(d.display_name)
             );
-            const highlightLabels = g.selectAll('.model-label-highlight')
-                .data(highlightLabelData)
-                .enter()
-                .append('text')
-                .attr('class', 'model-label')
-                .attr('text-anchor', 'start')
-                .attr('x', d => xScale(getXValue(d)) + getIconSize(d, frontier.has(d.display_name)) / 2 + 6)
-                .attr('y', d => yScale(+d.avg_acc) + 4)
-                .text(d => d.display_name);
+            const highlightGroups = addLabelsWithBackground(
+                highlightLabelData,
+                'label-group-highlight',
+                'start',
+                d => xScale(getXValue(d)) + getIconSize(d, frontier.has(d.display_name)) / 2 + 6
+            );
 
             // Adjust highlight label positions to reduce overlap
-            adjustLabels(highlightLabels, xScale, yScale, innerWidth, innerHeight, 'right');
+            adjustLabels(highlightGroups.select('text'), xScale, yScale, innerWidth, innerHeight, 'right');
+
+            // Size background rects after text positioning
+            highlightGroups.each(function() {
+                const group = d3.select(this);
+                const text = group.select('text');
+                const bbox = text.node().getBBox();
+                group.select('rect')
+                    .attr('x', bbox.x - 2)
+                    .attr('y', bbox.y - 1)
+                    .attr('width', bbox.width + 4)
+                    .attr('height', bbox.height + 2);
+            });
         }
 
         function adjustLabels(labels, xScale, yScale, width, height, side = 'left') {
