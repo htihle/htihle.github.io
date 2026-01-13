@@ -154,11 +154,6 @@ title: WeirdML Interactive Plot
 
         .model-icon {
             cursor: pointer;
-            transition: transform 0.15s ease;
-        }
-
-        .model-icon:hover {
-            transform: scale(1.3);
         }
 
         .model-dot {
@@ -291,18 +286,21 @@ title: WeirdML Interactive Plot
             'Other': '#888888'
         };
 
-        // Icon paths and sizes (based on matplotlib script scaling)
+        // Icon paths and sizes (native_size × zoom_factor × 0.85 from matplotlib script)
+        // Zoom factors: meta=0.06, deepseek=0.09, gemini=0.11, xai=0.11, anthropic=0.11,
+        // alibaba=0.023, gemma=0.04, z-ai=0.13, default=0.1 for openai/mistral/kimi
         const companyIcons = {
-            'OpenAI': { path: 'assets/icons/openai_icon.png', size: 22 },
-            'Anthropic': { path: 'assets/icons/claude_logo.png', size: 24 },
-            'Google': { path: 'assets/icons/gemini_logo.png', size: 26 },
-            'DeepSeek': { path: 'assets/icons/deepseek_whale.png', size: 24 },
-            'xAI': { path: 'assets/icons/grok_logo.png', size: 26 },
-            'Meta': { path: 'assets/icons/meta_logo.png', size: 18 },
-            'Mistral': { path: 'assets/icons/mistral_logo.png', size: 22 },
-            'Qwen': { path: 'assets/icons/alibaba_icon.png', size: 10 },
-            'Moonshot': { path: 'assets/icons/kimi_logo.png', size: 22 },
-            'Gemma': { path: 'assets/icons/gemma-logo.png', size: 14 }
+            'OpenAI': { path: 'assets/icons/openai_icon.png', size: 34 },      // 400 × 0.1 × 0.85
+            'Anthropic': { path: 'assets/icons/claude_logo.png', size: 21 },   // 225 × 0.11 × 0.85
+            'Google': { path: 'assets/icons/gemini_logo.png', size: 21 },      // 225 × 0.11 × 0.85
+            'DeepSeek': { path: 'assets/icons/deepseek_whale.png', size: 31 }, // 400 × 0.09 × 0.85
+            'xAI': { path: 'assets/icons/grok_logo.png', size: 21 },           // 225 × 0.11 × 0.85
+            'Meta': { path: 'assets/icons/meta_logo.png', size: 26 },          // 512 × 0.06 × 0.85
+            'Mistral': { path: 'assets/icons/mistral_logo.png', size: 19 },    // 225 × 0.1 × 0.85
+            'Qwen': { path: 'assets/icons/alibaba_icon.png', size: 30 },       // 1513 × 0.023 × 0.85
+            'Moonshot': { path: 'assets/icons/kimi_logo.png', size: 19 },      // 225 × 0.1 × 0.85
+            'Gemma': { path: 'assets/icons/gemma-logo.png', size: 35 },        // 1024 × 0.04 × 0.85
+            'ZhipuAI': { path: 'assets/icons/z-ai_logo.png', size: 25 }        // 225 × 0.13 × 0.85
         };
 
         // Preload icons
@@ -454,6 +452,18 @@ title: WeirdML Interactive Plot
                 .selectAll('text')
                 .style('font-size', '12px');
 
+            // Add x-axis at top as well
+            const xAxisTop = currentMode === 'date'
+                ? d3.axisTop(xScale).ticks(6)
+                : currentScale === 'log'
+                    ? d3.axisTop(xScale).ticks(6, '~s')
+                    : d3.axisTop(xScale).ticks(6);
+
+            g.append('g')
+                .call(xAxisTop)
+                .selectAll('text')
+                .style('font-size', '12px');
+
             g.append('g')
                 .call(d3.axisLeft(yScale).tickFormat(d3.format('.0%')))
                 .selectAll('text')
@@ -483,46 +493,43 @@ title: WeirdML Interactive Plot
                     .tickSize(-innerWidth)
                     .tickFormat(''));
 
-            // Sort data so frontier models render on top
-            const sortedData = [...validData].sort((a, b) => {
-                const aFrontier = frontier.has(a.display_name) ? 1 : 0;
-                const bFrontier = frontier.has(b.display_name) ? 1 : 0;
-                return aFrontier - bFrontier;
-            });
-
-            // Add icons or dots for each model
-            sortedData.forEach(d => {
+            // Build icon data with positions
+            const iconData = validData.map(d => {
                 const company = getCompany(d);
                 const isFrontier = frontier.has(d.display_name);
-                const cx = xScale(getXValue(d));
-                const cy = yScale(+d.avg_acc);
-                const iconSize = getIconSize(d, isFrontier);
+                return {
+                    d: d,
+                    company: company,
+                    isFrontier: isFrontier,
+                    cx: xScale(getXValue(d)),
+                    cy: yScale(+d.avg_acc),
+                    size: getIconSize(d, isFrontier)
+                };
+            });
+
+            // Sort so frontier models render on top
+            iconData.sort((a, b) => (a.isFrontier ? 1 : 0) - (b.isFrontier ? 1 : 0));
+
+            // Track current hovered icon
+            let hoveredIcon = null;
+
+            // Add icons or dots for each model
+            iconData.forEach(item => {
+                const { d, company, isFrontier, cx, cy, size } = item;
 
                 if (iconImages[company]) {
-                    // Use icon image
-                    g.append('image')
+                    item.element = g.append('image')
                         .attr('class', 'model-icon')
                         .attr('href', companyIcons[company].path)
-                        .attr('x', cx - iconSize / 2)
-                        .attr('y', cy - iconSize / 2)
-                        .attr('width', iconSize)
-                        .attr('height', iconSize)
+                        .attr('x', cx - size / 2)
+                        .attr('y', cy - size / 2)
+                        .attr('width', size)
+                        .attr('height', size)
                         .attr('opacity', isFrontier ? 1 : 0.75)
                         .datum(d)
-                        .on('mouseenter touchstart', function(event, d) {
-                            d3.select(this).attr('transform', `translate(${cx}, ${cy}) scale(1.3) translate(${-cx}, ${-cy})`);
-                            showTooltip(event, d);
-                        })
-                        .on('mousemove', function(event) {
-                            moveTooltip(event);
-                        })
-                        .on('mouseleave touchend', function() {
-                            d3.select(this).attr('transform', null);
-                            hideTooltip();
-                        });
+                        .style('pointer-events', 'none'); // Disable native events
                 } else {
-                    // Fallback to colored dot
-                    g.append('circle')
+                    item.element = g.append('circle')
                         .attr('class', 'model-dot')
                         .attr('cx', cx)
                         .attr('cy', cy)
@@ -532,29 +539,96 @@ title: WeirdML Interactive Plot
                         .attr('stroke-width', 1.5)
                         .attr('opacity', isFrontier ? 1 : 0.7)
                         .datum(d)
-                        .on('mouseenter touchstart', function(event, d) {
-                            d3.select(this).attr('r', 12);
-                            showTooltip(event, d);
-                        })
-                        .on('mousemove', function(event) {
-                            moveTooltip(event);
-                        })
-                        .on('mouseleave touchend', function() {
-                            const isFrontier = frontier.has(d3.select(this).datum().display_name);
-                            d3.select(this).attr('r', isFrontier ? 8 : 6);
-                            hideTooltip();
-                        });
+                        .style('pointer-events', 'none'); // Disable native events
                 }
             });
 
-            // Add labels for frontier models only
+            // Add invisible overlay for mouse tracking
+            g.append('rect')
+                .attr('width', innerWidth)
+                .attr('height', innerHeight)
+                .attr('fill', 'transparent')
+                .style('cursor', 'default')
+                .on('mousemove touchmove', function(event) {
+                    const [mx, my] = d3.pointer(event, this);
+
+                    // Find closest icon by center distance
+                    let closest = null;
+                    let minDist = Infinity;
+                    const maxDist = 50; // Max distance to trigger hover
+
+                    iconData.forEach(item => {
+                        const dist = Math.sqrt((mx - item.cx) ** 2 + (my - item.cy) ** 2);
+                        if (dist < minDist && dist < maxDist) {
+                            minDist = dist;
+                            closest = item;
+                        }
+                    });
+
+                    // Update hover state
+                    if (closest !== hoveredIcon) {
+                        // Unhover previous
+                        if (hoveredIcon) {
+                            const prev = hoveredIcon;
+                            if (iconImages[prev.company]) {
+                                prev.element
+                                    .attr('width', prev.size)
+                                    .attr('height', prev.size)
+                                    .attr('x', prev.cx - prev.size / 2)
+                                    .attr('y', prev.cy - prev.size / 2);
+                            } else {
+                                prev.element.attr('r', prev.isFrontier ? 8 : 6);
+                            }
+                        }
+
+                        // Hover new
+                        if (closest) {
+                            const hoverSize = closest.size * 1.3;
+                            if (iconImages[closest.company]) {
+                                closest.element
+                                    .attr('width', hoverSize)
+                                    .attr('height', hoverSize)
+                                    .attr('x', closest.cx - hoverSize / 2)
+                                    .attr('y', closest.cy - hoverSize / 2);
+                            } else {
+                                closest.element.attr('r', 12);
+                            }
+                            showTooltip(event, closest.d);
+                        } else {
+                            hideTooltip();
+                        }
+
+                        hoveredIcon = closest;
+                    } else if (closest) {
+                        moveTooltip(event);
+                    }
+                })
+                .on('mouseleave touchend', function() {
+                    if (hoveredIcon) {
+                        const prev = hoveredIcon;
+                        if (iconImages[prev.company]) {
+                            prev.element
+                                .attr('width', prev.size)
+                                .attr('height', prev.size)
+                                .attr('x', prev.cx - prev.size / 2)
+                                .attr('y', prev.cy - prev.size / 2);
+                        } else {
+                            prev.element.attr('r', prev.isFrontier ? 8 : 6);
+                        }
+                        hoveredIcon = null;
+                        hideTooltip();
+                    }
+                });
+
+            // Add labels for frontier models only (on LEFT side of icons)
             const labelData = validData.filter(d => frontier.has(d.display_name));
             const labels = g.selectAll('.model-label')
                 .data(labelData)
                 .enter()
                 .append('text')
                 .attr('class', 'model-label')
-                .attr('x', d => xScale(getXValue(d)) + getIconSize(d, true) / 2 + 6)
+                .attr('text-anchor', 'end')
+                .attr('x', d => xScale(getXValue(d)) - getIconSize(d, true) / 2 - 6)
                 .attr('y', d => yScale(+d.avg_acc) + 4)
                 .text(d => d.display_name);
 
@@ -571,7 +645,7 @@ title: WeirdML Interactive Plot
                 const bbox = node.getBBox();
                 positions.push({
                     node: node,
-                    x: xScale(getXValue(d)) + getIconSize(d, true) / 2 + 6,
+                    x: xScale(getXValue(d)) - getIconSize(d, true) / 2 - 6,
                     y: yScale(+d.avg_acc) + 4,
                     width: bbox.width,
                     height: bbox.height
@@ -594,9 +668,10 @@ title: WeirdML Interactive Plot
                 }
             }
 
-            // Apply adjusted positions
+            // Apply adjusted positions (labels are right-aligned with text-anchor: end)
             positions.forEach(p => {
-                p.x = Math.min(p.x, width - p.width - 5);
+                // Ensure label doesn't go off left edge (x is the right edge of text)
+                p.x = Math.max(p.width + 5, p.x);
                 p.y = Math.max(15, Math.min(p.y, height - 5));
                 d3.select(p.node).attr('x', p.x).attr('y', p.y);
             });
@@ -651,7 +726,7 @@ title: WeirdML Interactive Plot
 
         function updateLegend() {
             const legend = document.getElementById('legend');
-            const companies = ['OpenAI', 'Anthropic', 'Google', 'DeepSeek', 'xAI', 'Meta', 'Mistral', 'Qwen', 'Moonshot'];
+            const companies = ['OpenAI', 'Anthropic', 'Google', 'DeepSeek', 'xAI', 'Meta', 'Mistral', 'Qwen', 'Moonshot', 'ZhipuAI'];
 
             legend.innerHTML = companies.map(company => {
                 const iconConfig = companyIcons[company];
