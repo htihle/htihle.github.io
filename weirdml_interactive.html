@@ -461,7 +461,12 @@ title: WeirdML Interactive Plot
         function updateChart() {
             const container = document.getElementById('chart').parentElement;
             const width = container.clientWidth - 20;
-            const height = Math.max(400, window.innerHeight * 0.7);
+
+            // Match CSS breakpoint: mobile/narrow view uses less height
+            const isMobile = window.innerWidth <= 1200 || window.innerHeight <= 500;
+            const height = isMobile
+                ? Math.max(200, window.innerHeight - 170)
+                : Math.max(400, window.innerHeight * 0.7);
 
             svg.attr('width', width).attr('height', height);
             svg.selectAll('*').remove();
