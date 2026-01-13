@@ -28,7 +28,11 @@ Each task comes with a task prompt describing the problem precisely and some exa
 
 [Explore the full WeirdML data](/weirdml_table.html) ([CSV]({{ "/data/weirdml_data.csv" | relative_url }}))
 
-[Interactive Plot](/weirdml_interactive.html)
+<a href="/weirdml_interactive.html" style="display: block; margin: 20px 0;">
+  <img src="images_v2/weirdml_cost_vs_accuracy.png" alt="Interactive Plot Preview" style="max-width: 400px; border: 1px solid #ddd; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+  <br>
+  <span style="color: #3498db;">Open Interactive Plot →</span>
+</a>
 
 ### Topline Results
 
