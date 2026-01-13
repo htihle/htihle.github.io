@@ -347,6 +347,17 @@ title: WeirdML Interactive Plot
             return isFrontier ? baseSize * 1.2 : baseSize;
         }
 
+        // Models to always highlight (labels on RIGHT side)
+        const alwaysHighlight = new Set([
+            'claude-3.6-sonnet',
+            'claude-3-opus',
+            'gpt-4-0613',
+            'llama-3.1-405b-instruct',
+            'deepseek-r1',
+            'o3 (high)',
+            'gemini-2.5-pro (thinking 16k)'
+        ]);
+
         // Calculate Pareto frontier
         function getParetoFrontier(data, getX, getY) {
             const sorted = [...data].sort((a, b) => getX(a) - getX(b));
@@ -620,10 +631,10 @@ title: WeirdML Interactive Plot
                     }
                 });
 
-            // Add labels for frontier models only (on LEFT side of icons)
-            const labelData = validData.filter(d => frontier.has(d.display_name));
-            const labels = g.selectAll('.model-label')
-                .data(labelData)
+            // Add labels for frontier models (on LEFT side of icons)
+            const frontierLabelData = validData.filter(d => frontier.has(d.display_name));
+            const frontierLabels = g.selectAll('.model-label-frontier')
+                .data(frontierLabelData)
                 .enter()
                 .append('text')
                 .attr('class', 'model-label')
@@ -632,20 +643,42 @@ title: WeirdML Interactive Plot
                 .attr('y', d => yScale(+d.avg_acc) + 4)
                 .text(d => d.display_name);
 
-            // Adjust label positions to reduce overlap
-            adjustLabels(labels, xScale, yScale, innerWidth, innerHeight);
+            // Adjust frontier label positions to reduce overlap
+            adjustLabels(frontierLabels, xScale, yScale, innerWidth, innerHeight, 'left');
+
+            // Add labels for highlighted models (on RIGHT side of icons)
+            // Exclude models already on frontier to avoid duplicate labels
+            const highlightLabelData = validData.filter(d =>
+                alwaysHighlight.has(d.display_name) && !frontier.has(d.display_name)
+            );
+            const highlightLabels = g.selectAll('.model-label-highlight')
+                .data(highlightLabelData)
+                .enter()
+                .append('text')
+                .attr('class', 'model-label')
+                .attr('text-anchor', 'start')
+                .attr('x', d => xScale(getXValue(d)) + getIconSize(d, frontier.has(d.display_name)) / 2 + 6)
+                .attr('y', d => yScale(+d.avg_acc) + 4)
+                .text(d => d.display_name);
+
+            // Adjust highlight label positions to reduce overlap
+            adjustLabels(highlightLabels, xScale, yScale, innerWidth, innerHeight, 'right');
         }
 
-        function adjustLabels(labels, xScale, yScale, width, height) {
+        function adjustLabels(labels, xScale, yScale, width, height, side = 'left') {
             const labelNodes = labels.nodes();
             const positions = [];
 
             labelNodes.forEach((node, i) => {
                 const d = d3.select(node).datum();
                 const bbox = node.getBBox();
+                const iconSize = getIconSize(d, true);
+                const baseX = side === 'left'
+                    ? xScale(getXValue(d)) - iconSize / 2 - 6
+                    : xScale(getXValue(d)) + iconSize / 2 + 6;
                 positions.push({
                     node: node,
-                    x: xScale(getXValue(d)) - getIconSize(d, true) / 2 - 6,
+                    x: baseX,
                     y: yScale(+d.avg_acc) + 4,
                     width: bbox.width,
                     height: bbox.height
@@ -668,10 +701,15 @@ title: WeirdML Interactive Plot
                 }
             }
 
-            // Apply adjusted positions (labels are right-aligned with text-anchor: end)
+            // Apply adjusted positions
             positions.forEach(p => {
-                // Ensure label doesn't go off left edge (x is the right edge of text)
-                p.x = Math.max(p.width + 5, p.x);
+                if (side === 'left') {
+                    // Ensure label doesn't go off left edge (x is the right edge of text)
+                    p.x = Math.max(p.width + 5, p.x);
+                } else {
+                    // Ensure label doesn't go off right edge (x is the left edge of text)
+                    p.x = Math.min(width - p.width - 5, p.x);
+                }
                 p.y = Math.max(15, Math.min(p.y, height - 5));
                 d3.select(p.node).attr('x', p.x).attr('y', p.y);
             });
