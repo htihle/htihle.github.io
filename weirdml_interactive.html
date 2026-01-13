@@ -1,0 +1,644 @@
+---
+layout: nothing
+title: WeirdML Interactive Plot
+---
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WeirdML Interactive Plot</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            margin: 0;
+            padding: 15px;
+            background: #f8f9fa;
+            color: #333;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            margin: 0 0 5px 0;
+            font-size: 1.5rem;
+            color: #2c3e50;
+        }
+
+        .header a {
+            color: #3498db;
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+
+        .header a:hover {
+            text-decoration: underline;
+        }
+
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .control-group label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 5px;
+        }
+
+        .control-btn {
+            padding: 8px 16px;
+            border: 2px solid #3498db;
+            background: white;
+            color: #3498db;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .control-btn:hover {
+            background: #ecf6fd;
+        }
+
+        .control-btn.active {
+            background: #3498db;
+            color: white;
+        }
+
+        .chart-container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            padding: 10px;
+            overflow: hidden;
+        }
+
+        #chart {
+            width: 100%;
+            height: 70vh;
+            min-height: 400px;
+        }
+
+        .tooltip {
+            position: absolute;
+            pointer-events: none;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            font-size: 0.85rem;
+            max-width: 300px;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.15s ease;
+        }
+
+        .tooltip.visible {
+            opacity: 1;
+        }
+
+        .tooltip-title {
+            font-weight: 600;
+            font-size: 1rem;
+            margin-bottom: 8px;
+            color: #2c3e50;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 6px;
+        }
+
+        .tooltip-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 4px 0;
+        }
+
+        .tooltip-label {
+            color: #666;
+        }
+
+        .tooltip-value {
+            font-weight: 500;
+            color: #333;
+        }
+
+        .model-dot {
+            cursor: pointer;
+            transition: r 0.15s ease;
+        }
+
+        .model-dot:hover {
+            r: 10;
+        }
+
+        .model-label {
+            font-size: 10px;
+            fill: #333;
+            pointer-events: none;
+        }
+
+        .axis-label {
+            font-size: 12px;
+            font-weight: 500;
+            fill: #555;
+        }
+
+        .legend {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 15px;
+            padding: 10px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.8rem;
+            color: #555;
+        }
+
+        .legend-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        @media (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+
+            .header h1 {
+                font-size: 1.2rem;
+            }
+
+            .controls {
+                padding: 10px;
+                gap: 10px;
+            }
+
+            .control-btn {
+                padding: 6px 12px;
+                font-size: 0.8rem;
+            }
+
+            #chart {
+                height: 60vh;
+                min-height: 350px;
+            }
+
+            .model-label {
+                font-size: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>WeirdML: Interactive Model Comparison</h1>
+        <a href="weirdml.html">&larr; Back to WeirdML</a>
+    </div>
+
+    <div class="controls">
+        <div class="control-group">
+            <label>X-Axis</label>
+            <div class="button-group">
+                <button class="control-btn active" data-mode="cost">Cost</button>
+                <button class="control-btn" data-mode="tokens">Tokens</button>
+                <button class="control-btn" data-mode="date">Date</button>
+            </div>
+        </div>
+        <div class="control-group">
+            <label>Scale</label>
+            <div class="button-group">
+                <button class="control-btn scale-btn active" data-scale="log">Log</button>
+                <button class="control-btn scale-btn" data-scale="linear">Linear</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="chart-container">
+        <svg id="chart"></svg>
+    </div>
+
+    <div class="legend" id="legend"></div>
+
+    <div class="tooltip" id="tooltip"></div>
+
+    <script>
+        // Company colors
+        const companyColors = {
+            'OpenAI': '#74aa9c',
+            'OpenAI responses': '#74aa9c',
+            'Anthropic': '#d97757',
+            'anthropic_messages': '#d97757',
+            'Google': '#4285f4',
+            'DeepSeek': '#536dfe',
+            'xAI': '#1da1f2',
+            'Meta': '#0668e1',
+            'Mistral': '#ff7000',
+            'Qwen': '#6366f1',
+            'Moonshot': '#fbbf24',
+            'ZhipuAI': '#10b981',
+            'Ollama': '#ffffff',
+            'OpenRouter': '#888888'
+        };
+
+        // Identify company from model name or API source
+        function getCompany(d) {
+            const name = d.display_name.toLowerCase();
+            const source = (d['API source'] || '').toLowerCase();
+
+            if (name.includes('gpt') || name.includes('o1') || name.includes('o3') || name.includes('o4')) return 'OpenAI';
+            if (name.includes('claude')) return 'Anthropic';
+            if (name.includes('gemini')) return 'Google';
+            if (name.includes('deepseek')) return 'DeepSeek';
+            if (name.includes('grok')) return 'xAI';
+            if (name.includes('llama')) return 'Meta';
+            if (name.includes('mistral') || name.includes('mixtral')) return 'Mistral';
+            if (name.includes('qwen')) return 'Qwen';
+            if (name.includes('kimi')) return 'Moonshot';
+            if (name.includes('glm')) return 'ZhipuAI';
+
+            if (source.includes('openai')) return 'OpenAI';
+            if (source.includes('anthropic')) return 'Anthropic';
+            if (source.includes('google')) return 'Google';
+            if (source.includes('ollama')) return 'Ollama';
+
+            return 'OpenRouter';
+        }
+
+        function getColor(d) {
+            const company = getCompany(d);
+            return companyColors[company] || '#888888';
+        }
+
+        // Calculate Pareto frontier
+        function getParetoFrontier(data, getX, getY) {
+            // Sort by X ascending
+            const sorted = [...data].sort((a, b) => getX(a) - getX(b));
+            const frontier = [];
+            let maxY = -Infinity;
+
+            for (const d of sorted) {
+                const y = getY(d);
+                if (y > maxY) {
+                    frontier.push(d);
+                    maxY = y;
+                }
+            }
+            return new Set(frontier.map(d => d.display_name));
+        }
+
+        // Main visualization
+        let data = [];
+        let currentMode = 'cost';
+        let currentScale = 'log';
+
+        const margin = { top: 30, right: 30, bottom: 60, left: 60 };
+        const svg = d3.select('#chart');
+        const tooltip = d3.select('#tooltip');
+
+        function getXValue(d) {
+            switch (currentMode) {
+                case 'cost': return +d.cost_per_run_usd;
+                case 'tokens': return +d.mean_total_output_tokens;
+                case 'date': return new Date(d.release_date);
+            }
+        }
+
+        function getXLabel() {
+            switch (currentMode) {
+                case 'cost': return 'Average Cost per Run (USD)';
+                case 'tokens': return 'Average Total Output Tokens';
+                case 'date': return 'Release Date';
+            }
+        }
+
+        function formatXValue(d) {
+            switch (currentMode) {
+                case 'cost': return '$' + (+d.cost_per_run_usd).toFixed(4);
+                case 'tokens': return Math.round(+d.mean_total_output_tokens).toLocaleString();
+                case 'date': return d.release_date;
+            }
+        }
+
+        function updateChart() {
+            const container = document.getElementById('chart').parentElement;
+            const width = container.clientWidth - 20;
+            const height = Math.max(400, window.innerHeight * 0.7);
+
+            svg.attr('width', width).attr('height', height);
+            svg.selectAll('*').remove();
+
+            const innerWidth = width - margin.left - margin.right;
+            const innerHeight = height - margin.top - margin.bottom;
+
+            const g = svg.append('g')
+                .attr('transform', `translate(${margin.left},${margin.top})`);
+
+            // Filter valid data
+            const validData = data.filter(d => {
+                const x = getXValue(d);
+                const y = +d.avg_acc;
+                if (currentMode === 'date') {
+                    return x instanceof Date && !isNaN(x) && y > 0;
+                }
+                return x > 0 && y > 0;
+            });
+
+            // Create scales
+            let xScale;
+            if (currentMode === 'date') {
+                xScale = d3.scaleTime()
+                    .domain(d3.extent(validData, d => getXValue(d)))
+                    .range([0, innerWidth])
+                    .nice();
+            } else if (currentScale === 'log') {
+                xScale = d3.scaleLog()
+                    .domain(d3.extent(validData, d => getXValue(d)))
+                    .range([0, innerWidth])
+                    .nice();
+            } else {
+                xScale = d3.scaleLinear()
+                    .domain([0, d3.max(validData, d => getXValue(d)) * 1.05])
+                    .range([0, innerWidth])
+                    .nice();
+            }
+
+            const yScale = d3.scaleLinear()
+                .domain([0, d3.max(validData, d => +d.avg_acc) * 1.05])
+                .range([innerHeight, 0])
+                .nice();
+
+            // Calculate Pareto frontier for labels
+            const frontier = getParetoFrontier(validData, d => getXValue(d), d => +d.avg_acc);
+
+            // Add axes
+            const xAxis = currentMode === 'date'
+                ? d3.axisBottom(xScale).ticks(6)
+                : currentScale === 'log'
+                    ? d3.axisBottom(xScale).ticks(6, '~s')
+                    : d3.axisBottom(xScale).ticks(6);
+
+            g.append('g')
+                .attr('transform', `translate(0,${innerHeight})`)
+                .call(xAxis)
+                .selectAll('text')
+                .style('font-size', '11px');
+
+            g.append('g')
+                .call(d3.axisLeft(yScale).tickFormat(d3.format('.0%')))
+                .selectAll('text')
+                .style('font-size', '11px');
+
+            // Add axis labels
+            g.append('text')
+                .attr('class', 'axis-label')
+                .attr('x', innerWidth / 2)
+                .attr('y', innerHeight + 45)
+                .attr('text-anchor', 'middle')
+                .text(getXLabel());
+
+            g.append('text')
+                .attr('class', 'axis-label')
+                .attr('transform', 'rotate(-90)')
+                .attr('x', -innerHeight / 2)
+                .attr('y', -45)
+                .attr('text-anchor', 'middle')
+                .text('Average Accuracy Across 17 Tasks');
+
+            // Add grid lines
+            g.append('g')
+                .attr('class', 'grid')
+                .attr('opacity', 0.1)
+                .call(d3.axisLeft(yScale)
+                    .tickSize(-innerWidth)
+                    .tickFormat(''));
+
+            // Add dots
+            const dots = g.selectAll('.model-dot')
+                .data(validData)
+                .enter()
+                .append('circle')
+                .attr('class', 'model-dot')
+                .attr('cx', d => xScale(getXValue(d)))
+                .attr('cy', d => yScale(+d.avg_acc))
+                .attr('r', d => frontier.has(d.display_name) ? 7 : 5)
+                .attr('fill', d => getColor(d))
+                .attr('stroke', '#fff')
+                .attr('stroke-width', 1.5)
+                .attr('opacity', d => frontier.has(d.display_name) ? 1 : 0.7)
+                .on('mouseenter', function(event, d) {
+                    d3.select(this).attr('r', 10);
+                    showTooltip(event, d);
+                })
+                .on('mousemove', function(event, d) {
+                    moveTooltip(event);
+                })
+                .on('mouseleave', function() {
+                    const isFrontier = frontier.has(d3.select(this).datum().display_name);
+                    d3.select(this).attr('r', isFrontier ? 7 : 5);
+                    hideTooltip();
+                });
+
+            // Add labels for frontier models only
+            const labels = g.selectAll('.model-label')
+                .data(validData.filter(d => frontier.has(d.display_name)))
+                .enter()
+                .append('text')
+                .attr('class', 'model-label')
+                .attr('x', d => xScale(getXValue(d)) + 10)
+                .attr('y', d => yScale(+d.avg_acc) + 3)
+                .text(d => d.display_name);
+
+            // Adjust label positions to reduce overlap
+            adjustLabels(labels, xScale, yScale, innerWidth, innerHeight);
+        }
+
+        function adjustLabels(labels, xScale, yScale, width, height) {
+            // Simple collision detection - push overlapping labels
+            const labelNodes = labels.nodes();
+            const positions = [];
+
+            labelNodes.forEach((node, i) => {
+                const d = d3.select(node).datum();
+                const bbox = node.getBBox();
+                positions.push({
+                    node: node,
+                    x: xScale(getXValue(d)) + 10,
+                    y: yScale(+d.avg_acc) + 3,
+                    width: bbox.width,
+                    height: bbox.height
+                });
+            });
+
+            // Sort by y position
+            positions.sort((a, b) => a.y - b.y);
+
+            // Adjust vertical positions to avoid overlap
+            for (let i = 1; i < positions.length; i++) {
+                const prev = positions[i - 1];
+                const curr = positions[i];
+
+                // Check if labels are close horizontally and vertically
+                if (Math.abs(curr.x - prev.x) < 100) {
+                    const minGap = 12;
+                    if (curr.y - prev.y < minGap) {
+                        curr.y = prev.y + minGap;
+                    }
+                }
+            }
+
+            // Apply adjusted positions
+            positions.forEach(p => {
+                // Clamp to chart boundaries
+                p.x = Math.min(p.x, width - p.width - 5);
+                p.y = Math.max(15, Math.min(p.y, height - 5));
+                d3.select(p.node).attr('x', p.x).attr('y', p.y);
+            });
+        }
+
+        function showTooltip(event, d) {
+            const company = getCompany(d);
+
+            let html = `<div class="tooltip-title">${d.display_name}</div>`;
+            html += `<div class="tooltip-row"><span class="tooltip-label">Company:</span><span class="tooltip-value">${company}</span></div>`;
+            html += `<div class="tooltip-row"><span class="tooltip-label">Accuracy:</span><span class="tooltip-value">${(+d.avg_acc * 100).toFixed(1)}%</span></div>`;
+            html += `<div class="tooltip-row"><span class="tooltip-label">Cost:</span><span class="tooltip-value">$${(+d.cost_per_run_usd).toFixed(4)}</span></div>`;
+            html += `<div class="tooltip-row"><span class="tooltip-label">Tokens:</span><span class="tooltip-value">${Math.round(+d.mean_total_output_tokens).toLocaleString()}</span></div>`;
+            html += `<div class="tooltip-row"><span class="tooltip-label">Release:</span><span class="tooltip-value">${d.release_date}</span></div>`;
+            html += `<div class="tooltip-row"><span class="tooltip-label">Code Lines (median):</span><span class="tooltip-value">${Math.round(+d.code_len_p50)}</span></div>`;
+            html += `<div class="tooltip-row"><span class="tooltip-label">Exec Time (median):</span><span class="tooltip-value">${(+d.exec_time_median_s).toFixed(1)}s</span></div>`;
+
+            tooltip.html(html).classed('visible', true);
+            moveTooltip(event);
+        }
+
+        function moveTooltip(event) {
+            const tooltipNode = tooltip.node();
+            const tooltipRect = tooltipNode.getBoundingClientRect();
+            const viewportWidth = window.innerWidth;
+            const viewportHeight = window.innerHeight;
+
+            let x = event.pageX + 15;
+            let y = event.pageY - 10;
+
+            // Adjust if tooltip goes off screen
+            if (x + tooltipRect.width > viewportWidth - 10) {
+                x = event.pageX - tooltipRect.width - 15;
+            }
+            if (y + tooltipRect.height > viewportHeight - 10) {
+                y = event.pageY - tooltipRect.height - 10;
+            }
+            if (y < 10) {
+                y = 10;
+            }
+
+            tooltip.style('left', x + 'px').style('top', y + 'px');
+        }
+
+        function hideTooltip() {
+            tooltip.classed('visible', false);
+        }
+
+        function updateLegend() {
+            const legend = document.getElementById('legend');
+            const companies = ['OpenAI', 'Anthropic', 'Google', 'DeepSeek', 'xAI', 'Meta', 'Mistral', 'Qwen', 'Moonshot', 'ZhipuAI'];
+
+            legend.innerHTML = companies.map(company => `
+                <div class="legend-item">
+                    <div class="legend-dot" style="background: ${companyColors[company]}; border: 1px solid #ccc;"></div>
+                    <span>${company}</span>
+                </div>
+            `).join('');
+        }
+
+        // Load data
+        d3.csv('data/weirdml_data.csv').then(csvData => {
+            data = csvData;
+            updateChart();
+            updateLegend();
+        });
+
+        // Event listeners
+        document.querySelectorAll('.control-btn[data-mode]').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.control-btn[data-mode]').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                currentMode = this.dataset.mode;
+
+                // Disable scale buttons for date mode
+                const scaleBtns = document.querySelectorAll('.scale-btn');
+                if (currentMode === 'date') {
+                    scaleBtns.forEach(b => b.disabled = true);
+                    scaleBtns.forEach(b => b.style.opacity = 0.5);
+                } else {
+                    scaleBtns.forEach(b => b.disabled = false);
+                    scaleBtns.forEach(b => b.style.opacity = 1);
+                }
+
+                updateChart();
+            });
+        });
+
+        document.querySelectorAll('.scale-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                if (currentMode === 'date') return;
+                document.querySelectorAll('.scale-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                currentScale = this.dataset.scale;
+                updateChart();
+            });
+        });
+
+        // Responsive resize
+        window.addEventListener('resize', debounce(updateChart, 250));
+
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+    </script>
+</body>
+</html>

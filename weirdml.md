@@ -26,7 +26,7 @@ Each task comes with a task prompt describing the problem precisely and some exa
 
 ## Results
 
-[Explore the full WeirdML data](/weirdml_table.html) ([CSV]({{ "/data/weirdml_data.csv" | relative_url }}))
+[Explore the full WeirdML data](/weirdml_table.html) ([CSV]({{ "/data/weirdml_data.csv" | relative_url }})) | [Interactive Plot](/weirdml_interactive.html)
 
 ### Topline Results
 
