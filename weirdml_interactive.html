@@ -152,23 +152,33 @@ title: WeirdML Interactive Plot
             color: #333;
         }
 
+        .model-icon {
+            cursor: pointer;
+            transition: transform 0.15s ease;
+        }
+
+        .model-icon:hover {
+            transform: scale(1.3);
+        }
+
         .model-dot {
             cursor: pointer;
             transition: r 0.15s ease;
         }
 
         .model-dot:hover {
-            r: 10;
+            r: 12;
         }
 
         .model-label {
-            font-size: 10px;
+            font-size: 13px;
+            font-weight: 500;
             fill: #333;
             pointer-events: none;
         }
 
         .axis-label {
-            font-size: 12px;
+            font-size: 13px;
             font-weight: 500;
             fill: #555;
         }
@@ -177,7 +187,7 @@ title: WeirdML Interactive Plot
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
-            gap: 12px;
+            gap: 15px;
             margin-top: 15px;
             padding: 10px;
         }
@@ -185,14 +195,20 @@ title: WeirdML Interactive Plot
         .legend-item {
             display: flex;
             align-items: center;
-            gap: 5px;
-            font-size: 0.8rem;
+            gap: 6px;
+            font-size: 0.85rem;
             color: #555;
         }
 
+        .legend-icon {
+            width: 20px;
+            height: 20px;
+            object-fit: contain;
+        }
+
         .legend-dot {
-            width: 12px;
-            height: 12px;
+            width: 14px;
+            height: 14px;
             border-radius: 50%;
         }
 
@@ -221,7 +237,7 @@ title: WeirdML Interactive Plot
             }
 
             .model-label {
-                font-size: 8px;
+                font-size: 11px;
             }
         }
     </style>
@@ -259,32 +275,58 @@ title: WeirdML Interactive Plot
     <div class="tooltip" id="tooltip"></div>
 
     <script>
-        // Company colors
+        // Company colors (fallback for dots)
         const companyColors = {
             'OpenAI': '#74aa9c',
-            'OpenAI responses': '#74aa9c',
             'Anthropic': '#d97757',
-            'anthropic_messages': '#d97757',
             'Google': '#4285f4',
             'DeepSeek': '#536dfe',
-            'xAI': '#1da1f2',
+            'xAI': '#4d4d4d',
             'Meta': '#0668e1',
             'Mistral': '#ff7000',
-            'Qwen': '#6366f1',
-            'Moonshot': '#fbbf24',
+            'Qwen': '#ff7f00',
+            'Moonshot': '#0084ff',
             'ZhipuAI': '#10b981',
-            'Ollama': '#ffffff',
-            'OpenRouter': '#888888'
+            'Gemma': '#2ecc71',
+            'Other': '#888888'
         };
 
-        // Identify company from model name or API source
+        // Icon paths and sizes (based on matplotlib script scaling)
+        const companyIcons = {
+            'OpenAI': { path: 'assets/icons/openai_icon.png', size: 22 },
+            'Anthropic': { path: 'assets/icons/claude_logo.png', size: 24 },
+            'Google': { path: 'assets/icons/gemini_logo.png', size: 26 },
+            'DeepSeek': { path: 'assets/icons/deepseek_whale.png', size: 24 },
+            'xAI': { path: 'assets/icons/grok_logo.png', size: 26 },
+            'Meta': { path: 'assets/icons/meta_logo.png', size: 18 },
+            'Mistral': { path: 'assets/icons/mistral_logo.png', size: 22 },
+            'Qwen': { path: 'assets/icons/alibaba_icon.png', size: 10 },
+            'Moonshot': { path: 'assets/icons/kimi_logo.png', size: 22 },
+            'Gemma': { path: 'assets/icons/gemma-logo.png', size: 14 }
+        };
+
+        // Preload icons
+        const iconImages = {};
+        const iconLoadPromises = Object.entries(companyIcons).map(([company, config]) => {
+            return new Promise((resolve) => {
+                const img = new Image();
+                img.onload = () => {
+                    iconImages[company] = img;
+                    resolve();
+                };
+                img.onerror = () => resolve(); // Fail silently
+                img.src = config.path;
+            });
+        });
+
+        // Identify company from model name
         function getCompany(d) {
             const name = d.display_name.toLowerCase();
-            const source = (d['API source'] || '').toLowerCase();
 
-            if (name.includes('gpt') || name.includes('o1') || name.includes('o3') || name.includes('o4')) return 'OpenAI';
+            if (name.includes('gpt') || name.includes('o1-') || name.includes('o3') || name.includes('o4')) return 'OpenAI';
             if (name.includes('claude')) return 'Anthropic';
             if (name.includes('gemini')) return 'Google';
+            if (name.includes('gemma')) return 'Gemma';
             if (name.includes('deepseek')) return 'DeepSeek';
             if (name.includes('grok')) return 'xAI';
             if (name.includes('llama')) return 'Meta';
@@ -293,12 +335,7 @@ title: WeirdML Interactive Plot
             if (name.includes('kimi')) return 'Moonshot';
             if (name.includes('glm')) return 'ZhipuAI';
 
-            if (source.includes('openai')) return 'OpenAI';
-            if (source.includes('anthropic')) return 'Anthropic';
-            if (source.includes('google')) return 'Google';
-            if (source.includes('ollama')) return 'Ollama';
-
-            return 'OpenRouter';
+            return 'Other';
         }
 
         function getColor(d) {
@@ -306,9 +343,14 @@ title: WeirdML Interactive Plot
             return companyColors[company] || '#888888';
         }
 
+        function getIconSize(d, isFrontier) {
+            const company = getCompany(d);
+            const baseSize = companyIcons[company]?.size || 20;
+            return isFrontier ? baseSize * 1.2 : baseSize;
+        }
+
         // Calculate Pareto frontier
         function getParetoFrontier(data, getX, getY) {
-            // Sort by X ascending
             const sorted = [...data].sort((a, b) => getX(a) - getX(b));
             const frontier = [];
             let maxY = -Infinity;
@@ -328,7 +370,7 @@ title: WeirdML Interactive Plot
         let currentMode = 'cost';
         let currentScale = 'log';
 
-        const margin = { top: 30, right: 30, bottom: 60, left: 60 };
+        const margin = { top: 30, right: 40, bottom: 60, left: 65 };
         const svg = d3.select('#chart');
         const tooltip = d3.select('#tooltip');
 
@@ -345,14 +387,6 @@ title: WeirdML Interactive Plot
                 case 'cost': return 'Average Cost per Run (USD)';
                 case 'tokens': return 'Average Total Output Tokens';
                 case 'date': return 'Release Date';
-            }
-        }
-
-        function formatXValue(d) {
-            switch (currentMode) {
-                case 'cost': return '$' + (+d.cost_per_run_usd).toFixed(4);
-                case 'tokens': return Math.round(+d.mean_total_output_tokens).toLocaleString();
-                case 'date': return d.release_date;
             }
         }
 
@@ -418,12 +452,12 @@ title: WeirdML Interactive Plot
                 .attr('transform', `translate(0,${innerHeight})`)
                 .call(xAxis)
                 .selectAll('text')
-                .style('font-size', '11px');
+                .style('font-size', '12px');
 
             g.append('g')
                 .call(d3.axisLeft(yScale).tickFormat(d3.format('.0%')))
                 .selectAll('text')
-                .style('font-size', '11px');
+                .style('font-size', '12px');
 
             // Add axis labels
             g.append('text')
@@ -437,7 +471,7 @@ title: WeirdML Interactive Plot
                 .attr('class', 'axis-label')
                 .attr('transform', 'rotate(-90)')
                 .attr('x', -innerHeight / 2)
-                .attr('y', -45)
+                .attr('y', -50)
                 .attr('text-anchor', 'middle')
                 .text('Average Accuracy Across 17 Tasks');
 
@@ -449,40 +483,79 @@ title: WeirdML Interactive Plot
                     .tickSize(-innerWidth)
                     .tickFormat(''));
 
-            // Add dots
-            const dots = g.selectAll('.model-dot')
-                .data(validData)
-                .enter()
-                .append('circle')
-                .attr('class', 'model-dot')
-                .attr('cx', d => xScale(getXValue(d)))
-                .attr('cy', d => yScale(+d.avg_acc))
-                .attr('r', d => frontier.has(d.display_name) ? 7 : 5)
-                .attr('fill', d => getColor(d))
-                .attr('stroke', '#fff')
-                .attr('stroke-width', 1.5)
-                .attr('opacity', d => frontier.has(d.display_name) ? 1 : 0.7)
-                .on('mouseenter', function(event, d) {
-                    d3.select(this).attr('r', 10);
-                    showTooltip(event, d);
-                })
-                .on('mousemove', function(event, d) {
-                    moveTooltip(event);
-                })
-                .on('mouseleave', function() {
-                    const isFrontier = frontier.has(d3.select(this).datum().display_name);
-                    d3.select(this).attr('r', isFrontier ? 7 : 5);
-                    hideTooltip();
-                });
+            // Sort data so frontier models render on top
+            const sortedData = [...validData].sort((a, b) => {
+                const aFrontier = frontier.has(a.display_name) ? 1 : 0;
+                const bFrontier = frontier.has(b.display_name) ? 1 : 0;
+                return aFrontier - bFrontier;
+            });
+
+            // Add icons or dots for each model
+            sortedData.forEach(d => {
+                const company = getCompany(d);
+                const isFrontier = frontier.has(d.display_name);
+                const cx = xScale(getXValue(d));
+                const cy = yScale(+d.avg_acc);
+                const iconSize = getIconSize(d, isFrontier);
+
+                if (iconImages[company]) {
+                    // Use icon image
+                    g.append('image')
+                        .attr('class', 'model-icon')
+                        .attr('href', companyIcons[company].path)
+                        .attr('x', cx - iconSize / 2)
+                        .attr('y', cy - iconSize / 2)
+                        .attr('width', iconSize)
+                        .attr('height', iconSize)
+                        .attr('opacity', isFrontier ? 1 : 0.75)
+                        .datum(d)
+                        .on('mouseenter touchstart', function(event, d) {
+                            d3.select(this).attr('transform', `translate(${cx}, ${cy}) scale(1.3) translate(${-cx}, ${-cy})`);
+                            showTooltip(event, d);
+                        })
+                        .on('mousemove', function(event) {
+                            moveTooltip(event);
+                        })
+                        .on('mouseleave touchend', function() {
+                            d3.select(this).attr('transform', null);
+                            hideTooltip();
+                        });
+                } else {
+                    // Fallback to colored dot
+                    g.append('circle')
+                        .attr('class', 'model-dot')
+                        .attr('cx', cx)
+                        .attr('cy', cy)
+                        .attr('r', isFrontier ? 8 : 6)
+                        .attr('fill', getColor(d))
+                        .attr('stroke', '#fff')
+                        .attr('stroke-width', 1.5)
+                        .attr('opacity', isFrontier ? 1 : 0.7)
+                        .datum(d)
+                        .on('mouseenter touchstart', function(event, d) {
+                            d3.select(this).attr('r', 12);
+                            showTooltip(event, d);
+                        })
+                        .on('mousemove', function(event) {
+                            moveTooltip(event);
+                        })
+                        .on('mouseleave touchend', function() {
+                            const isFrontier = frontier.has(d3.select(this).datum().display_name);
+                            d3.select(this).attr('r', isFrontier ? 8 : 6);
+                            hideTooltip();
+                        });
+                }
+            });
 
             // Add labels for frontier models only
+            const labelData = validData.filter(d => frontier.has(d.display_name));
             const labels = g.selectAll('.model-label')
-                .data(validData.filter(d => frontier.has(d.display_name)))
+                .data(labelData)
                 .enter()
                 .append('text')
                 .attr('class', 'model-label')
-                .attr('x', d => xScale(getXValue(d)) + 10)
-                .attr('y', d => yScale(+d.avg_acc) + 3)
+                .attr('x', d => xScale(getXValue(d)) + getIconSize(d, true) / 2 + 6)
+                .attr('y', d => yScale(+d.avg_acc) + 4)
                 .text(d => d.display_name);
 
             // Adjust label positions to reduce overlap
@@ -490,7 +563,6 @@ title: WeirdML Interactive Plot
         }
 
         function adjustLabels(labels, xScale, yScale, width, height) {
-            // Simple collision detection - push overlapping labels
             const labelNodes = labels.nodes();
             const positions = [];
 
@@ -499,8 +571,8 @@ title: WeirdML Interactive Plot
                 const bbox = node.getBBox();
                 positions.push({
                     node: node,
-                    x: xScale(getXValue(d)) + 10,
-                    y: yScale(+d.avg_acc) + 3,
+                    x: xScale(getXValue(d)) + getIconSize(d, true) / 2 + 6,
+                    y: yScale(+d.avg_acc) + 4,
                     width: bbox.width,
                     height: bbox.height
                 });
@@ -514,9 +586,8 @@ title: WeirdML Interactive Plot
                 const prev = positions[i - 1];
                 const curr = positions[i];
 
-                // Check if labels are close horizontally and vertically
-                if (Math.abs(curr.x - prev.x) < 100) {
-                    const minGap = 12;
+                if (Math.abs(curr.x - prev.x) < 120) {
+                    const minGap = 16;
                     if (curr.y - prev.y < minGap) {
                         curr.y = prev.y + minGap;
                     }
@@ -525,7 +596,6 @@ title: WeirdML Interactive Plot
 
             // Apply adjusted positions
             positions.forEach(p => {
-                // Clamp to chart boundaries
                 p.x = Math.min(p.x, width - p.width - 5);
                 p.y = Math.max(15, Math.min(p.y, height - 5));
                 d3.select(p.node).attr('x', p.x).attr('y', p.y);
@@ -534,6 +604,7 @@ title: WeirdML Interactive Plot
 
         function showTooltip(event, d) {
             const company = getCompany(d);
+            const iconConfig = companyIcons[company];
 
             let html = `<div class="tooltip-title">${d.display_name}</div>`;
             html += `<div class="tooltip-row"><span class="tooltip-label">Company:</span><span class="tooltip-value">${company}</span></div>`;
@@ -554,15 +625,18 @@ title: WeirdML Interactive Plot
             const viewportWidth = window.innerWidth;
             const viewportHeight = window.innerHeight;
 
-            let x = event.pageX + 15;
-            let y = event.pageY - 10;
+            // Handle both mouse and touch events
+            const clientX = event.touches ? event.touches[0].pageX : event.pageX;
+            const clientY = event.touches ? event.touches[0].pageY : event.pageY;
 
-            // Adjust if tooltip goes off screen
+            let x = clientX + 15;
+            let y = clientY - 10;
+
             if (x + tooltipRect.width > viewportWidth - 10) {
-                x = event.pageX - tooltipRect.width - 15;
+                x = clientX - tooltipRect.width - 15;
             }
             if (y + tooltipRect.height > viewportHeight - 10) {
-                y = event.pageY - tooltipRect.height - 10;
+                y = clientY - tooltipRect.height - 10;
             }
             if (y < 10) {
                 y = 10;
@@ -577,21 +651,35 @@ title: WeirdML Interactive Plot
 
         function updateLegend() {
             const legend = document.getElementById('legend');
-            const companies = ['OpenAI', 'Anthropic', 'Google', 'DeepSeek', 'xAI', 'Meta', 'Mistral', 'Qwen', 'Moonshot', 'ZhipuAI'];
+            const companies = ['OpenAI', 'Anthropic', 'Google', 'DeepSeek', 'xAI', 'Meta', 'Mistral', 'Qwen', 'Moonshot'];
 
-            legend.innerHTML = companies.map(company => `
-                <div class="legend-item">
-                    <div class="legend-dot" style="background: ${companyColors[company]}; border: 1px solid #ccc;"></div>
-                    <span>${company}</span>
-                </div>
-            `).join('');
+            legend.innerHTML = companies.map(company => {
+                const iconConfig = companyIcons[company];
+                if (iconImages[company] && iconConfig) {
+                    return `
+                        <div class="legend-item">
+                            <img class="legend-icon" src="${iconConfig.path}" alt="${company}">
+                            <span>${company}</span>
+                        </div>
+                    `;
+                } else {
+                    return `
+                        <div class="legend-item">
+                            <div class="legend-dot" style="background: ${companyColors[company]}; border: 1px solid #ccc;"></div>
+                            <span>${company}</span>
+                        </div>
+                    `;
+                }
+            }).join('');
         }
 
-        // Load data
-        d3.csv('data/weirdml_data.csv').then(csvData => {
-            data = csvData;
-            updateChart();
-            updateLegend();
+        // Load data after icons are loaded
+        Promise.all(iconLoadPromises).then(() => {
+            d3.csv('data/weirdml_data.csv').then(csvData => {
+                data = csvData;
+                updateChart();
+                updateLegend();
+            });
         });
 
         // Event listeners
@@ -601,7 +689,6 @@ title: WeirdML Interactive Plot
                 this.classList.add('active');
                 currentMode = this.dataset.mode;
 
-                // Disable scale buttons for date mode
                 const scaleBtns = document.querySelectorAll('.scale-btn');
                 if (currentMode === 'date') {
                     scaleBtns.forEach(b => b.disabled = true);
