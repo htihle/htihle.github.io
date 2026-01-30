@@ -28,6 +28,12 @@ Each task comes with a task prompt describing the problem precisely and some exa
 
 [Explore the full WeirdML data](/weirdml_table.html) ([CSV]({{ "/data/weirdml_data.csv" | relative_url }}))
 
+<a href="/weirdml_interactive.html" style="display: block; margin: 20px 0;">
+  <img src="images_v2/weirdml_interactive_preview.png" alt="Interactive Plot Preview" style="max-width: 400px; border: 1px solid #ddd; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+  <br>
+  <span style="color: #3498db;">Open Interactive Plot →</span>
+</a>
+
 ### Topline Results
 
 <div class="figure">
@@ -55,8 +61,22 @@ Each task comes with a task prompt describing the problem precisely and some exa
 I have now added basically all the relevant frontier models back in time. Older models than mid-2023 are not included since they generally have too small context windows to solve the tasks, they would probably score very low as well. Notable missing models are o1-pro (this is too expensive to run) and gemini-1.0-ultra (not available in API any more).
 
 <div class="figure">
+  <video width="100%" controls autoplay loop muted>
+    <source src="animations/WeirdML_task_evolution.mp4" type="video/mp4">
+  </video>
+  <p class="figure-caption">This animation shows the evolution of state-of-the-art performance on each individual WeirdML task over time. At each point in time, the visualization displays the best score achieved so far on each task and which model holds that record. As time progresses, you can see records being broken and new models taking the lead on different tasks.</p>
+</div>
+
+<div class="figure">
   <img src="images_v2/weirdml_date_vs_accuracy.png" alt="Date vs Accuracy" width="800">
   <p class="figure-caption">This scatter plot shows the relationship between model release dates and their achieved accuracy. Each icon corresponds to a model positioned according to its release date on the X-axis and its overall accuracy on the Y-axis, providing an overview of how model performance has progressed chronologically. The actual datapoints are in the middle of each company logo, not the text.</p>
+</div>
+
+<div class="figure">
+  <video width="100%" controls autoplay loop muted>
+    <source src="animations/weirdml_cost_frontier.mp4" type="video/mp4">
+  </video>
+  <p class="figure-caption">This animation shows the evolution of the cost-accuracy Pareto frontier over time. As time progresses, new models appear and the frontier (representing the best accuracy achievable at each cost level) shifts outward, illustrating the rapid improvements in model efficiency. Models that once defined the frontier are eventually surpassed by newer, more capable or cost-effective alternatives.</p>
 </div>
 
 <div class="figure">
