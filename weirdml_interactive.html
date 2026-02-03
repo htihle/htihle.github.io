@@ -897,7 +897,7 @@ title: WeirdML Interactive Plot
 
         // Load data after icons are loaded
         Promise.all(iconLoadPromises).then(() => {
-            d3.csv('data/weirdml_data.csv').then(csvData => {
+            d3.csv('data/weirdml_data.csv' + Date.now()).then(csvData => {
                 data = csvData;
                 updateChart();
                 updateLegend();
