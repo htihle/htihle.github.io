@@ -4,112 +4,79 @@ title: WeirdML Data Table
 permalink: /weirdml_table.html
 ---
 
-<link rel="stylesheet" href="{{ '/assets/css/main.css' | relative_url }}">
-
 <style>
+  * {
+    box-sizing: border-box;
+  }
+
   body {
-    font-family: var(--font-sans);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
     margin: 0;
-    padding: var(--space-6);
-    background: var(--color-bg);
-    color: var(--color-text);
+    padding: 15px;
+    background: #f8f9fa;
+    color: #333;
   }
 
-  .page-container {
-    max-width: 100%;
-    margin: 0 auto;
+  .header {
+    position: relative;
+    text-align: center;
+    margin-bottom: 15px;
   }
 
-  .page-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: var(--space-6);
-    flex-wrap: wrap;
-    gap: var(--space-4);
-  }
-
-  .page-header h1 {
+  .header h1 {
     margin: 0;
-    font-size: var(--text-2xl);
-    color: var(--color-primary);
+    font-size: 1.4rem;
+    color: #2c3e50;
   }
 
   .header-links {
+    position: absolute;
+    top: 0;
+    left: 0;
     display: flex;
-    gap: var(--space-3);
+    gap: 12px;
   }
 
-  .back-link {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--space-2);
-    padding: var(--space-2) var(--space-4);
-    color: var(--color-text-muted);
-    font-size: var(--text-sm);
-    font-weight: var(--font-medium);
+  .header-links a {
+    color: #3498db;
     text-decoration: none;
-    border-radius: var(--radius-md);
-    transition: all var(--transition-fast);
+    font-size: 0.85rem;
   }
 
-  .back-link:hover {
-    color: var(--color-primary);
-    background-color: var(--color-bg-alt);
-    text-decoration: none;
-  }
-
-  .download-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--space-2);
-    padding: var(--space-2) var(--space-4);
-    border: 1px solid var(--color-accent);
-    color: var(--color-accent);
-    text-decoration: none;
-    border-radius: var(--radius-md);
-    font-size: var(--text-sm);
-    font-weight: var(--font-medium);
-    transition: all var(--transition-fast);
-  }
-
-  .download-btn:hover {
-    background: var(--color-accent);
-    color: white;
-    text-decoration: none;
+  .header-links a:hover {
+    text-decoration: underline;
   }
 
   .table-wrapper {
-    background: var(--color-surface);
-    border-radius: var(--radius-xl);
-    box-shadow: var(--shadow-md);
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     overflow: auto;
-    border: 1px solid var(--color-border);
   }
 
   #csv-table {
     width: 100%;
     border-collapse: separate;
     border-spacing: 0;
-    font-size: var(--text-xs);
+    font-size: 0.8rem;
     line-height: 1.4;
   }
 
   th, td {
-    border: 1px solid var(--color-border);
-    padding: var(--space-2) var(--space-3);
+    border: 1px solid #e9ecef;
+    padding: 8px 12px;
     text-align: left;
     vertical-align: middle;
   }
 
   thead th {
-    background: var(--color-primary);
-    color: var(--color-text-inverse);
-    font-weight: var(--font-semibold);
+    background: #2c3e50;
+    color: white;
+    font-weight: 600;
     position: sticky;
     top: 0;
     z-index: 10;
-    font-size: var(--text-xs);
+    font-size: 0.75rem;
     min-width: 90px;
     max-width: 130px;
     word-wrap: break-word;
@@ -118,7 +85,7 @@ permalink: /weirdml_table.html
   }
 
   thead th:first-child {
-    background: var(--color-primary-light);
+    background: #34495e;
     position: sticky;
     left: 0;
     z-index: 11;
@@ -126,93 +93,105 @@ permalink: /weirdml_table.html
   }
 
   tbody th {
-    background: var(--color-bg-alt);
-    color: var(--color-primary);
-    font-weight: var(--font-semibold);
+    background: #f8f9fa;
+    color: #2c3e50;
+    font-weight: 600;
     position: sticky;
     left: 0;
     z-index: 9;
-    border-right: 2px solid var(--color-border);
+    border-right: 2px solid #dee2e6;
     white-space: nowrap;
     min-width: 150px;
   }
 
   tbody td {
-    background: var(--color-surface);
-    font-family: var(--font-mono);
-    font-size: var(--text-xs);
+    background: white;
+    font-family: 'SF Mono', 'Fira Code', 'Fira Mono', Menlo, Monaco, Consolas, monospace;
+    font-size: 0.75rem;
     text-align: center;
     min-width: 90px;
     max-width: 130px;
   }
 
   tbody tr:nth-child(even) td {
-    background: var(--color-bg);
+    background: #f8f9fa;
   }
 
   tbody tr:nth-child(even) th {
-    background: var(--color-border-light);
+    background: #ecf0f1;
   }
 
   tbody tr:hover td {
-    background: var(--color-accent-subtle) !important;
+    background: #ecf6fd !important;
   }
 
   tbody tr:hover th {
-    background: #cffafe !important;
+    background: #d6eaf8 !important;
   }
 
   .avg-accuracy {
     background-color: #d1fae5 !important;
-    font-weight: var(--font-bold);
+    font-weight: 700;
   }
 
   .std-error {
     background-color: #fef3c7 !important;
-    color: var(--color-info);
-    font-weight: var(--font-semibold);
+    color: #3b82f6;
+    font-weight: 600;
   }
 
   .loading {
-    padding: var(--space-12);
+    padding: 48px;
     text-align: center;
-    color: var(--color-text-muted);
+    color: #666;
   }
 
   .error {
-    padding: var(--space-12);
+    padding: 48px;
     text-align: center;
-    color: var(--color-error);
+    color: #e74c3c;
+  }
+
+  @media (max-width: 1200px), (max-height: 500px) {
+    body {
+      padding: 8px;
+    }
+
+    .header {
+      margin-bottom: 8px;
+    }
+
+    .header h1 {
+      font-size: 1.1rem;
+    }
+
+    .header-links {
+      position: static;
+      justify-content: center;
+      margin-top: 6px;
+      gap: 10px;
+    }
+
+    .header-links a {
+      font-size: 0.75rem;
+    }
   }
 </style>
 
-<div class="page-container">
-  <div class="page-header">
-    <h1>WeirdML Data</h1>
-    <div class="header-links">
-      <a href="weirdml.html" class="back-link">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="m15 18-6-6 6-6"/>
-        </svg>
-        Back to WeirdML
-      </a>
-      <a href="{{ '/data/weirdml_data.csv' | relative_url }}" class="download-btn">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-          <polyline points="7 10 12 15 17 10"/>
-          <line x1="12" x2="12" y1="15" y2="3"/>
-        </svg>
-        Download CSV
-      </a>
-    </div>
+<div class="header">
+  <h1>WeirdML: Data Table</h1>
+  <div class="header-links">
+    <a href="weirdml.html">&larr; Back to WeirdML</a>
+    <a href="weirdml_interactive.html">Interactive plot</a>
+    <a href="data/weirdml_data.csv">CSV</a>
   </div>
+</div>
 
-  <div class="table-wrapper">
-    <table id="csv-table">
-      <thead></thead>
-      <tbody></tbody>
-    </table>
-  </div>
+<div class="table-wrapper">
+  <table id="csv-table">
+    <thead></thead>
+    <tbody></tbody>
+  </table>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
