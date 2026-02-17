@@ -8,6 +8,13 @@ title: Blog
 I write about AI capabilities, benchmarks, and research on [LessWrong](https://www.lesswrong.com/).
 
 <div class="blog-grid">
+  <a href="https://www.lesswrong.com/posts/hoQd3rE7WEaduBmMT/weirdml-time-horizons" class="blog-card">
+    <img class="blog-card-img" src="https://res.cloudinary.com/lesswrong-2-0/image/upload/w_360,c_fill,ar_1.5,g_auto,q_auto/v1/mirroredImages/hoQd3rE7WEaduBmMT/fnoemletsgzk1mzmmrqj" alt="">
+    <div class="blog-card-content">
+      <span class="blog-card-title">WeirdML Time Horizons</span>
+      <span class="blog-card-desc">Applying METR's time horizons approach to WeirdML data. Time horizons roughly double every 5 months, from ~24 minutes (GPT-4, June 2023) to ~38 hours (Claude Opus 4.6, February 2026), consistent with METR's finding of ~7 months despite using a completely different benchmark.</span>
+    </div>
+  </a>
   <a href="https://www.lesswrong.com/posts/fpdjaF7kdtcvmhhfE/can-llms-coordinate-a-simple-schelling-point-experiment" class="blog-card">
     <img class="blog-card-img" src="https://res.cloudinary.com/lesswrong-2-0/image/upload/w_360,c_fill,ar_1.5,g_auto,q_auto/SocialPreview/outgpsgnrekp2zoinmob" alt="">
     <div class="blog-card-content">
