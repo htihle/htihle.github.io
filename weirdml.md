@@ -26,13 +26,20 @@ Each task comes with a task prompt describing the problem precisely and some exa
 
 ## Results
 
-[Explore the full WeirdML data](/weirdml_table.html) ([CSV]({{ "/data/weirdml_data.csv" | relative_url }}))
+<div style="display: flex; gap: 24px; margin: 20px 0; align-items: flex-start; flex-wrap: wrap;">
+  <a href="/weirdml_table.html" style="text-decoration: none; text-align: center;">
+    <img src="images_v2/weirdml_table_preview.png" alt="Data Table Preview" style="height: 260px; width: auto; border: 1px solid #ddd; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+    <br>
+    <span style="color: #3498db;">Explore the full WeirdML data →</span>
+  </a>
+  <a href="/weirdml_interactive.html" style="text-decoration: none; text-align: center;">
+    <img src="images_v2/weirdml_interactive_preview.png" alt="Interactive Plot Preview" style="height: 260px; width: auto; border: 1px solid #ddd; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+    <br>
+    <span style="color: #3498db;">Open Interactive Plot →</span>
+  </a>
+</div>
 
-<a href="/weirdml_interactive.html" style="display: block; margin: 20px 0;">
-  <img src="images_v2/weirdml_interactive_preview.png" alt="Interactive Plot Preview" style="max-width: 400px; border: 1px solid #ddd; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-  <br>
-  <span style="color: #3498db;">Open Interactive Plot →</span>
-</a>
+[Download CSV]({{ "/data/weirdml_data.csv" | relative_url }})
 
 ### Topline Results
 
