@@ -526,10 +526,14 @@ title: WeirdML Interactive Plot
             const frontier = getParetoFrontier(validData, d => getXValue(d), d => +d.avg_acc);
 
             // Add axes
+            // For cost/bubble log scale, use plain numbers instead of SI prefixes
+            const usePlainNumbers = (currentMode === 'cost' || currentMode === 'bubble') && currentScale === 'log';
             const xAxis = currentMode === 'date'
                 ? d3.axisBottom(xScale).ticks(6)
                 : currentScale === 'log'
-                    ? d3.axisBottom(xScale).ticks(6, '~s')
+                    ? usePlainNumbers
+                        ? d3.axisBottom(xScale).ticks(6).tickFormat(d3.format('.4~f'))
+                        : d3.axisBottom(xScale).ticks(6, '~s')
                     : d3.axisBottom(xScale).ticks(6);
 
             g.append('g')
@@ -542,7 +546,9 @@ title: WeirdML Interactive Plot
             const xAxisTop = currentMode === 'date'
                 ? d3.axisTop(xScale).ticks(6)
                 : currentScale === 'log'
-                    ? d3.axisTop(xScale).ticks(6, '~s')
+                    ? usePlainNumbers
+                        ? d3.axisTop(xScale).ticks(6).tickFormat(d3.format('.4~f'))
+                        : d3.axisTop(xScale).ticks(6, '~s')
                     : d3.axisTop(xScale).ticks(6);
 
             g.append('g')
