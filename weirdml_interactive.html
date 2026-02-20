@@ -297,7 +297,6 @@ title: WeirdML Interactive Plot
         <h1>WeirdML: Interactive Model Comparison</h1>
         <div class="header-links">
             <a href="weirdml.html">&larr; Back to WeirdML</a>
-            <a href="weirdml_bubble.html">Bubble plot</a>
             <a href="weirdml_table.html">Explore the full WeirdML data</a>
             <a href="data/weirdml_data.csv">CSV</a>
         </div>
@@ -310,6 +309,7 @@ title: WeirdML Interactive Plot
                 <button class="control-btn active" data-mode="cost">Cost</button>
                 <button class="control-btn" data-mode="tokens">Tokens</button>
                 <button class="control-btn" data-mode="date">Date</button>
+                <button class="control-btn" data-mode="bubble">Bubble</button>
             </div>
         </div>
         <div class="control-group">
@@ -443,9 +443,15 @@ title: WeirdML Interactive Plot
         const svg = d3.select('#chart');
         const tooltip = d3.select('#tooltip');
 
+        // Bubble size scale: tokens → radius
+        const bubbleSizeScale = d3.scaleSqrt()
+            .domain([0, 35000])
+            .range([3, 22]);
+
         function getXValue(d) {
             switch (currentMode) {
                 case 'cost': return +d.cost_per_run_usd;
+                case 'bubble': return +d.cost_per_run_usd;
                 case 'tokens': return +d.mean_total_output_tokens;
                 case 'date': return new Date(d.release_date);
             }
@@ -454,6 +460,7 @@ title: WeirdML Interactive Plot
         function getXLabel() {
             switch (currentMode) {
                 case 'cost': return 'Average Cost per Run (USD)';
+                case 'bubble': return 'Average Cost per Run (USD) — bubble size = output tokens';
                 case 'tokens': return 'Average Total Output Tokens';
                 case 'date': return 'Release Date';
             }
@@ -484,6 +491,9 @@ title: WeirdML Interactive Plot
                 const y = +d.avg_acc;
                 if (currentMode === 'date') {
                     return x instanceof Date && !isNaN(x) && y > 0;
+                }
+                if (currentMode === 'bubble') {
+                    return x > 0 && x <= 20 && y > 0;
                 }
                 return x > 0 && y > 0;
             });
@@ -570,16 +580,20 @@ title: WeirdML Interactive Plot
                     .tickFormat(''));
 
             // Build icon data with positions
+            const isBubble = currentMode === 'bubble';
             const iconData = validData.map(d => {
                 const company = getCompany(d);
                 const isFrontier = frontier.has(d.display_name);
+                const tokens = +d.mean_total_output_tokens;
                 return {
                     d: d,
                     company: company,
                     isFrontier: isFrontier,
                     cx: xScale(getXValue(d)),
                     cy: yScale(+d.avg_acc),
-                    size: getIconSize(d, isFrontier)
+                    size: isBubble ? bubbleSizeScale(tokens) * 2 : getIconSize(d, isFrontier),
+                    bubbleR: bubbleSizeScale(tokens),
+                    tokens: tokens
                 };
             });
 
@@ -589,11 +603,44 @@ title: WeirdML Interactive Plot
             // Track current hovered icon
             let hoveredIcon = null;
 
+            // In bubble mode, draw Pareto frontier line
+            if (isBubble) {
+                const frontierDots = iconData.filter(d => d.isFrontier);
+                frontierDots.sort((a, b) => a.cx - b.cx);
+                if (frontierDots.length > 1) {
+                    const lineGen = d3.line()
+                        .x(d => d.cx)
+                        .y(d => d.cy)
+                        .curve(d3.curveMonotoneX);
+                    g.append('path')
+                        .datum(frontierDots)
+                        .attr('d', lineGen)
+                        .attr('fill', 'none')
+                        .attr('stroke', '#e74c3c')
+                        .attr('stroke-width', 1.5)
+                        .attr('stroke-dasharray', '6,4')
+                        .attr('opacity', 0.5);
+                }
+            }
+
             // Add icons or dots for each model
             iconData.forEach(item => {
                 const { d, company, isFrontier, cx, cy, size } = item;
 
-                if (iconImages[company]) {
+                if (isBubble) {
+                    // Bubble mode: colored circles sized by tokens
+                    item.element = g.append('circle')
+                        .attr('class', 'model-dot')
+                        .attr('cx', cx)
+                        .attr('cy', cy)
+                        .attr('r', item.bubbleR)
+                        .attr('fill', getColor(d))
+                        .attr('stroke', '#fff')
+                        .attr('stroke-width', isFrontier ? 2 : 1)
+                        .attr('opacity', isFrontier ? 0.9 : 0.6)
+                        .datum(d)
+                        .style('pointer-events', 'none');
+                } else if (iconImages[company]) {
                     item.element = g.append('image')
                         .attr('class', 'model-icon')
                         .attr('href', companyIcons[company].path)
@@ -603,7 +650,7 @@ title: WeirdML Interactive Plot
                         .attr('height', size)
                         .attr('opacity', isFrontier ? 1 : 0.75)
                         .datum(d)
-                        .style('pointer-events', 'none'); // Disable native events
+                        .style('pointer-events', 'none');
                 } else {
                     item.element = g.append('circle')
                         .attr('class', 'model-dot')
@@ -615,7 +662,7 @@ title: WeirdML Interactive Plot
                         .attr('stroke-width', 1.5)
                         .attr('opacity', isFrontier ? 1 : 0.7)
                         .datum(d)
-                        .style('pointer-events', 'none'); // Disable native events
+                        .style('pointer-events', 'none');
                 }
             });
 
@@ -646,7 +693,10 @@ title: WeirdML Interactive Plot
                         // Unhover previous
                         if (hoveredIcon) {
                             const prev = hoveredIcon;
-                            if (iconImages[prev.company]) {
+                            if (isBubble) {
+                                prev.element.attr('r', prev.bubbleR)
+                                    .attr('stroke-width', prev.isFrontier ? 2 : 1);
+                            } else if (iconImages[prev.company]) {
                                 prev.element
                                     .attr('width', prev.size)
                                     .attr('height', prev.size)
@@ -659,15 +709,20 @@ title: WeirdML Interactive Plot
 
                         // Hover new
                         if (closest) {
-                            const hoverSize = closest.size * 1.3;
-                            if (iconImages[closest.company]) {
-                                closest.element
-                                    .attr('width', hoverSize)
-                                    .attr('height', hoverSize)
-                                    .attr('x', closest.cx - hoverSize / 2)
-                                    .attr('y', closest.cy - hoverSize / 2);
+                            if (isBubble) {
+                                closest.element.attr('r', closest.bubbleR * 1.3)
+                                    .attr('stroke-width', 2.5);
                             } else {
-                                closest.element.attr('r', 12);
+                                const hoverSize = closest.size * 1.3;
+                                if (iconImages[closest.company]) {
+                                    closest.element
+                                        .attr('width', hoverSize)
+                                        .attr('height', hoverSize)
+                                        .attr('x', closest.cx - hoverSize / 2)
+                                        .attr('y', closest.cy - hoverSize / 2);
+                                } else {
+                                    closest.element.attr('r', 12);
+                                }
                             }
                             showTooltip(event, closest.d);
                         } else {
@@ -682,7 +737,10 @@ title: WeirdML Interactive Plot
                 .on('mouseleave touchend', function() {
                     if (hoveredIcon) {
                         const prev = hoveredIcon;
-                        if (iconImages[prev.company]) {
+                        if (isBubble) {
+                            prev.element.attr('r', prev.bubbleR)
+                                .attr('stroke-width', prev.isFrontier ? 2 : 1);
+                        } else if (iconImages[prev.company]) {
                             prev.element
                                 .attr('width', prev.size)
                                 .attr('height', prev.size)
@@ -726,11 +784,14 @@ title: WeirdML Interactive Plot
 
             // Add labels for frontier models (on LEFT side of icons)
             const frontierLabelData = validData.filter(d => frontier.has(d.display_name));
+            const getLeftLabelX = isBubble
+                ? d => xScale(getXValue(d)) - bubbleSizeScale(+d.mean_total_output_tokens) - 6
+                : d => xScale(getXValue(d)) - getIconSize(d, true) / 2 - 6;
             const frontierGroups = addLabelsWithBackground(
                 frontierLabelData,
                 'label-group-frontier',
                 'end',
-                d => xScale(getXValue(d)) - getIconSize(d, true) / 2 - 6
+                getLeftLabelX
             );
 
             // Adjust frontier label positions to reduce overlap
@@ -752,11 +813,14 @@ title: WeirdML Interactive Plot
             const highlightLabelData = validData.filter(d =>
                 alwaysHighlight.has(d.display_name) && !frontier.has(d.display_name)
             );
+            const getRightLabelX = isBubble
+                ? d => xScale(getXValue(d)) + bubbleSizeScale(+d.mean_total_output_tokens) + 6
+                : d => xScale(getXValue(d)) + getIconSize(d, frontier.has(d.display_name)) / 2 + 6;
             const highlightGroups = addLabelsWithBackground(
                 highlightLabelData,
                 'label-group-highlight',
                 'start',
-                d => xScale(getXValue(d)) + getIconSize(d, frontier.has(d.display_name)) / 2 + 6
+                getRightLabelX
             );
 
             // Adjust highlight label positions to reduce overlap
@@ -782,10 +846,12 @@ title: WeirdML Interactive Plot
             labelNodes.forEach((node, i) => {
                 const d = d3.select(node).datum();
                 const bbox = node.getBBox();
-                const iconSize = getIconSize(d, true);
+                const offset = currentMode === 'bubble'
+                    ? bubbleSizeScale(+d.mean_total_output_tokens) + 6
+                    : getIconSize(d, true) / 2 + 6;
                 const baseX = side === 'left'
-                    ? xScale(getXValue(d)) - iconSize / 2 - 6
-                    : xScale(getXValue(d)) + iconSize / 2 + 6;
+                    ? xScale(getXValue(d)) - offset
+                    : xScale(getXValue(d)) + offset;
                 positions.push({
                     node: node,
                     x: baseX,
@@ -914,11 +980,9 @@ title: WeirdML Interactive Plot
 
                 const scaleBtns = document.querySelectorAll('.scale-btn');
                 if (currentMode === 'date') {
-                    scaleBtns.forEach(b => b.disabled = true);
-                    scaleBtns.forEach(b => b.style.opacity = 0.5);
+                    scaleBtns.forEach(b => { b.disabled = true; b.style.opacity = 0.5; });
                 } else {
-                    scaleBtns.forEach(b => b.disabled = false);
-                    scaleBtns.forEach(b => b.style.opacity = 1);
+                    scaleBtns.forEach(b => { b.disabled = false; b.style.opacity = 1; });
                 }
 
                 updateChart();
