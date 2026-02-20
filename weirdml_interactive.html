@@ -577,12 +577,27 @@ title: WeirdML Interactive Plot
                 .attr('text-anchor', 'middle')
                 .text('Average Accuracy Across 17 Tasks');
 
-            // Add grid lines
+            // Add horizontal grid lines
             g.append('g')
                 .attr('class', 'grid')
                 .attr('opacity', 0.1)
                 .call(d3.axisLeft(yScale)
                     .tickSize(-innerWidth)
+                    .tickFormat(''));
+
+            // Add vertical grid lines
+            const xGridAxis = currentMode === 'date'
+                ? d3.axisBottom(xScale).ticks(6)
+                : currentScale === 'log'
+                    ? usePlainNumbers
+                        ? d3.axisBottom(xScale).ticks(6, '.4~f')
+                        : d3.axisBottom(xScale).ticks(6, '~s')
+                    : d3.axisBottom(xScale).ticks(6);
+            g.append('g')
+                .attr('class', 'grid')
+                .attr('opacity', 0.1)
+                .call(xGridAxis
+                    .tickSize(innerHeight)
                     .tickFormat(''));
 
             // Build icon data with positions
