@@ -40,6 +40,7 @@ Each task comes with a task prompt describing the problem precisely and some exa
     </a>
     <br>
     <a href="/weirdml_interactive.html" style="color: #3498db;">Open Interactive Plot →</a>
+    · <a href="/weirdml_bubble.html" style="color: #3498db;">Bubble Plot</a>
   </div>
 </div>
 
