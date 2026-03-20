@@ -119,6 +119,11 @@ title: WeirdML Interactive Plot
             width: 100%;
             height: 70vh;
             min-height: 400px;
+            /* cursor:pointer makes iOS Safari treat the SVG as "clickable",
+               which is required for click events to fire reliably.
+               touch-action:manipulation removes the 300ms tap delay. */
+            cursor: pointer;
+            touch-action: manipulation;
         }
 
         .tooltip {
@@ -610,10 +615,8 @@ title: WeirdML Interactive Plot
             tooltip.classed('mobile-panel', true);
         }
 
-        // Shared state for touch handler (updated by updateChart, read by SVG touch listener)
+        // Shared state for click handler (updated by updateChart, read by SVG click listener)
         let chartState = null;
-        // Guard: after a touch event, ignore synthetic mouse events
-        let lastTouchTime = 0;
 
         // Bubble size scale: tokens → radius
         const bubbleSizeScale = d3.scaleSqrt()
@@ -1065,8 +1068,9 @@ title: WeirdML Interactive Plot
             // Sort so frontier models render on top
             iconData.sort((a, b) => (a.isFrontier ? 1 : 0) - (b.isFrontier ? 1 : 0));
 
-            // Track current hovered icon
+            // Track current hovered/selected icon
             let hoveredIcon = null;
+            let pinnedByClick = false;  // true when selected via click/tap
 
             // In bubble mode, draw Pareto frontier line
             if (isBubble) {
@@ -1238,22 +1242,20 @@ title: WeirdML Interactive Plot
                 return closest;
             }
 
-            // Add invisible overlay for interaction tracking.
-            // pointer-events:all ensures hit-testing on transparent fill.
+            // Add invisible overlay for desktop mouse hover.
             const overlay = g.append('rect')
                 .attr('width', innerWidth)
                 .attr('height', innerHeight)
                 .attr('fill', 'transparent')
                 .style('pointer-events', 'all');
 
-            function isRecentTouch() {
-                return Date.now() - lastTouchTime < 500;
-            }
-
-            // MOUSE: hover to show, leave to dismiss
+            // Desktop mouse hover (mousemove/mouseleave on the overlay rect).
+            // On touch devices this is harmless — Safari won't fire mousemove
+            // from genuine touches when touch-action:manipulation is set.
             overlay
                 .on('mousemove', function(event) {
-                    if (isRecentTouch()) return;
+                    // Skip if a model is "pinned" by click (touch or mouse click)
+                    if (pinnedByClick) return;
                     const [mx, my] = d3.pointer(event, this);
                     const closest = findClosest(mx, my);
 
@@ -1271,7 +1273,7 @@ title: WeirdML Interactive Plot
                     }
                 })
                 .on('mouseleave', function() {
-                    if (isRecentTouch()) return;
+                    if (pinnedByClick) return;
                     if (hoveredIcon) {
                         unhoverItem(hoveredIcon);
                         hoveredIcon = null;
@@ -1279,13 +1281,15 @@ title: WeirdML Interactive Plot
                     }
                 });
 
-            // Store current chart state so the SVG-level touch handler can use it
+            // Store current chart state so the SVG-level click handler can use it
             chartState = {
                 gNode: g.node(),
                 innerWidth, innerHeight,
                 findClosest, hoverItem, unhoverItem,
                 getHovered: () => hoveredIcon,
-                setHovered: (v) => { hoveredIcon = v; }
+                setHovered: (v) => { hoveredIcon = v; },
+                getPinned: () => pinnedByClick,
+                setPinned: (v) => { pinnedByClick = v; }
             };
 
             // Helper to add labels with background
@@ -1531,30 +1535,30 @@ title: WeirdML Interactive Plot
             }).join('');
         }
 
-        // TOUCH: single SVG-level listener registered once (not per updateChart).
-        // Safari iOS doesn't reliably deliver touch events to SVG child elements
-        // like <rect>, so we listen on the <svg> itself and use d3.pointer with
-        // the <g> node to get chart-relative coordinates.
-        svg.node().addEventListener('touchstart', function(event) {
-            lastTouchTime = Date.now();
+        // CLICK: single SVG-level listener registered once (not per updateChart).
+        // Using 'click' instead of touchstart/pointerdown because it is the
+        // only event iOS Safari reliably fires on SVG elements (when
+        // cursor:pointer is set in CSS and touch-action:manipulation removes
+        // the 300ms delay). Works on both desktop and mobile.
+        svg.node().addEventListener('click', function(event) {
             if (!chartState) return;
             const { gNode, innerWidth, innerHeight, findClosest,
-                    hoverItem, unhoverItem, getHovered, setHovered } = chartState;
+                    hoverItem, unhoverItem, getHovered, setHovered,
+                    getPinned, setPinned } = chartState;
 
             const [mx, my] = d3.pointer(event, gNode);
 
-            // Ignore touches outside the chart area
+            // Ignore clicks outside the chart area
             if (mx < 0 || mx > innerWidth || my < 0 || my > innerHeight) return;
-
-            event.preventDefault();
 
             const hoveredIcon = getHovered();
             const closest = findClosest(mx, my);
 
-            // If tapping the same model, dismiss
+            // If clicking the same model, dismiss
             if (closest && closest === hoveredIcon) {
                 unhoverItem(closest);
                 setHovered(null);
+                setPinned(false);
                 hideTooltip();
                 return;
             }
@@ -1568,11 +1572,13 @@ title: WeirdML Interactive Plot
                 hoverItem(closest);
                 showTooltip(event, closest.d);
                 setHovered(closest);
+                setPinned(true);
             } else {
                 setHovered(null);
+                setPinned(false);
                 hideTooltip();
             }
-        }, { passive: false });
+        });
 
         // Load data after icons are loaded
         Promise.all(iconLoadPromises).then(() => {
