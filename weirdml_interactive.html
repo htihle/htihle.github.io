@@ -637,11 +637,15 @@ title: WeirdML Interactive Plot
                     .tickFormat(''));
 
             // Draw open vs closed frontier step functions in frontier mode
+            // Also compute which models sit on the open/closed frontiers for labeling
+            let openFrontierNames = new Set();
+            let closedFrontierNames = new Set();
+
             if (currentMode === 'frontier') {
                 // Sort by date
                 const sorted = [...validData].sort((a, b) => getXValue(a) - getXValue(b));
 
-                // Build frontier step functions
+                // Build frontier step functions, tracking frontier model names
                 let bestOpen = 0, bestClosed = 0;
                 const openSteps = [], closedSteps = [];
 
@@ -651,9 +655,11 @@ title: WeirdML Interactive Plot
                     if (open && acc > bestOpen) {
                         bestOpen = acc;
                         openSteps.push({ date: getXValue(d), acc });
+                        openFrontierNames.add(d.display_name);
                     } else if (!open && acc > bestClosed) {
                         bestClosed = acc;
                         closedSteps.push({ date: getXValue(d), acc });
+                        closedFrontierNames.add(d.display_name);
                     }
                 }
 
@@ -675,42 +681,56 @@ title: WeirdML Interactive Plot
                     return pts;
                 }
 
+                // Helper: sample step function value at a given pixel x
+                function sampleStep(pts, x) {
+                    let val = 0;
+                    for (const p of pts) {
+                        if (p.x <= x) val = p.y;
+                        else break;
+                    }
+                    return val;
+                }
+
                 const startX = 0; // left edge of chart
                 const openPts = buildStepPoints(openSteps, xScale, startX);
                 const closedPts = buildStepPoints(closedSteps, xScale, startX);
 
-                // Draw shading between the two frontiers
-                if (openPts.length > 1 && closedPts.length > 1) {
-                    // Collect all unique x positions
-                    const allX = new Set();
-                    openPts.forEach(p => allX.add(p.x));
-                    closedPts.forEach(p => allX.add(p.x));
-                    const sortedX = [...allX].sort((a, b) => a - b);
+                // Collect all unique x positions for shading
+                const allXSet = new Set();
+                openPts.forEach(p => allXSet.add(p.x));
+                closedPts.forEach(p => allXSet.add(p.x));
+                const sortedX = [...allXSet].sort((a, b) => a - b);
 
-                    // Sample step functions at each x
-                    function sampleStep(pts, x) {
-                        let val = 0;
-                        for (const p of pts) {
-                            if (p.x <= x) val = p.y;
-                            else break;
-                        }
-                        return val;
-                    }
-
-                    // Build area path between the two step functions
-                    const areaTop = sortedX.map(x => ({ x, y: Math.max(sampleStep(openPts, x), sampleStep(closedPts, x)) }));
-                    const areaBot = sortedX.map(x => ({ x, y: Math.min(sampleStep(openPts, x), sampleStep(closedPts, x)) }));
-
-                    const areaGen = d3.area()
+                // 1. Blue fill: under the open frontier (from 0 to open level)
+                if (openPts.length > 1) {
+                    const openFillData = sortedX.map(x => ({ x, y: sampleStep(openPts, x) }));
+                    const openFillGen = d3.area()
                         .x(d => d.x)
-                        .y0((d, i) => yScale(areaBot[i].y))
+                        .y0(yScale(0))
                         .y1(d => yScale(d.y));
-
                     g.append('path')
-                        .datum(areaTop)
-                        .attr('d', areaGen)
+                        .datum(openFillData)
+                        .attr('d', openFillGen)
+                        .attr('fill', openColor)
+                        .attr('opacity', 0.1);
+                }
+
+                // 2. Green fill: between open and closed frontiers (where closed > open)
+                if (openPts.length > 1 && closedPts.length > 1) {
+                    const gapData = sortedX.map(x => ({
+                        x,
+                        openY: sampleStep(openPts, x),
+                        closedY: sampleStep(closedPts, x)
+                    }));
+                    const gapGen = d3.area()
+                        .x(d => d.x)
+                        .y0(d => yScale(d.openY))
+                        .y1(d => yScale(d.closedY));
+                    g.append('path')
+                        .datum(gapData)
+                        .attr('d', gapGen)
                         .attr('fill', closedColor)
-                        .attr('opacity', 0.08);
+                        .attr('opacity', 0.1);
                 }
 
                 // Draw open frontier line
@@ -807,19 +827,31 @@ title: WeirdML Interactive Plot
                 const { d, company, isFrontier, cx, cy, size } = item;
 
                 if (isFrontierMode) {
-                    // Frontier mode: colored dots by open/closed status
-                    const dotColor = item.isOpen ? openColor : closedColor;
-                    item.element = g.append('circle')
-                        .attr('class', 'model-dot')
-                        .attr('cx', cx)
-                        .attr('cy', cy)
-                        .attr('r', isFrontier ? 7 : 5)
-                        .attr('fill', dotColor)
-                        .attr('stroke', '#fff')
-                        .attr('stroke-width', 1.5)
-                        .attr('opacity', isFrontier ? 1 : 0.7)
-                        .datum(d)
-                        .style('pointer-events', 'none');
+                    // Frontier mode: use company icons (same as cost/date modes)
+                    if (iconImages[company]) {
+                        item.element = g.append('image')
+                            .attr('class', 'model-icon')
+                            .attr('href', companyIcons[company].path)
+                            .attr('x', cx - size / 2)
+                            .attr('y', cy - size / 2)
+                            .attr('width', size)
+                            .attr('height', size)
+                            .attr('opacity', (openFrontierNames.has(d.display_name) || closedFrontierNames.has(d.display_name)) ? 1 : 0.75)
+                            .datum(d)
+                            .style('pointer-events', 'none');
+                    } else {
+                        item.element = g.append('circle')
+                            .attr('class', 'model-dot')
+                            .attr('cx', cx)
+                            .attr('cy', cy)
+                            .attr('r', (openFrontierNames.has(d.display_name) || closedFrontierNames.has(d.display_name)) ? 8 : 6)
+                            .attr('fill', getColor(d))
+                            .attr('stroke', '#fff')
+                            .attr('stroke-width', 1.5)
+                            .attr('opacity', (openFrontierNames.has(d.display_name) || closedFrontierNames.has(d.display_name)) ? 1 : 0.7)
+                            .datum(d)
+                            .style('pointer-events', 'none');
+                    }
                 } else if (isBubble) {
                     // Bubble mode: colored circles sized by tokens
                     item.element = g.append('circle')
@@ -887,7 +919,15 @@ title: WeirdML Interactive Plot
                         if (hoveredIcon) {
                             const prev = hoveredIcon;
                             if (isFrontierMode) {
-                                prev.element.attr('r', prev.isFrontier ? 7 : 5);
+                                if (iconImages[prev.company]) {
+                                    prev.element
+                                        .attr('width', prev.size)
+                                        .attr('height', prev.size)
+                                        .attr('x', prev.cx - prev.size / 2)
+                                        .attr('y', prev.cy - prev.size / 2);
+                                } else {
+                                    prev.element.attr('r', prev.isFrontier ? 8 : 6);
+                                }
                             } else if (isBubble) {
                                 prev.element.attr('r', prev.bubbleR)
                                     .attr('stroke-width', prev.isFrontier ? 2 : 1);
@@ -905,7 +945,16 @@ title: WeirdML Interactive Plot
                         // Hover new
                         if (closest) {
                             if (isFrontierMode) {
-                                closest.element.attr('r', 11);
+                                if (iconImages[closest.company]) {
+                                    const hoverSize = closest.size * 1.3;
+                                    closest.element
+                                        .attr('width', hoverSize)
+                                        .attr('height', hoverSize)
+                                        .attr('x', closest.cx - hoverSize / 2)
+                                        .attr('y', closest.cy - hoverSize / 2);
+                                } else {
+                                    closest.element.attr('r', 12);
+                                }
                             } else if (isBubble) {
                                 closest.element.attr('r', closest.bubbleR * 1.3)
                                     .attr('stroke-width', 2.5);
@@ -935,7 +984,15 @@ title: WeirdML Interactive Plot
                     if (hoveredIcon) {
                         const prev = hoveredIcon;
                         if (isFrontierMode) {
-                            prev.element.attr('r', prev.isFrontier ? 7 : 5);
+                            if (iconImages[prev.company]) {
+                                prev.element
+                                    .attr('width', prev.size)
+                                    .attr('height', prev.size)
+                                    .attr('x', prev.cx - prev.size / 2)
+                                    .attr('y', prev.cy - prev.size / 2);
+                            } else {
+                                prev.element.attr('r', prev.isFrontier ? 8 : 6);
+                            }
                         } else if (isBubble) {
                             prev.element.attr('r', prev.bubbleR)
                                 .attr('stroke-width', prev.isFrontier ? 2 : 1);
@@ -981,15 +1038,15 @@ title: WeirdML Interactive Plot
                 return labelGroups;
             }
 
-            // Add labels for frontier models (on LEFT side of icons)
-            const frontierLabelData = validData.filter(d => frontier.has(d.display_name));
+            // Determine which models to label on the left side
+            const leftLabelData = isFrontierMode
+                ? validData.filter(d => openFrontierNames.has(d.display_name) || closedFrontierNames.has(d.display_name))
+                : validData.filter(d => frontier.has(d.display_name));
             const getLeftLabelX = isBubble
                 ? d => xScale(getXValue(d)) - bubbleSizeScale(+d.mean_total_output_tokens) - 6
-                : isFrontierMode
-                    ? d => xScale(getXValue(d)) - 12
-                    : d => xScale(getXValue(d)) - getIconSize(d, true) / 2 - 6;
+                : d => xScale(getXValue(d)) - getIconSize(d, true) / 2 - 6;
             const frontierGroups = addLabelsWithBackground(
-                frontierLabelData,
+                leftLabelData,
                 'label-group-frontier',
                 'end',
                 getLeftLabelX
@@ -1011,14 +1068,14 @@ title: WeirdML Interactive Plot
             });
 
             // Add labels for highlighted models (on RIGHT side of icons)
-            const highlightLabelData = validData.filter(d =>
-                alwaysHighlight.has(d.display_name) && !frontier.has(d.display_name)
-            );
+            // In frontier mode, all frontier models are already labeled on the left
+            const rightLabelSet = isFrontierMode
+                ? new Set() // no extra right-side labels in frontier mode
+                : new Set([...alwaysHighlight].filter(n => !frontier.has(n)));
+            const highlightLabelData = validData.filter(d => rightLabelSet.has(d.display_name));
             const getRightLabelX = isBubble
                 ? d => xScale(getXValue(d)) + bubbleSizeScale(+d.mean_total_output_tokens) + 6
-                : isFrontierMode
-                    ? d => xScale(getXValue(d)) + 12
-                    : d => xScale(getXValue(d)) + getIconSize(d, frontier.has(d.display_name)) / 2 + 6;
+                : d => xScale(getXValue(d)) + getIconSize(d, frontier.has(d.display_name)) / 2 + 6;
             const highlightGroups = addLabelsWithBackground(
                 highlightLabelData,
                 'label-group-highlight',
@@ -1051,9 +1108,7 @@ title: WeirdML Interactive Plot
                 const bbox = node.getBBox();
                 const offset = currentMode === 'bubble'
                     ? bubbleSizeScale(+d.mean_total_output_tokens) + 6
-                    : currentMode === 'frontier'
-                        ? 12
-                        : getIconSize(d, true) / 2 + 6;
+                    : getIconSize(d, true) / 2 + 6;
                 const baseX = side === 'left'
                     ? xScale(getXValue(d)) - offset
                     : xScale(getXValue(d)) + offset;
