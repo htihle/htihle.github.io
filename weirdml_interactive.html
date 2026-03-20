@@ -704,6 +704,49 @@ title: WeirdML Interactive Plot
                         .attr('stroke-dasharray', snap.dashed ? '6,4' : 'none')
                         .attr('opacity', snap.dashed ? 0.4 : 0.7);
                 }
+
+                // Draw inset legend in upper-left of chart area
+                const legendG = g.append('g').attr('transform', 'translate(10, 10)');
+                const pad = 8, lineW = 22, gap = 6, rowH = 18;
+                const titleH = 20;
+
+                // Background box (sized after measuring)
+                const bgRect = legendG.append('rect')
+                    .attr('fill', 'white')
+                    .attr('stroke', '#ccc')
+                    .attr('rx', 5).attr('ry', 5)
+                    .attr('opacity', 0.92);
+
+                legendG.append('text')
+                    .attr('x', pad).attr('y', pad + 12)
+                    .attr('font-size', '12px').attr('font-weight', '600').attr('fill', '#333')
+                    .text('Frontier Snapshots');
+
+                let maxTextW = 0;
+                allSnapshots.forEach((snap, i) => {
+                    const y = titleH + pad + i * rowH;
+                    if (snap.dashed) {
+                        legendG.append('line')
+                            .attr('x1', pad).attr('x2', pad + lineW)
+                            .attr('y1', y).attr('y2', y)
+                            .attr('stroke', snap.color).attr('stroke-width', 2)
+                            .attr('stroke-dasharray', '4,3');
+                    } else {
+                        legendG.append('line')
+                            .attr('x1', pad).attr('x2', pad + lineW)
+                            .attr('y1', y).attr('y2', y)
+                            .attr('stroke', snap.color).attr('stroke-width', 3);
+                    }
+                    const txt = legendG.append('text')
+                        .attr('x', pad + lineW + gap).attr('y', y + 4)
+                        .attr('font-size', '11px').attr('fill', '#555')
+                        .text(snap.label);
+                    maxTextW = Math.max(maxTextW, txt.node().getComputedTextLength());
+                });
+
+                const boxW = pad * 2 + lineW + gap + maxTextW + 4;
+                const boxH = titleH + pad + allSnapshots.length * rowH + 4;
+                bgRect.attr('width', boxW).attr('height', boxH);
             }
 
             // Draw open vs closed frontier step functions in frontier mode
@@ -1313,21 +1356,6 @@ title: WeirdML Interactive Plot
 
             const companies = ['OpenAI', 'Anthropic', 'Google', 'DeepSeek', 'xAI', 'Meta', 'Mistral', 'Qwen', 'Moonshot', 'ZhipuAI'];
 
-            // Append evolution legend items when active in cost mode
-            let evolutionLegendHtml = '';
-            if (currentMode === 'cost' && showEvolution) {
-                const items = [
-                    ...evolutionSnapshots.map(s => ({ label: s.label, color: s.color })),
-                    { label: `Current`, color: currentSnapshotColor, dashed: true }
-                ];
-                evolutionLegendHtml = items.map(item =>
-                    `<div class="legend-item">
-                        <div style="width: 20px; height: 3px; background: ${item.color}; border-radius: 2px; ${item.dashed ? 'border-top: 2px dashed ' + item.color + '; background: none;' : ''}"></div>
-                        <span>${item.label}</span>
-                    </div>`
-                ).join('');
-            }
-
             legend.innerHTML = companies.map(company => {
                 const iconConfig = companyIcons[company];
                 if (iconImages[company] && iconConfig) {
@@ -1345,7 +1373,7 @@ title: WeirdML Interactive Plot
                         </div>
                     `;
                 }
-            }).join('') + evolutionLegendHtml;
+            }).join('');
         }
 
         // Load data after icons are loaded
