@@ -682,13 +682,20 @@ title: WeirdML Interactive Plot
                     if (front.length === 0) continue;
 
                     // Build step-plot coordinates in pixel space
-                    const stepPts = [{ x: 0, y: 0 }]; // start at left edge, 0 accuracy
+                    // Start at first frontier point, drop down to y=0 then up
+                    const stepPts = [];
                     for (let i = 0; i < front.length; i++) {
                         const px = xScale(front[i].cost);
-                        // Horizontal to this cost at previous level
-                        stepPts.push({ x: px, y: stepPts[stepPts.length - 1].y });
-                        // Vertical jump to new accuracy
-                        stepPts.push({ x: px, y: front[i].acc });
+                        if (i === 0) {
+                            // Drop down from first point to bottom, then up
+                            stepPts.push({ x: px, y: 0 });
+                            stepPts.push({ x: px, y: front[i].acc });
+                        } else {
+                            // Horizontal to this cost at previous level
+                            stepPts.push({ x: px, y: stepPts[stepPts.length - 1].y });
+                            // Vertical jump to new accuracy
+                            stepPts.push({ x: px, y: front[i].acc });
+                        }
                         // Extend horizontally to next frontier point or right edge
                         const nextX = (i + 1 < front.length) ? xScale(front[i + 1].cost) : innerWidth;
                         stepPts.push({ x: nextX, y: front[i].acc });
