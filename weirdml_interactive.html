@@ -320,6 +320,12 @@ title: WeirdML Interactive Plot
                 <button class="control-btn scale-btn" data-scale="linear">Linear</button>
             </div>
         </div>
+        <div class="control-group" id="evolution-control" style="display: none;">
+            <label>Overlay</label>
+            <div class="button-group">
+                <button class="control-btn" id="evolution-btn">Frontier Evolution</button>
+            </div>
+        </div>
     </div>
 
     <div class="chart-container">
@@ -471,6 +477,15 @@ title: WeirdML Interactive Plot
         let data = [];
         let currentMode = 'cost';
         let currentScale = 'log';
+        let showEvolution = false;
+
+        // Frontier evolution snapshot dates and colors
+        const evolutionSnapshots = [
+            { date: new Date('2024-01-01'), label: 'Jan 2024', color: '#27AE60' },
+            { date: new Date('2025-01-01'), label: 'Jan 2025', color: '#1ABC9C' },
+            { date: new Date('2026-01-01'), label: 'Jan 2026', color: '#9ACD32' },
+        ];
+        const currentSnapshotColor = '#4A4A4A';
 
         const margin = { top: 30, right: 40, bottom: 60, left: 65 };
         const svg = d3.select('#chart');
@@ -635,6 +650,61 @@ title: WeirdML Interactive Plot
                 .call(xGridAxis
                     .tickSize(innerHeight)
                     .tickFormat(''));
+
+            // Draw frontier evolution curves in cost mode when toggled on
+            if ((currentMode === 'cost') && showEvolution) {
+                // For each snapshot date, compute Pareto frontier of models released by that date
+                const allSnapshots = [
+                    ...evolutionSnapshots,
+                    { date: new Date(), label: `Current (${new Date().toLocaleDateString('en', {month:'short', year:'numeric'})})`, color: currentSnapshotColor, dashed: true }
+                ];
+
+                for (const snap of allSnapshots) {
+                    const avail = validData.filter(d => {
+                        const rd = new Date(d.release_date);
+                        return rd <= snap.date;
+                    });
+                    if (avail.length === 0) continue;
+
+                    // Sort by cost (x-value)
+                    avail.sort((a, b) => +a.cost_per_run_usd - +b.cost_per_run_usd);
+
+                    // Compute Pareto frontier (increasing cost, tracking best accuracy)
+                    const front = [];
+                    let best = 0;
+                    for (const d of avail) {
+                        const acc = +d.avg_acc;
+                        if (acc > best) {
+                            best = acc;
+                            front.push({ cost: +d.cost_per_run_usd, acc });
+                        }
+                    }
+                    if (front.length === 0) continue;
+
+                    // Build step-plot coordinates in pixel space
+                    const stepPts = [{ x: 0, y: 0 }]; // start at left edge, 0 accuracy
+                    for (let i = 0; i < front.length; i++) {
+                        const px = xScale(front[i].cost);
+                        // Horizontal to this cost at previous level
+                        stepPts.push({ x: px, y: stepPts[stepPts.length - 1].y });
+                        // Vertical jump to new accuracy
+                        stepPts.push({ x: px, y: front[i].acc });
+                        // Extend horizontally to next frontier point or right edge
+                        const nextX = (i + 1 < front.length) ? xScale(front[i + 1].cost) : innerWidth;
+                        stepPts.push({ x: nextX, y: front[i].acc });
+                    }
+
+                    const lineGen = d3.line().x(d => d.x).y(d => yScale(d.y));
+                    g.append('path')
+                        .datum(stepPts)
+                        .attr('d', lineGen)
+                        .attr('fill', 'none')
+                        .attr('stroke', snap.color)
+                        .attr('stroke-width', snap.dashed ? 2 : 3)
+                        .attr('stroke-dasharray', snap.dashed ? '6,4' : 'none')
+                        .attr('opacity', snap.dashed ? 0.4 : 0.7);
+                }
+            }
 
             // Draw open vs closed frontier step functions in frontier mode
             // Also compute which models sit on the open/closed frontiers for labeling
@@ -1243,6 +1313,21 @@ title: WeirdML Interactive Plot
 
             const companies = ['OpenAI', 'Anthropic', 'Google', 'DeepSeek', 'xAI', 'Meta', 'Mistral', 'Qwen', 'Moonshot', 'ZhipuAI'];
 
+            // Append evolution legend items when active in cost mode
+            let evolutionLegendHtml = '';
+            if (currentMode === 'cost' && showEvolution) {
+                const items = [
+                    ...evolutionSnapshots.map(s => ({ label: s.label, color: s.color })),
+                    { label: `Current`, color: currentSnapshotColor, dashed: true }
+                ];
+                evolutionLegendHtml = items.map(item =>
+                    `<div class="legend-item">
+                        <div style="width: 20px; height: 3px; background: ${item.color}; border-radius: 2px; ${item.dashed ? 'border-top: 2px dashed ' + item.color + '; background: none;' : ''}"></div>
+                        <span>${item.label}</span>
+                    </div>`
+                ).join('');
+            }
+
             legend.innerHTML = companies.map(company => {
                 const iconConfig = companyIcons[company];
                 if (iconImages[company] && iconConfig) {
@@ -1260,7 +1345,7 @@ title: WeirdML Interactive Plot
                         </div>
                     `;
                 }
-            }).join('');
+            }).join('') + evolutionLegendHtml;
         }
 
         // Load data after icons are loaded
@@ -1286,6 +1371,10 @@ title: WeirdML Interactive Plot
                     scaleBtns.forEach(b => { b.disabled = false; b.style.opacity = 1; });
                 }
 
+                // Show evolution toggle only in cost mode
+                document.getElementById('evolution-control').style.display =
+                    (currentMode === 'cost') ? '' : 'none';
+
                 updateChart();
                 updateLegend();
             });
@@ -1300,6 +1389,19 @@ title: WeirdML Interactive Plot
                 updateChart();
             });
         });
+
+        // Evolution toggle
+        const evolBtn = document.getElementById('evolution-btn');
+        evolBtn.addEventListener('click', function() {
+            showEvolution = !showEvolution;
+            this.classList.toggle('active', showEvolution);
+            updateChart();
+            updateLegend();
+        });
+
+        // Show evolution control on initial load if in cost mode
+        document.getElementById('evolution-control').style.display =
+            (currentMode === 'cost') ? '' : 'none';
 
         // Responsive resize
         window.addEventListener('resize', debounce(updateChart, 250));
