@@ -116,6 +116,7 @@ title: WeirdML Interactive Plot
             width: 100%;
             height: 70vh;
             min-height: 400px;
+            touch-action: pan-y;  /* let vertical scroll through, but claim horizontal + tap */
         }
 
         .tooltip {
@@ -1231,11 +1232,16 @@ title: WeirdML Interactive Plot
             }
 
             // Add invisible overlay for interaction tracking
+            // Safari iOS requires: cursor:pointer (tappability), pointer-events:all
+            // (hit-testing on transparent fills), and touch-action:none (prevent
+            // Safari from consuming the touch for scroll/zoom).
             const overlay = g.append('rect')
                 .attr('width', innerWidth)
                 .attr('height', innerHeight)
                 .attr('fill', 'transparent')
-                .style('cursor', 'default');
+                .style('pointer-events', 'all')
+                .style('cursor', 'pointer')
+                .style('touch-action', 'none');
 
             // MOUSE: hover to show, leave to dismiss (ignored on pure touch)
             overlay
