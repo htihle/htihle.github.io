@@ -1554,12 +1554,19 @@ title: WeirdML Interactive Plot
             const hoveredIcon = getHovered();
             const closest = findClosest(mx, my);
 
-            // If clicking the same model, dismiss
+            // If clicking the same model that's already shown:
             if (closest && closest === hoveredIcon) {
-                unhoverItem(closest);
-                setHovered(null);
-                setPinned(false);
-                hideTooltip();
+                if (getPinned()) {
+                    // Was pinned by a previous click/tap → dismiss
+                    unhoverItem(closest);
+                    setHovered(null);
+                    setPinned(false);
+                    hideTooltip();
+                } else {
+                    // Was set by mousemove hover (or synthetic mousemove on iOS)
+                    // → pin it so it stays visible
+                    setPinned(true);
+                }
                 return;
             }
 
