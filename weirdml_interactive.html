@@ -695,39 +695,53 @@ title: WeirdML Interactive Plot
                 const openPts = buildStepPoints(openSteps, xScale, startX);
                 const closedPts = buildStepPoints(closedSteps, xScale, startX);
 
-                // Collect all unique x positions for shading
-                const allXSet = new Set();
-                openPts.forEach(p => allXSet.add(p.x));
-                closedPts.forEach(p => allXSet.add(p.x));
-                const sortedX = [...allXSet].sort((a, b) => a - b);
+                // Build step-shaped fill data by collecting all transition
+                // x-values from both frontiers and adding pre/post-jump pairs
+                // (mirrors the matplotlib fill_between logic)
+                const allChangeX = new Set();
+                openPts.forEach(p => allChangeX.add(p.x));
+                closedPts.forEach(p => allChangeX.add(p.x));
+                const sortedXUnique = [...allChangeX].sort((a, b) => a - b);
+
+                // Build arrays with duplicate x at each transition for step shape
+                const fillData = [];
+                for (let i = 0; i < sortedXUnique.length; i++) {
+                    const x = sortedXUnique[i];
+                    const oVal = sampleStep(openPts, x);
+                    const cVal = sampleStep(closedPts, x);
+
+                    if (i === 0) {
+                        fillData.push({ x, openY: oVal, closedY: cVal });
+                    } else {
+                        // Horizontal segment: old values at new x (pre-jump)
+                        const prev = fillData[fillData.length - 1];
+                        fillData.push({ x, openY: prev.openY, closedY: prev.closedY });
+                        // Vertical jump: new values at same x (post-jump)
+                        fillData.push({ x, openY: oVal, closedY: cVal });
+                    }
+                }
 
                 // 1. Blue fill: under the open frontier (from 0 to open level)
                 if (openPts.length > 1) {
-                    const openFillData = sortedX.map(x => ({ x, y: sampleStep(openPts, x) }));
                     const openFillGen = d3.area()
                         .x(d => d.x)
                         .y0(yScale(0))
-                        .y1(d => yScale(d.y));
+                        .y1(d => yScale(d.openY));
                     g.append('path')
-                        .datum(openFillData)
+                        .datum(fillData)
                         .attr('d', openFillGen)
                         .attr('fill', openColor)
                         .attr('opacity', 0.1);
                 }
 
-                // 2. Green fill: between open and closed frontiers (where closed > open)
+                // 2. Green fill: between open and closed frontiers
                 if (openPts.length > 1 && closedPts.length > 1) {
-                    const gapData = sortedX.map(x => ({
-                        x,
-                        openY: sampleStep(openPts, x),
-                        closedY: sampleStep(closedPts, x)
-                    }));
                     const gapGen = d3.area()
                         .x(d => d.x)
                         .y0(d => yScale(d.openY))
                         .y1(d => yScale(d.closedY));
                     g.append('path')
-                        .datum(gapData)
+                        .datum(fillData)
                         .attr('d', gapGen)
                         .attr('fill', closedColor)
                         .attr('opacity', 0.1);
