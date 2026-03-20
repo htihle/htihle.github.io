@@ -216,6 +216,7 @@ title: WeirdML Interactive Plot
             border-radius: 50%;
         }
 
+        /* Tablet / narrow desktop */
         @media (max-width: 1200px), (max-height: 500px) {
             body {
                 padding: 8px;
@@ -288,6 +289,111 @@ title: WeirdML Interactive Plot
             .legend-dot {
                 width: 10px;
                 height: 10px;
+            }
+        }
+
+        /* Mobile phone */
+        @media (max-width: 600px) {
+            body {
+                padding: 4px;
+            }
+
+            .header {
+                margin-bottom: 4px;
+            }
+
+            .header h1 {
+                font-size: 0.95rem;
+            }
+
+            .controls {
+                padding: 6px;
+                gap: 6px;
+                margin-bottom: 4px;
+            }
+
+            .control-group {
+                gap: 3px;
+            }
+
+            .control-group label {
+                font-size: 0.6rem;
+            }
+
+            .button-group {
+                gap: 3px;
+            }
+
+            .control-btn {
+                padding: 4px 7px;
+                font-size: 0.65rem;
+                border-width: 1.5px;
+            }
+
+            .chart-container {
+                padding: 3px;
+                border-radius: 6px;
+            }
+
+            #chart {
+                min-height: 180px;
+            }
+
+            .model-label {
+                font-size: 8px;
+            }
+
+            .legend {
+                gap: 4px;
+                padding: 3px;
+                margin-top: 3px;
+            }
+
+            .legend-item {
+                font-size: 0.6rem;
+                gap: 2px;
+            }
+
+            .legend-icon {
+                width: 12px;
+                height: 12px;
+            }
+
+            .legend-dot {
+                width: 8px;
+                height: 8px;
+            }
+
+            /* Fixed bottom info panel for touch devices */
+            .tooltip.mobile-panel {
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                top: auto;
+                max-width: 100%;
+                border-radius: 12px 12px 0 0;
+                padding: 10px 14px;
+                box-shadow: 0 -4px 16px rgba(0,0,0,0.2);
+                transform: translateY(100%);
+                transition: transform 0.2s ease, opacity 0.15s ease;
+                z-index: 1001;
+            }
+
+            .tooltip.mobile-panel.visible {
+                transform: translateY(0);
+                opacity: 1;
+            }
+
+            .tooltip.mobile-panel .tooltip-title {
+                font-size: 0.9rem;
+                margin-bottom: 4px;
+                padding-bottom: 4px;
+            }
+
+            .tooltip.mobile-panel .tooltip-row {
+                margin: 2px 0;
+                font-size: 0.8rem;
             }
         }
     </style>
@@ -443,7 +549,8 @@ title: WeirdML Interactive Plot
         function getIconSize(d, isFrontier) {
             const company = getCompany(d);
             const baseSize = companyIcons[company]?.size || 20;
-            return isFrontier ? baseSize * 1.2 : baseSize;
+            const scale = isPhone ? 0.65 : 1;
+            return (isFrontier ? baseSize * 1.2 : baseSize) * scale;
         }
 
         // Models to always highlight (labels on RIGHT side)
@@ -487,14 +594,23 @@ title: WeirdML Interactive Plot
         ];
         const currentSnapshotColor = '#4A4A4A';
 
-        const margin = { top: 30, right: 40, bottom: 60, left: 65 };
+        const isPhone = window.innerWidth <= 600;
+        const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+        const margin = isPhone
+            ? { top: 20, right: 20, bottom: 40, left: 45 }
+            : { top: 30, right: 40, bottom: 60, left: 65 };
         const svg = d3.select('#chart');
         const tooltip = d3.select('#tooltip');
+
+        // On mobile phones, use fixed bottom panel instead of floating tooltip
+        if (isPhone) {
+            tooltip.classed('mobile-panel', true);
+        }
 
         // Bubble size scale: tokens → radius
         const bubbleSizeScale = d3.scaleSqrt()
             .domain([0, 35000])
-            .range([3, 22]);
+            .range(isPhone ? [2, 14] : [3, 22]);
 
         function getXValue(d) {
             switch (currentMode) {
@@ -522,9 +638,11 @@ title: WeirdML Interactive Plot
 
             // Match CSS breakpoint: mobile/narrow view uses less height
             const isMobile = window.innerWidth <= 1200 || window.innerHeight <= 500;
-            const height = isMobile
-                ? Math.max(200, window.innerHeight - 170)
-                : Math.max(400, window.innerHeight * 0.7);
+            const height = isPhone
+                ? Math.max(180, window.innerHeight - 130)
+                : isMobile
+                    ? Math.max(200, window.innerHeight - 170)
+                    : Math.max(400, window.innerHeight * 0.7);
 
             svg.attr('width', width).attr('height', height);
             svg.selectAll('*').remove();
@@ -579,53 +697,59 @@ title: WeirdML Interactive Plot
             // For cost/bubble log scale, use plain numbers instead of SI prefixes
             const usePlainNumbers = (currentMode === 'cost' || currentMode === 'bubble') && currentScale === 'log';
             const isDateLike = currentMode === 'date' || currentMode === 'frontier';
+            const tickCount = isPhone ? 4 : 6;
+            const axisFontSize = isPhone ? '9px' : '12px';
             const xAxis = isDateLike
-                ? d3.axisBottom(xScale).ticks(6)
+                ? d3.axisBottom(xScale).ticks(tickCount)
                 : currentScale === 'log'
                     ? usePlainNumbers
-                        ? d3.axisBottom(xScale).ticks(6, '.4~f')
-                        : d3.axisBottom(xScale).ticks(6, '~s')
-                    : d3.axisBottom(xScale).ticks(6);
+                        ? d3.axisBottom(xScale).ticks(tickCount, '.4~f')
+                        : d3.axisBottom(xScale).ticks(tickCount, '~s')
+                    : d3.axisBottom(xScale).ticks(tickCount);
 
             g.append('g')
                 .attr('transform', `translate(0,${innerHeight})`)
                 .call(xAxis)
                 .selectAll('text')
-                .style('font-size', '12px');
+                .style('font-size', axisFontSize);
 
-            // Add x-axis at top as well
-            const xAxisTop = isDateLike
-                ? d3.axisTop(xScale).ticks(6)
-                : currentScale === 'log'
-                    ? usePlainNumbers
-                        ? d3.axisTop(xScale).ticks(6, '.4~f')
-                        : d3.axisTop(xScale).ticks(6, '~s')
-                    : d3.axisTop(xScale).ticks(6);
+            // Add x-axis at top as well (skip on phone to save space)
+            if (!isPhone) {
+                const xAxisTop = isDateLike
+                    ? d3.axisTop(xScale).ticks(tickCount)
+                    : currentScale === 'log'
+                        ? usePlainNumbers
+                            ? d3.axisTop(xScale).ticks(tickCount, '.4~f')
+                            : d3.axisTop(xScale).ticks(tickCount, '~s')
+                        : d3.axisTop(xScale).ticks(tickCount);
+
+                g.append('g')
+                    .call(xAxisTop)
+                    .selectAll('text')
+                    .style('font-size', axisFontSize);
+            }
 
             g.append('g')
-                .call(xAxisTop)
+                .call(d3.axisLeft(yScale).tickFormat(d3.format('.0%')).ticks(isPhone ? 5 : null))
                 .selectAll('text')
-                .style('font-size', '12px');
-
-            g.append('g')
-                .call(d3.axisLeft(yScale).tickFormat(d3.format('.0%')))
-                .selectAll('text')
-                .style('font-size', '12px');
+                .style('font-size', axisFontSize);
 
             // Add axis labels
             g.append('text')
                 .attr('class', 'axis-label')
                 .attr('x', innerWidth / 2)
-                .attr('y', innerHeight + 45)
+                .attr('y', innerHeight + (isPhone ? 30 : 45))
                 .attr('text-anchor', 'middle')
+                .style('font-size', isPhone ? '10px' : '13px')
                 .text(getXLabel());
 
             g.append('text')
                 .attr('class', 'axis-label')
                 .attr('transform', 'rotate(-90)')
                 .attr('x', -innerHeight / 2)
-                .attr('y', -50)
+                .attr('y', isPhone ? -33 : -50)
                 .attr('text-anchor', 'middle')
+                .style('font-size', isPhone ? '10px' : '13px')
                 .text('Average Accuracy Across 17 Tasks');
 
             // Add horizontal grid lines
@@ -1011,138 +1135,165 @@ title: WeirdML Interactive Plot
                         .datum(d)
                         .style('pointer-events', 'none');
                 } else {
+                    const dotR = isPhone
+                        ? (isFrontier ? 5 : 4)
+                        : (isFrontier ? 8 : 6);
                     item.element = g.append('circle')
                         .attr('class', 'model-dot')
                         .attr('cx', cx)
                         .attr('cy', cy)
-                        .attr('r', isFrontier ? 8 : 6)
+                        .attr('r', dotR)
                         .attr('fill', getColor(d))
                         .attr('stroke', '#fff')
-                        .attr('stroke-width', 1.5)
+                        .attr('stroke-width', isPhone ? 1 : 1.5)
                         .attr('opacity', isFrontier ? 1 : 0.7)
                         .datum(d)
                         .style('pointer-events', 'none');
                 }
             });
 
-            // Add invisible overlay for mouse tracking
-            g.append('rect')
+            // Helper: get default dot radius
+            function defaultDotR(isFront) {
+                return isPhone ? (isFront ? 5 : 4) : (isFront ? 8 : 6);
+            }
+
+            // Helper: unhover (reset size) of a previously hovered icon
+            function unhoverItem(prev) {
+                if (isFrontierMode) {
+                    if (iconImages[prev.company]) {
+                        prev.element
+                            .attr('width', prev.size)
+                            .attr('height', prev.size)
+                            .attr('x', prev.cx - prev.size / 2)
+                            .attr('y', prev.cy - prev.size / 2);
+                    } else {
+                        prev.element.attr('r', defaultDotR(prev.isFrontier));
+                    }
+                } else if (isBubble) {
+                    prev.element.attr('r', prev.bubbleR)
+                        .attr('stroke-width', prev.isFrontier ? 2 : 1);
+                } else if (iconImages[prev.company]) {
+                    prev.element
+                        .attr('width', prev.size)
+                        .attr('height', prev.size)
+                        .attr('x', prev.cx - prev.size / 2)
+                        .attr('y', prev.cy - prev.size / 2);
+                } else {
+                    prev.element.attr('r', defaultDotR(prev.isFrontier));
+                }
+            }
+
+            // Helper: enlarge a hovered icon
+            function hoverItem(item) {
+                const hoverDotR = isPhone ? 8 : 12;
+                if (isFrontierMode) {
+                    if (iconImages[item.company]) {
+                        const hoverSize = item.size * 1.3;
+                        item.element
+                            .attr('width', hoverSize)
+                            .attr('height', hoverSize)
+                            .attr('x', item.cx - hoverSize / 2)
+                            .attr('y', item.cy - hoverSize / 2);
+                    } else {
+                        item.element.attr('r', hoverDotR);
+                    }
+                } else if (isBubble) {
+                    item.element.attr('r', item.bubbleR * 1.3)
+                        .attr('stroke-width', 2.5);
+                } else {
+                    const hoverSize = item.size * 1.3;
+                    if (iconImages[item.company]) {
+                        item.element
+                            .attr('width', hoverSize)
+                            .attr('height', hoverSize)
+                            .attr('x', item.cx - hoverSize / 2)
+                            .attr('y', item.cy - hoverSize / 2);
+                    } else {
+                        item.element.attr('r', hoverDotR);
+                    }
+                }
+            }
+
+            // Find closest data point to given chart coordinates
+            function findClosest(mx, my) {
+                let closest = null;
+                let minDist = Infinity;
+                const maxDist = isTouchDevice ? 70 : 50;
+
+                iconData.forEach(item => {
+                    const dist = Math.sqrt((mx - item.cx) ** 2 + (my - item.cy) ** 2);
+                    if (dist < minDist && dist < maxDist) {
+                        minDist = dist;
+                        closest = item;
+                    }
+                });
+                return closest;
+            }
+
+            // Add invisible overlay for interaction tracking
+            const overlay = g.append('rect')
                 .attr('width', innerWidth)
                 .attr('height', innerHeight)
                 .attr('fill', 'transparent')
-                .style('cursor', 'default')
-                .on('mousemove touchmove', function(event) {
+                .style('cursor', 'default');
+
+            if (isTouchDevice) {
+                // TOUCH: tap to select, tap elsewhere to dismiss
+                overlay.on('touchstart', function(event) {
+                    event.preventDefault();
                     const [mx, my] = d3.pointer(event, this);
+                    const closest = findClosest(mx, my);
 
-                    // Find closest icon by center distance
-                    let closest = null;
-                    let minDist = Infinity;
-                    const maxDist = 50; // Max distance to trigger hover
-
-                    iconData.forEach(item => {
-                        const dist = Math.sqrt((mx - item.cx) ** 2 + (my - item.cy) ** 2);
-                        if (dist < minDist && dist < maxDist) {
-                            minDist = dist;
-                            closest = item;
-                        }
-                    });
-
-                    // Update hover state
-                    if (closest !== hoveredIcon) {
-                        // Unhover previous
-                        if (hoveredIcon) {
-                            const prev = hoveredIcon;
-                            if (isFrontierMode) {
-                                if (iconImages[prev.company]) {
-                                    prev.element
-                                        .attr('width', prev.size)
-                                        .attr('height', prev.size)
-                                        .attr('x', prev.cx - prev.size / 2)
-                                        .attr('y', prev.cy - prev.size / 2);
-                                } else {
-                                    prev.element.attr('r', prev.isFrontier ? 8 : 6);
-                                }
-                            } else if (isBubble) {
-                                prev.element.attr('r', prev.bubbleR)
-                                    .attr('stroke-width', prev.isFrontier ? 2 : 1);
-                            } else if (iconImages[prev.company]) {
-                                prev.element
-                                    .attr('width', prev.size)
-                                    .attr('height', prev.size)
-                                    .attr('x', prev.cx - prev.size / 2)
-                                    .attr('y', prev.cy - prev.size / 2);
-                            } else {
-                                prev.element.attr('r', prev.isFrontier ? 8 : 6);
-                            }
-                        }
-
-                        // Hover new
-                        if (closest) {
-                            if (isFrontierMode) {
-                                if (iconImages[closest.company]) {
-                                    const hoverSize = closest.size * 1.3;
-                                    closest.element
-                                        .attr('width', hoverSize)
-                                        .attr('height', hoverSize)
-                                        .attr('x', closest.cx - hoverSize / 2)
-                                        .attr('y', closest.cy - hoverSize / 2);
-                                } else {
-                                    closest.element.attr('r', 12);
-                                }
-                            } else if (isBubble) {
-                                closest.element.attr('r', closest.bubbleR * 1.3)
-                                    .attr('stroke-width', 2.5);
-                            } else {
-                                const hoverSize = closest.size * 1.3;
-                                if (iconImages[closest.company]) {
-                                    closest.element
-                                        .attr('width', hoverSize)
-                                        .attr('height', hoverSize)
-                                        .attr('x', closest.cx - hoverSize / 2)
-                                        .attr('y', closest.cy - hoverSize / 2);
-                                } else {
-                                    closest.element.attr('r', 12);
-                                }
-                            }
-                            showTooltip(event, closest.d);
-                        } else {
-                            hideTooltip();
-                        }
-
-                        hoveredIcon = closest;
-                    } else if (closest) {
-                        moveTooltip(event);
+                    // If tapping the same model, dismiss
+                    if (closest && closest === hoveredIcon) {
+                        unhoverItem(closest);
+                        hoveredIcon = null;
+                        hideTooltip();
+                        return;
                     }
-                })
-                .on('mouseleave touchend', function() {
+
+                    // Unhover previous
                     if (hoveredIcon) {
-                        const prev = hoveredIcon;
-                        if (isFrontierMode) {
-                            if (iconImages[prev.company]) {
-                                prev.element
-                                    .attr('width', prev.size)
-                                    .attr('height', prev.size)
-                                    .attr('x', prev.cx - prev.size / 2)
-                                    .attr('y', prev.cy - prev.size / 2);
-                            } else {
-                                prev.element.attr('r', prev.isFrontier ? 8 : 6);
-                            }
-                        } else if (isBubble) {
-                            prev.element.attr('r', prev.bubbleR)
-                                .attr('stroke-width', prev.isFrontier ? 2 : 1);
-                        } else if (iconImages[prev.company]) {
-                            prev.element
-                                .attr('width', prev.size)
-                                .attr('height', prev.size)
-                                .attr('x', prev.cx - prev.size / 2)
-                                .attr('y', prev.cy - prev.size / 2);
-                        } else {
-                            prev.element.attr('r', prev.isFrontier ? 8 : 6);
-                        }
+                        unhoverItem(hoveredIcon);
+                    }
+
+                    if (closest) {
+                        hoverItem(closest);
+                        showTooltip(event, closest.d);
+                        hoveredIcon = closest;
+                    } else {
                         hoveredIcon = null;
                         hideTooltip();
                     }
                 });
+            } else {
+                // MOUSE: hover to show, leave to dismiss
+                overlay
+                    .on('mousemove', function(event) {
+                        const [mx, my] = d3.pointer(event, this);
+                        const closest = findClosest(mx, my);
+
+                        if (closest !== hoveredIcon) {
+                            if (hoveredIcon) unhoverItem(hoveredIcon);
+                            if (closest) {
+                                hoverItem(closest);
+                                showTooltip(event, closest.d);
+                            } else {
+                                hideTooltip();
+                            }
+                            hoveredIcon = closest;
+                        } else if (closest) {
+                            moveTooltip(event);
+                        }
+                    })
+                    .on('mouseleave', function() {
+                        if (hoveredIcon) {
+                            unhoverItem(hoveredIcon);
+                            hoveredIcon = null;
+                            hideTooltip();
+                        }
+                    });
+            }
 
             // Helper to add labels with background
             function addLabelsWithBackground(data, className, anchor, getX) {
@@ -1176,9 +1327,10 @@ title: WeirdML Interactive Plot
             const leftLabelData = isFrontierMode
                 ? validData.filter(d => openFrontierNames.has(d.display_name) || closedFrontierNames.has(d.display_name))
                 : validData.filter(d => frontier.has(d.display_name));
+            const labelGap = isPhone ? 3 : 6;
             const getLeftLabelX = isBubble
-                ? d => xScale(getXValue(d)) - bubbleSizeScale(+d.mean_total_output_tokens) - 6
-                : d => xScale(getXValue(d)) - getIconSize(d, true) / 2 - 6;
+                ? d => xScale(getXValue(d)) - bubbleSizeScale(+d.mean_total_output_tokens) - labelGap
+                : d => xScale(getXValue(d)) - getIconSize(d, true) / 2 - labelGap;
             const frontierGroups = addLabelsWithBackground(
                 leftLabelData,
                 'label-group-frontier',
@@ -1208,8 +1360,8 @@ title: WeirdML Interactive Plot
                 : new Set([...alwaysHighlight].filter(n => !frontier.has(n)));
             const highlightLabelData = validData.filter(d => rightLabelSet.has(d.display_name));
             const getRightLabelX = isBubble
-                ? d => xScale(getXValue(d)) + bubbleSizeScale(+d.mean_total_output_tokens) + 6
-                : d => xScale(getXValue(d)) + getIconSize(d, frontier.has(d.display_name)) / 2 + 6;
+                ? d => xScale(getXValue(d)) + bubbleSizeScale(+d.mean_total_output_tokens) + labelGap
+                : d => xScale(getXValue(d)) + getIconSize(d, frontier.has(d.display_name)) / 2 + labelGap;
             const highlightGroups = addLabelsWithBackground(
                 highlightLabelData,
                 'label-group-highlight',
@@ -1240,9 +1392,10 @@ title: WeirdML Interactive Plot
             labelNodes.forEach((node, i) => {
                 const d = d3.select(node).datum();
                 const bbox = node.getBBox();
+                const gap = isPhone ? 3 : 6;
                 const offset = currentMode === 'bubble'
-                    ? bubbleSizeScale(+d.mean_total_output_tokens) + 6
-                    : getIconSize(d, true) / 2 + 6;
+                    ? bubbleSizeScale(+d.mean_total_output_tokens) + gap
+                    : getIconSize(d, true) / 2 + gap;
                 const baseX = side === 'left'
                     ? xScale(getXValue(d)) - offset
                     : xScale(getXValue(d)) + offset;
@@ -1263,8 +1416,8 @@ title: WeirdML Interactive Plot
                 const prev = positions[i - 1];
                 const curr = positions[i];
 
-                if (Math.abs(curr.x - prev.x) < 120) {
-                    const minGap = 16;
+                if (Math.abs(curr.x - prev.x) < (isPhone ? 80 : 120)) {
+                    const minGap = isPhone ? 10 : 16;
                     if (curr.y - prev.y < minGap) {
                         curr.y = prev.y + minGap;
                     }
@@ -1308,14 +1461,16 @@ title: WeirdML Interactive Plot
         }
 
         function moveTooltip(event) {
+            // On mobile, tooltip is a fixed bottom panel — no positioning needed
+            if (isPhone) return;
+
             const tooltipNode = tooltip.node();
             const tooltipRect = tooltipNode.getBoundingClientRect();
             const viewportWidth = window.innerWidth;
             const viewportHeight = window.innerHeight;
 
-            // Handle both mouse and touch events
-            const clientX = event.touches ? event.touches[0].pageX : event.pageX;
-            const clientY = event.touches ? event.touches[0].pageY : event.pageY;
+            const clientX = event.pageX;
+            const clientY = event.pageY;
 
             let x = clientX + 15;
             let y = clientY - 10;
