@@ -1237,63 +1237,65 @@ title: WeirdML Interactive Plot
                 .attr('fill', 'transparent')
                 .style('cursor', 'default');
 
-            if (isTouchDevice) {
-                // TOUCH: tap to select, tap elsewhere to dismiss
-                overlay.on('touchstart', function(event) {
-                    event.preventDefault();
+            // MOUSE: hover to show, leave to dismiss (ignored on pure touch)
+            overlay
+                .on('mousemove', function(event) {
                     const [mx, my] = d3.pointer(event, this);
                     const closest = findClosest(mx, my);
 
-                    // If tapping the same model, dismiss
-                    if (closest && closest === hoveredIcon) {
-                        unhoverItem(closest);
-                        hoveredIcon = null;
-                        hideTooltip();
-                        return;
+                    if (closest !== hoveredIcon) {
+                        if (hoveredIcon) unhoverItem(hoveredIcon);
+                        if (closest) {
+                            hoverItem(closest);
+                            showTooltip(event, closest.d);
+                        } else {
+                            hideTooltip();
+                        }
+                        hoveredIcon = closest;
+                    } else if (closest) {
+                        moveTooltip(event);
                     }
-
-                    // Unhover previous
+                })
+                .on('mouseleave', function() {
                     if (hoveredIcon) {
                         unhoverItem(hoveredIcon);
-                    }
-
-                    if (closest) {
-                        hoverItem(closest);
-                        showTooltip(event, closest.d);
-                        hoveredIcon = closest;
-                    } else {
                         hoveredIcon = null;
                         hideTooltip();
                     }
                 });
-            } else {
-                // MOUSE: hover to show, leave to dismiss
-                overlay
-                    .on('mousemove', function(event) {
-                        const [mx, my] = d3.pointer(event, this);
-                        const closest = findClosest(mx, my);
 
-                        if (closest !== hoveredIcon) {
-                            if (hoveredIcon) unhoverItem(hoveredIcon);
-                            if (closest) {
-                                hoverItem(closest);
-                                showTooltip(event, closest.d);
-                            } else {
-                                hideTooltip();
-                            }
-                            hoveredIcon = closest;
-                        } else if (closest) {
-                            moveTooltip(event);
-                        }
-                    })
-                    .on('mouseleave', function() {
-                        if (hoveredIcon) {
-                            unhoverItem(hoveredIcon);
-                            hoveredIcon = null;
-                            hideTooltip();
-                        }
-                    });
-            }
+            // TOUCH: tap to select, tap again or tap empty to dismiss.
+            // Must use addEventListener with {passive: false} because D3's
+            // .on() registers passive touch listeners that block preventDefault.
+            const overlayNode = overlay.node();
+            overlayNode.addEventListener('touchstart', function(event) {
+                event.preventDefault();
+                event.stopPropagation();
+                const [mx, my] = d3.pointer(event, this);
+                const closest = findClosest(mx, my);
+
+                // If tapping the same model, dismiss
+                if (closest && closest === hoveredIcon) {
+                    unhoverItem(closest);
+                    hoveredIcon = null;
+                    hideTooltip();
+                    return;
+                }
+
+                // Unhover previous
+                if (hoveredIcon) {
+                    unhoverItem(hoveredIcon);
+                }
+
+                if (closest) {
+                    hoverItem(closest);
+                    showTooltip(event, closest.d);
+                    hoveredIcon = closest;
+                } else {
+                    hoveredIcon = null;
+                    hideTooltip();
+                }
+            }, { passive: false });
 
             // Helper to add labels with background
             function addLabelsWithBackground(data, className, anchor, getX) {
