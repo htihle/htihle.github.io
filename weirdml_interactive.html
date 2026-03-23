@@ -466,6 +466,7 @@ title: WeirdML Interactive Plot
             'Gemma': '#2ecc71',
             'Inception': '#1a1a2e',
             'Nvidia': '#76b900',
+            'MiniMax': '#ff4d6a',
             'Other': '#888888'
         };
 
@@ -485,7 +486,8 @@ title: WeirdML Interactive Plot
             'Gemma': { path: 'assets/icons/gemma-logo.png', size: 35 },        // 1024 × 0.04 × 0.85
             'ZhipuAI': { path: 'assets/icons/z-ai_logo.png', size: 25 },        // 225 × 0.13 × 0.85
             'Inception': { path: 'assets/icons/inception_icon.png', size: 22 },  // 28 × 0.85
-            'Nvidia': { path: 'assets/icons/nvidia_logo.png', size: 22 }       // 640 × 0.04 × 0.85
+            'Nvidia': { path: 'assets/icons/nvidia_logo.png', size: 22 },      // 640 × 0.04 × 0.85
+            'MiniMax': { path: 'assets/icons/minimax_logo.png', size: 21 }     // 225 × 0.11 × 0.85
         };
 
         // Preload icons
@@ -525,6 +527,7 @@ title: WeirdML Interactive Plot
             if (name.startsWith('kimi')) return true;
             if (name.startsWith('nemotron')) return true;
             if (name.startsWith('mercury')) return false;
+            if (name.startsWith('minimax')) return false;
             return false;
         }
 
@@ -545,6 +548,7 @@ title: WeirdML Interactive Plot
             if (name.includes('glm')) return 'ZhipuAI';
             if (name.includes('mercury')) return 'Inception';
             if (name.includes('nemotron')) return 'Nvidia';
+            if (name.includes('minimax')) return 'MiniMax';
 
             return 'Other';
         }
