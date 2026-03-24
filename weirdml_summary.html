@@ -68,7 +68,6 @@ title: WeirdML Model Summary
             background: white;
             border-radius: 8px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            overflow: hidden;
             table-layout: fixed;
         }
         .summary-table thead {
@@ -101,7 +100,10 @@ title: WeirdML Model Summary
             border-bottom: 1px solid #eee;
             vertical-align: middle;
             height: 48px;
-            overflow: hidden;
+        }
+        .summary-table td.chart-cell {
+            overflow: visible;
+            position: relative;
         }
         .summary-table tr:last-child td { border-bottom: none; }
 
@@ -112,12 +114,6 @@ title: WeirdML Model Summary
         .col-cost { width: 150px; }
         .col-codelen { width: 200px; }
         .col-tokens { width: 160px; }
-
-        /* First and last data rows have extra height for tick labels */
-        .summary-table tr.tick-top td { height: 62px; }
-        .summary-table tr.tick-top td.chart-cell svg { height: 62px; }
-        .summary-table tr.tick-bottom td { height: 62px; }
-        .summary-table tr.tick-bottom td.chart-cell svg { height: 62px; }
 
         /* Rank cell */
         .rank-cell {
@@ -138,7 +134,7 @@ title: WeirdML Model Summary
         .model-cell .bg {
             position: absolute;
             inset: 0;
-            opacity: 0.45;
+            opacity: 0.5;
             z-index: 0;
         }
         .model-icon {
@@ -217,9 +213,9 @@ title: WeirdML Model Summary
 <script>
 // ── Config ──
 const companyColors = {
-    'OpenAI': [116,170,156], 'Anthropic': [217,119,87], 'Google': [66,133,244],
-    'DeepSeek': [83,109,254], 'xAI': [77,77,77], 'Meta': [6,104,225],
-    'Mistral': [255,112,0], 'Qwen': [255,127,0], 'Moonshot': [0,132,255],
+    'OpenAI': [16,163,127], 'Anthropic': [216,95,58], 'Google': [46,204,113],
+    'DeepSeek': [79,107,247], 'xAI': [77,77,77], 'Meta': [0,122,247],
+    'Mistral': [238,59,59], 'Qwen': [255,127,0], 'Moonshot': [0,132,255],
     'ZhipuAI': [16,185,129], 'Inception': [26,26,46], 'Nvidia': [118,185,0],
     'MiniMax': [255,77,106], 'Other': [136,136,136]
 };
@@ -335,9 +331,16 @@ let tokensLim = [0, 35000];
 // ── Build task legend ──
 function buildLegend() {
     const el = document.getElementById('task-legend');
-    // Two rows: filled markers on top, hollow below (matching matplotlib layout)
-    const filledTasks = taskNames.filter((t, i) => taskMarkerMap[t].filled);
-    const hollowTasks = taskNames.filter((t, i) => !taskMarkerMap[t].filled);
+    // Grid: each column is a shape pair (filled on top, hollow below)
+    // Group tasks into pairs: [0,1], [2,3], ... and last one (number_patterns) is solo
+    const pairs = [];
+    for (let i = 0; i < taskNames.length; i += 2) {
+        if (i + 1 < taskNames.length) {
+            pairs.push([taskNames[i], taskNames[i+1]]);
+        } else {
+            pairs.push([taskNames[i]]);
+        }
+    }
 
     function renderItem(t) {
         const m = taskMarkerMap[t];
@@ -353,13 +356,21 @@ function buildLegend() {
             </svg>${label}</span>`;
     }
 
-    el.innerHTML =
-        '<div style="display:flex;flex-wrap:wrap;justify-content:center;gap:4px 14px">' +
-        filledTasks.map(renderItem).join('') +
-        '</div>' +
-        '<div style="display:flex;flex-wrap:wrap;justify-content:center;gap:4px 14px">' +
-        hollowTasks.map(renderItem).join('') +
-        '</div>';
+    let html = '<div style="display:grid;grid-template-columns:repeat(' + pairs.length + ',auto);gap:1px 14px;justify-content:center">';
+    // Top row: filled markers
+    for (const pair of pairs) {
+        html += renderItem(pair[0]);
+    }
+    // Bottom row: hollow markers (or empty cell for solo)
+    for (const pair of pairs) {
+        if (pair.length > 1) {
+            html += renderItem(pair[1]);
+        } else {
+            html += '<span></span>';
+        }
+    }
+    html += '</div>';
+    el.innerHTML = html;
 }
 
 // ── Draw accuracy mini-chart ──
@@ -379,7 +390,7 @@ function drawAccuracy(svg, d, taskData, w, h) {
 
     // Background tint
     svg.append('rect').attr('x', 0).attr('y', 0).attr('width', w).attr('height', h)
-       .attr('fill', col).attr('opacity', 0.15);
+       .attr('fill', col).attr('opacity', 0.25);
 
     // Grid lines
     for (let v = 0.1; v <= 0.9; v += 0.1) {
@@ -443,7 +454,7 @@ function drawCost(svg, d, w, h) {
 
     // Background tint
     svg.append('rect').attr('x', 0).attr('y', 0).attr('width', w).attr('height', h)
-       .attr('fill', col).attr('opacity', 0.15);
+       .attr('fill', col).attr('opacity', 0.25);
 
     if (cost > 0) {
         svg.append('rect')
@@ -470,7 +481,7 @@ function drawCodeLen(svg, d, w, h) {
     const cy = h / 2;
 
     svg.append('rect').attr('x', 0).attr('y', 0).attr('width', w).attr('height', h)
-       .attr('fill', col).attr('opacity', 0.15);
+       .attr('fill', col).attr('opacity', 0.25);
 
     // p10-p90 bar
     svg.append('rect')
@@ -510,7 +521,7 @@ function drawTokens(svg, d, w, h) {
     const cy = h / 2;
 
     svg.append('rect').attr('x', 0).attr('y', 0).attr('width', w).attr('height', h)
-       .attr('fill', col).attr('opacity', 0.15);
+       .attr('fill', col).attr('opacity', 0.25);
 
     if (tokens > 0) {
         svg.append('rect')
@@ -525,21 +536,23 @@ function drawTokens(svg, d, w, h) {
     }
 }
 
-// ── Draw tick marks inside a data row SVG ──
-// position: 'top' draws ticks at the top of the SVG, 'bottom' at the bottom
+// ── Draw tick marks that overflow the SVG ──
+// position: 'top' draws ticks above the SVG (negative y), 'bottom' draws below
 function drawTicksInCell(svg, domain, ticks, w, h, format, position) {
     const pad = { l: 2, r: 2 };
     const iw = w - pad.l - pad.r;
     const x = d3.scaleLinear().domain(domain).range([pad.l, pad.l + iw]);
 
     const tickLen = 4;
-    let baseY, labelY;
+    let baseY, tickDir, labelY;
     if (position === 'top') {
-        baseY = 0.5;
-        labelY = 11;
+        baseY = 0;
+        tickDir = -1;
+        labelY = -5;
     } else {
-        baseY = h - 0.5;
-        labelY = h - 3;
+        baseY = h;
+        tickDir = 1;
+        labelY = h + 11;
     }
 
     // Baseline
@@ -549,9 +562,8 @@ function drawTicksInCell(svg, domain, ticks, w, h, format, position) {
 
     ticks.forEach(v => {
         const tx = x(v);
-        const y2 = position === 'top' ? baseY + tickLen : baseY - tickLen;
         svg.append('line').attr('x1', tx).attr('x2', tx)
-           .attr('y1', baseY).attr('y2', y2)
+           .attr('y1', baseY).attr('y2', baseY + tickDir * tickLen)
            .attr('stroke', '#999').attr('stroke-width', 0.5);
         svg.append('text').attr('x', tx).attr('y', labelY)
            .attr('text-anchor', 'middle').attr('font-size', '9px')
@@ -572,9 +584,6 @@ d3.csv('data/weirdml_data.csv?' + Date.now()).then(data => {
 
     const tbody = document.getElementById('table-body');
     const rowH = 48;
-    const tickPad = 14; // extra space for tick labels
-    const firstRowH = rowH + tickPad; // extra at top for ticks
-    const lastRowH = rowH + tickPad;  // extra at bottom for ticks
 
     // Tick configurations for each column
     const tickConfigs = [
@@ -599,11 +608,8 @@ d3.csv('data/weirdml_data.csv?' + Date.now()).then(data => {
 
         const isFirst = i === 0;
         const isLast = i === n - 1;
-        const h = isFirst ? firstRowH : isLast ? lastRowH : rowH;
 
         const tr = document.createElement('tr');
-        if (isFirst) tr.className = 'tick-top';
-        if (isLast) tr.className = 'tick-bottom';
 
         // Rank
         const tdRank = document.createElement('td');
@@ -613,7 +619,7 @@ d3.csv('data/weirdml_data.csv?' + Date.now()).then(data => {
 
         // Model name
         const tdModel = document.createElement('td');
-        tdModel.innerHTML = `<div class="model-cell" style="height:${h}px">
+        tdModel.innerHTML = `<div class="model-cell">
             <div class="bg" style="background:rgb(${rgb.join(',')})"></div>
             ${iconSrc ? `<img class="model-icon" src="${iconSrc}" alt="">` : ''}
             <span class="model-name">${d.display_name}</span>
@@ -647,31 +653,27 @@ d3.csv('data/weirdml_data.csv?' + Date.now()).then(data => {
         requestAnimationFrame(() => {
             const chartCells = [tdAcc, tdCost, tdCode, tdTok];
             const drawFns = [
-                (svg, w, ch) => {
+                (svg, w, h) => {
                     const taskData = taskNames.map(t => ({ task: t, val: +d[t + '_acc'] })).filter(x => x.val > 0);
-                    drawAccuracy(svg, d, taskData, w, ch);
+                    drawAccuracy(svg, d, taskData, w, h);
                 },
-                (svg, w, ch) => drawCost(svg, d, w, ch),
-                (svg, w, ch) => drawCodeLen(svg, d, w, ch),
-                (svg, w, ch) => drawTokens(svg, d, w, ch),
+                (svg, w, h) => drawCost(svg, d, w, h),
+                (svg, w, h) => drawCodeLen(svg, d, w, h),
+                (svg, w, h) => drawTokens(svg, d, w, h),
             ];
 
             chartCells.forEach((td, ci) => {
                 const w = td.clientWidth;
-                const svg = d3.select(td).append('svg').attr('width', w).attr('height', h);
+                const svg = d3.select(td).append('svg').attr('width', w).attr('height', rowH);
+                drawFns[ci](svg, w, rowH);
 
-                // Offset chart content: for first row push down, for last row keep at top
-                const chartOffset = isFirst ? tickPad : 0;
-                const chartG = svg.append('g').attr('transform', `translate(0,${chartOffset})`);
-                drawFns[ci](chartG, w, rowH);
-
-                // Draw ticks
+                // Draw ticks that overflow into header/footer gaps
                 const cfg = tickConfigs[ci];
                 if (isFirst) {
-                    drawTicksInCell(svg, cfg.domain, cfg.ticks, w, h, cfg.fmt, 'top');
+                    drawTicksInCell(svg, cfg.domain, cfg.ticks, w, rowH, cfg.fmt, 'top');
                 }
                 if (isLast) {
-                    drawTicksInCell(svg, cfg.domain, cfg.ticks, w, h, cfg.fmt, 'bottom');
+                    drawTicksInCell(svg, cfg.domain, cfg.ticks, w, rowH, cfg.fmt, 'bottom');
                 }
             });
         });
