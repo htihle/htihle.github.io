@@ -163,6 +163,12 @@ title: WeirdML Model Summary
             z-index: 1;
             margin-right: 5px;
         }
+        .model-icon-openai {
+            width: 24px;
+            height: 24px;
+            max-width: 24px;
+            max-height: 24px;
+        }
         .model-name {
             font-size: 0.9rem;
             font-weight: 600;
@@ -661,7 +667,7 @@ d3.csv('data/weirdml_data.csv?' + Date.now()).then(data => {
         const tdModel = document.createElement('td');
         tdModel.innerHTML = `<div class="model-cell">
             <div class="bg" style="background:rgb(${rgb.join(',')})"></div>
-            ${iconSrc ? `<img class="model-icon" src="${iconSrc}" alt="">` : ''}
+            ${iconSrc ? `<img class="model-icon${company === 'OpenAI' ? ' model-icon-openai' : ''}" src="${iconSrc}" alt="">` : ''}
             <span class="model-name">${d.display_name}</span>
             <img class="lock-icon" src="${lockSrc}" alt="${open ? 'Open' : 'Closed'}" title="${open ? 'Open-source' : 'Closed-source'}">
         </div>`;
