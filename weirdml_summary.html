@@ -73,6 +73,13 @@ title: WeirdML Model Summary
         .summary-table thead {
             position: relative;
         }
+        .summary-table thead::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: #f1f3f5;
+            z-index: 0;
+        }
         .summary-table thead::after {
             content: '';
             position: absolute;
@@ -81,6 +88,18 @@ title: WeirdML Model Summary
             bottom: 0;
             height: 2px;
             background: #dee2e6;
+            z-index: 1;
+        }
+
+        /* Tick rows */
+        .tick-row td {
+            height: 18px !important;
+            padding: 0;
+            border-bottom: none !important;
+            background: #f9fafb;
+        }
+        .tick-row-bottom td {
+            border-top: 1px solid #dee2e6;
         }
         .summary-table th {
             position: sticky;
@@ -146,6 +165,12 @@ title: WeirdML Model Summary
             flex-shrink: 0;
             z-index: 1;
             margin-right: 5px;
+        }
+        .model-icon-openai {
+            width: 24px;
+            height: 24px;
+            max-width: 24px;
+            max-height: 24px;
         }
         .model-name {
             font-size: 0.9rem;
@@ -392,13 +417,6 @@ function drawAccuracy(svg, d, taskData, w, h) {
     svg.append('rect').attr('x', 0).attr('y', 0).attr('width', w).attr('height', h)
        .attr('fill', col).attr('opacity', 0.25);
 
-    // Grid lines
-    for (let v = 0.1; v <= 0.9; v += 0.1) {
-        svg.append('line').attr('x1', x(v)).attr('x2', x(v))
-           .attr('y1', 2).attr('y2', h - 2)
-           .attr('stroke', '#ddd').attr('stroke-width', 0.5);
-    }
-
     // Error bar (thick colored band)
     svg.append('rect')
        .attr('x', x(lo)).attr('width', Math.max(0, x(hi) - x(lo)))
@@ -536,38 +554,70 @@ function drawTokens(svg, d, w, h) {
     }
 }
 
-// ── Draw tick marks that overflow the SVG ──
-// position: 'top' draws ticks above the SVG (negative y), 'bottom' draws below
-function drawTicksInCell(svg, domain, ticks, w, h, format, position) {
+// ── Draw tick row (top or bottom) ──
+// Uses a <tr> inserted into tbody; measures widths from a reference data row
+function drawTickRow(tbody, refRow, tickConfigs, position) {
+    const tickH = 18;
+    const tr = document.createElement('tr');
+    tr.className = 'tick-row' + (position === 'bottom' ? ' tick-row-bottom' : '');
+
+    // Empty cells for rank and model columns
+    tr.appendChild(document.createElement('td'));
+    tr.appendChild(document.createElement('td'));
+
+    // Chart cells — measure widths from the reference data row
+    const refCells = refRow.querySelectorAll('td.chart-cell');
+    for (let ci = 0; ci < 4; ci++) {
+        const td = document.createElement('td');
+        td.className = 'chart-cell';
+        tr.appendChild(td);
+
+        const w = refCells[ci].clientWidth;
+        const cfg = tickConfigs[ci];
+        const pad = { l: 2, r: 2 };
+        const iw = w - pad.l - pad.r;
+        const x = d3.scaleLinear().domain(cfg.domain).range([pad.l, pad.l + iw]);
+
+        const svg = d3.select(td).append('svg')
+            .attr('width', w).attr('height', tickH)
+            .style('overflow', 'visible');
+
+        const baseY = position === 'top' ? tickH : 0;
+        const tickDir = position === 'top' ? -1 : 1;
+        const labelY = position === 'top' ? tickH - 5 : 12;
+
+        // Baseline
+        svg.append('line').attr('x1', 0).attr('x2', w)
+           .attr('y1', baseY).attr('y2', baseY)
+           .attr('stroke', '#aaa').attr('stroke-width', 0.5);
+
+        cfg.ticks.forEach(v => {
+            const tx = x(v);
+            svg.append('line').attr('x1', tx).attr('x2', tx)
+               .attr('y1', baseY).attr('y2', baseY + tickDir * 4)
+               .attr('stroke', '#999').attr('stroke-width', 0.5);
+            svg.append('text').attr('x', tx).attr('y', labelY)
+               .attr('text-anchor', 'middle').attr('font-size', '9px')
+               .attr('fill', '#777').text(cfg.fmt(v));
+        });
+    }
+
+    if (position === 'top') {
+        tbody.insertBefore(tr, tbody.firstChild);
+    } else {
+        tbody.appendChild(tr);
+    }
+}
+
+// ── Draw vertical grid lines ──
+function drawGridLines(svg, domain, ticks, w, h) {
     const pad = { l: 2, r: 2 };
     const iw = w - pad.l - pad.r;
     const x = d3.scaleLinear().domain(domain).range([pad.l, pad.l + iw]);
-
-    const tickLen = 4;
-    let baseY, tickDir, labelY;
-    if (position === 'top') {
-        baseY = 0;
-        tickDir = -1;
-        labelY = -5;
-    } else {
-        baseY = h;
-        tickDir = 1;
-        labelY = h + 11;
-    }
-
-    // Baseline
-    svg.append('line').attr('x1', pad.l).attr('x2', pad.l + iw)
-       .attr('y1', baseY).attr('y2', baseY)
-       .attr('stroke', '#aaa').attr('stroke-width', 0.5);
-
     ticks.forEach(v => {
-        const tx = x(v);
-        svg.append('line').attr('x1', tx).attr('x2', tx)
-           .attr('y1', baseY).attr('y2', baseY + tickDir * tickLen)
-           .attr('stroke', '#999').attr('stroke-width', 0.5);
-        svg.append('text').attr('x', tx).attr('y', labelY)
-           .attr('text-anchor', 'middle').attr('font-size', '9px')
-           .attr('fill', '#777').text(format(v));
+        svg.append('line').attr('x1', x(v)).attr('x2', x(v))
+           .attr('y1', 0).attr('y2', h)
+           .attr('stroke', '#ccc').attr('stroke-width', 0.5);
     });
 }
 
@@ -592,11 +642,19 @@ d3.csv('data/weirdml_data.csv?' + Date.now()).then(data => {
         { domain: codeLenLim, ticks: [0, 500, 1000, 1500], fmt: v => v },
         { domain: tokensLim, ticks: null, fmt: v => v >= 1000 ? (v/1000) + 'k' : v },
     ];
-    // Compute token ticks
     const tokStep = Math.ceil(tokensLim[1] / 5 / 1000) * 1000;
     tickConfigs[3].ticks = d3.range(0, tokensLim[1] + 1, tokStep);
 
+    // Grid line positions for each column
+    const gridTicks = [
+        [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9],
+        [1, 2, 3, 4],
+        [250, 500, 750, 1000, 1250],
+        tickConfigs[3].ticks.filter(v => v > 0),
+    ];
+
     const n = data.length;
+    const dataRows = [];
 
     data.forEach((d, i) => {
         const company = getCompany(d.display_name);
@@ -605,9 +663,7 @@ d3.csv('data/weirdml_data.csv?' + Date.now()).then(data => {
         const internalName = d.internal_model_name || d.display_name;
         const open = isModelOpen(internalName);
         const lockSrc = open ? 'assets/icons/lock_unlocked_v4.png' : 'assets/icons/lock_locked_v4.png';
-
-        const isFirst = i === 0;
-        const isLast = i === n - 1;
+        const isOpenAI = company === 'OpenAI';
 
         const tr = document.createElement('tr');
 
@@ -619,39 +675,36 @@ d3.csv('data/weirdml_data.csv?' + Date.now()).then(data => {
 
         // Model name
         const tdModel = document.createElement('td');
+        const iconClass = isOpenAI ? 'model-icon model-icon-openai' : 'model-icon';
         tdModel.innerHTML = `<div class="model-cell">
             <div class="bg" style="background:rgb(${rgb.join(',')})"></div>
-            ${iconSrc ? `<img class="model-icon" src="${iconSrc}" alt="">` : ''}
+            ${iconSrc ? `<img class="${iconClass}" src="${iconSrc}" alt="">` : ''}
             <span class="model-name">${d.display_name}</span>
             <img class="lock-icon" src="${lockSrc}" alt="${open ? 'Open' : 'Closed'}" title="${open ? 'Open-source' : 'Closed-source'}">
         </div>`;
         tr.appendChild(tdModel);
 
-        // Accuracy
+        // Chart cells
         const tdAcc = document.createElement('td');
         tdAcc.className = 'chart-cell';
         tr.appendChild(tdAcc);
-
-        // Cost
         const tdCost = document.createElement('td');
         tdCost.className = 'chart-cell';
         tr.appendChild(tdCost);
-
-        // Code length
         const tdCode = document.createElement('td');
         tdCode.className = 'chart-cell';
         tr.appendChild(tdCode);
-
-        // Tokens
         const tdTok = document.createElement('td');
         tdTok.className = 'chart-cell';
         tr.appendChild(tdTok);
 
         tbody.appendChild(tr);
+        dataRows.push({ tr, cells: [tdAcc, tdCost, tdCode, tdTok], d, i });
+    });
 
-        // Draw SVGs after DOM insertion (so dimensions are available)
-        requestAnimationFrame(() => {
-            const chartCells = [tdAcc, tdCost, tdCode, tdTok];
+    // Draw all SVGs after DOM layout is complete
+    requestAnimationFrame(() => {
+        dataRows.forEach(({ cells, d, i }) => {
             const drawFns = [
                 (svg, w, h) => {
                     const taskData = taskNames.map(t => ({ task: t, val: +d[t + '_acc'] })).filter(x => x.val > 0);
@@ -662,21 +715,21 @@ d3.csv('data/weirdml_data.csv?' + Date.now()).then(data => {
                 (svg, w, h) => drawTokens(svg, d, w, h),
             ];
 
-            chartCells.forEach((td, ci) => {
+            cells.forEach((td, ci) => {
                 const w = td.clientWidth;
                 const svg = d3.select(td).append('svg').attr('width', w).attr('height', rowH);
+                // Grid lines first
+                drawGridLines(svg, tickConfigs[ci].domain, gridTicks[ci], w, rowH);
+                // Chart content
                 drawFns[ci](svg, w, rowH);
-
-                // Draw ticks that overflow into header/footer gaps
-                const cfg = tickConfigs[ci];
-                if (isFirst) {
-                    drawTicksInCell(svg, cfg.domain, cfg.ticks, w, rowH, cfg.fmt, 'top');
-                }
-                if (isLast) {
-                    drawTicksInCell(svg, cfg.domain, cfg.ticks, w, rowH, cfg.fmt, 'bottom');
-                }
             });
         });
+
+        // Insert tick rows AFTER all data rows are rendered (widths are stable)
+        const firstDataRow = dataRows[0].tr;
+        const lastDataRow = dataRows[n - 1].tr;
+        drawTickRow(tbody, firstDataRow, tickConfigs, 'top');
+        drawTickRow(tbody, lastDataRow, tickConfigs, 'bottom');
     });
 });
 </script>
