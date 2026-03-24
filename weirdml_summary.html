@@ -42,9 +42,9 @@ title: WeirdML Model Summary
         /* Task legend */
         .task-legend {
             display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 8px 14px;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
             padding: 8px 12px;
             background: white;
             border-radius: 8px;
@@ -64,12 +64,24 @@ title: WeirdML Model Summary
         .summary-table {
             width: 100%;
             border-collapse: separate;
-            border-spacing: 3px 0;
+            border-spacing: 15px 0;
             background: white;
             border-radius: 8px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
             overflow: hidden;
             table-layout: fixed;
+        }
+        .summary-table thead {
+            position: relative;
+        }
+        .summary-table thead::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            height: 2px;
+            background: #dee2e6;
         }
         .summary-table th {
             position: sticky;
@@ -81,7 +93,6 @@ title: WeirdML Model Summary
             text-transform: uppercase;
             letter-spacing: 0.3px;
             padding: 10px 6px;
-            border-bottom: 2px solid #dee2e6;
             text-align: center;
             z-index: 10;
         }
@@ -166,6 +177,7 @@ title: WeirdML Model Summary
             display: block;
             width: 100%;
             height: 48px;
+            overflow: visible;
         }
 
         @media (max-width: 900px) {
@@ -275,25 +287,43 @@ const taskNames = [
     'splash_easy','splash_hard','number_patterns'
 ];
 
-// Marker shapes: cycle through these with filled/hollow variants
-const baseShapes = [
-    d3.symbolCircle, d3.symbolSquare, d3.symbolDiamond, d3.symbolTriangle,
-    d3.symbolStar, d3.symbolCross, d3.symbolWye
+// Custom symbol: pentagon
+const symbolPentagon = {
+    draw(context, size) {
+        const r = Math.sqrt(size / 2.5);
+        const a = Math.PI * 2 / 5;
+        const off = -Math.PI / 2;
+        context.moveTo(r * Math.cos(off), r * Math.sin(off));
+        for (let i = 1; i < 5; i++) context.lineTo(r * Math.cos(off + i * a), r * Math.sin(off + i * a));
+        context.closePath();
+    }
+};
+
+// Marker definitions matching matplotlib: o, s, D, ^, v, <, >, p, *
+// Each shape gets filled then hollow, assigned in task order
+const taskMarkerDefs = [
+    { shape: d3.symbolCircle,   filled: true,  rot: 0 },    // shapes_easy
+    { shape: d3.symbolCircle,   filled: false, rot: 0 },    // shapes_hard
+    { shape: d3.symbolSquare,   filled: true,  rot: 0 },    // digits_unsup
+    { shape: d3.symbolSquare,   filled: false, rot: 0 },    // chess_winners
+    { shape: d3.symbolDiamond,  filled: true,  rot: 0 },    // kolmo_shuffle
+    { shape: d3.symbolDiamond,  filled: false, rot: 0 },    // classify_sentences
+    { shape: d3.symbolTriangle, filled: true,  rot: 0 },    // classify_shuffled
+    { shape: d3.symbolTriangle, filled: false, rot: 0 },    // insert_patches
+    { shape: d3.symbolTriangle, filled: true,  rot: 180 },  // blunders_easy
+    { shape: d3.symbolTriangle, filled: false, rot: 180 },  // blunders_hard
+    { shape: d3.symbolTriangle, filled: true,  rot: -90 },  // digits_generalize
+    { shape: d3.symbolTriangle, filled: false, rot: -90 },  // shapes_variable
+    { shape: d3.symbolTriangle, filled: true,  rot: 90 },   // xor_easy
+    { shape: d3.symbolTriangle, filled: false, rot: 90 },   // xor_hard
+    { shape: symbolPentagon,    filled: true,  rot: 0 },    // splash_easy
+    { shape: symbolPentagon,    filled: false, rot: 0 },    // splash_hard
+    { shape: d3.symbolStar,     filled: true,  rot: 0 },    // number_patterns
 ];
-// Extended: each shape × filled then hollow
-const taskMarkers = [];
-for (const shape of baseShapes) {
-    taskMarkers.push({ shape, filled: true });
-    taskMarkers.push({ shape, filled: false });
-}
-// Extend if >14 tasks: add more shapes
-taskMarkers.push({ shape: d3.symbolCircle, filled: true });
-taskMarkers.push({ shape: d3.symbolSquare, filled: true });
-taskMarkers.push({ shape: d3.symbolDiamond, filled: true });
 
 const taskMarkerMap = {};
 taskNames.forEach((t, i) => {
-    taskMarkerMap[t] = taskMarkers[i % taskMarkers.length];
+    taskMarkerMap[t] = taskMarkerDefs[i];
 });
 
 // Fixed limits
@@ -305,18 +335,31 @@ let tokensLim = [0, 35000];
 // ── Build task legend ──
 function buildLegend() {
     const el = document.getElementById('task-legend');
-    el.innerHTML = taskNames.map((t, i) => {
+    // Two rows: filled markers on top, hollow below (matching matplotlib layout)
+    const filledTasks = taskNames.filter((t, i) => taskMarkerMap[t].filled);
+    const hollowTasks = taskNames.filter((t, i) => !taskMarkerMap[t].filled);
+
+    function renderItem(t) {
         const m = taskMarkerMap[t];
         const gen = d3.symbol().type(m.shape).size(60);
         const path = gen();
         const fill = m.filled ? '#333' : 'none';
         const stroke = m.filled ? 'none' : '#333';
+        const rotAttr = m.rot ? ` transform="rotate(${m.rot})"` : '';
         const label = t.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
         return `<span class="task-legend-item">
             <svg width="14" height="14" viewBox="-7 -7 14 14">
-                <path d="${path}" fill="${fill}" stroke="${stroke}" stroke-width="1.2"/>
+                <path d="${path}" fill="${fill}" stroke="${stroke}" stroke-width="1.2"${rotAttr}/>
             </svg>${label}</span>`;
-    }).join('');
+    }
+
+    el.innerHTML =
+        '<div style="display:flex;flex-wrap:wrap;justify-content:center;gap:4px 14px">' +
+        filledTasks.map(renderItem).join('') +
+        '</div>' +
+        '<div style="display:flex;flex-wrap:wrap;justify-content:center;gap:4px 14px">' +
+        hollowTasks.map(renderItem).join('') +
+        '</div>';
 }
 
 // ── Draw accuracy mini-chart ──
@@ -364,9 +407,10 @@ function drawAccuracy(svg, d, taskData, w, h) {
         const fill = m.filled ? '#333' : 'none';
         const stroke = m.filled ? '#fff' : '#333';
         const sw = m.filled ? 0.3 : 0.8;
+        const rot = m.rot ? ` rotate(${m.rot})` : '';
         svg.append('path')
            .attr('d', gen())
-           .attr('transform', `translate(${x(val)},${cy})`)
+           .attr('transform', `translate(${x(val)},${cy})${rot}`)
            .attr('fill', fill).attr('stroke', stroke).attr('stroke-width', sw)
            .attr('opacity', 0.7);
     });
