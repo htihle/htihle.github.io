@@ -106,6 +106,18 @@ title: WeirdML Model Summary
             position: relative;
         }
         .summary-table tr:last-child td { border-bottom: none; }
+        .summary-table th.chart-th {
+            position: sticky;
+            top: 0;
+            overflow: visible;
+        }
+        .summary-table th.chart-th svg.th-ticks {
+            position: absolute;
+            bottom: -16px;
+            left: 0;
+            z-index: 20;
+            pointer-events: none;
+        }
 
         /* Column widths */
         .col-rank { width: 36px; }
@@ -201,10 +213,10 @@ title: WeirdML Model Summary
             <tr>
                 <th class="col-rank">#</th>
                 <th class="col-model">Model</th>
-                <th class="col-accuracy">Average Accuracy Across 17 Tasks</th>
-                <th class="col-cost">Cost / Run (USD)</th>
-                <th class="col-codelen">Code Length (#Lines)</th>
-                <th class="col-tokens">Output Tokens</th>
+                <th class="col-accuracy chart-th" id="th-acc">Average Accuracy Across 17 Tasks</th>
+                <th class="col-cost chart-th" id="th-cost">Cost / Run (USD)</th>
+                <th class="col-codelen chart-th" id="th-code">Code Length (#Lines)</th>
+                <th class="col-tokens chart-th" id="th-tok">Output Tokens</th>
             </tr>
         </thead>
         <tbody id="table-body"></tbody>
@@ -667,14 +679,44 @@ d3.csv('data/weirdml_data.csv?' + Date.now()).then(data => {
                 const svg = d3.select(td).append('svg').attr('width', w).attr('height', rowH);
                 drawFns[ci](svg, w, rowH);
 
-                // Draw ticks that overflow into header/footer gaps
+                // Draw bottom ticks on last row (overflow downward)
                 const cfg = tickConfigs[ci];
-                if (isFirst) {
-                    drawTicksInCell(svg, cfg.domain, cfg.ticks, w, rowH, cfg.fmt, 'top');
-                }
                 if (isLast) {
                     drawTicksInCell(svg, cfg.domain, cfg.ticks, w, rowH, cfg.fmt, 'bottom');
                 }
+            });
+        });
+    });
+
+    // Draw top ticks inside the th elements (avoids sticky header stacking issues)
+    requestAnimationFrame(() => {
+        const thIds = ['th-acc', 'th-cost', 'th-code', 'th-tok'];
+        thIds.forEach((id, ci) => {
+            const th = document.getElementById(id);
+            const w = th.clientWidth;
+            const tickH = 16;
+            const cfg = tickConfigs[ci];
+            const pad = { l: 2, r: 2 };
+            const iw = w - pad.l - pad.r;
+            const x = d3.scaleLinear().domain(cfg.domain).range([pad.l, pad.l + iw]);
+
+            const svg = d3.select(th).append('svg')
+                .attr('class', 'th-ticks')
+                .attr('width', w).attr('height', tickH);
+
+            // Baseline at top of tick area
+            svg.append('line').attr('x1', pad.l).attr('x2', pad.l + iw)
+               .attr('y1', tickH).attr('y2', tickH)
+               .attr('stroke', '#aaa').attr('stroke-width', 0.5);
+
+            cfg.ticks.forEach(v => {
+                const tx = x(v);
+                svg.append('line').attr('x1', tx).attr('x2', tx)
+                   .attr('y1', tickH).attr('y2', tickH - 4)
+                   .attr('stroke', '#999').attr('stroke-width', 0.5);
+                svg.append('text').attr('x', tx).attr('y', tickH - 5)
+                   .attr('text-anchor', 'middle').attr('font-size', '9px')
+                   .attr('fill', '#777').text(cfg.fmt(v));
             });
         });
     });
