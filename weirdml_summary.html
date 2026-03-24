@@ -1,0 +1,541 @@
+---
+layout: nothing
+title: WeirdML Model Summary
+---
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WeirdML Model Summary</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f8f9fa;
+            color: #333;
+            padding: 15px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        .header h1 {
+            font-size: 1.4rem;
+            color: #2c3e50;
+            margin-bottom: 4px;
+        }
+        .header-links {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin-bottom: 8px;
+        }
+        .header-links a {
+            color: #3498db;
+            text-decoration: none;
+            font-size: 0.85rem;
+        }
+        .header-links a:hover { text-decoration: underline; }
+
+        /* Task legend */
+        .task-legend {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 8px 14px;
+            padding: 8px 12px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+            margin-bottom: 12px;
+            font-size: 0.78rem;
+            color: #555;
+        }
+        .task-legend-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .task-legend-item svg { flex-shrink: 0; }
+
+        /* Table */
+        .summary-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            overflow: hidden;
+            table-layout: fixed;
+        }
+        .summary-table th {
+            position: sticky;
+            top: 0;
+            background: #f1f3f5;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #555;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            padding: 10px 6px;
+            border-bottom: 2px solid #dee2e6;
+            text-align: center;
+            z-index: 10;
+        }
+        .summary-table td {
+            padding: 0;
+            border-bottom: 1px solid #eee;
+            vertical-align: middle;
+            height: 48px;
+            overflow: hidden;
+        }
+        .summary-table tr:last-child td { border-bottom: none; }
+
+        /* Column widths */
+        .col-rank { width: 36px; }
+        .col-model { width: 220px; }
+        .col-accuracy { width: auto; }
+        .col-cost { width: 100px; }
+        .col-codelen { width: 140px; }
+        .col-tokens { width: 110px; }
+
+        /* Rank cell */
+        .rank-cell {
+            text-align: center;
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: #888;
+        }
+
+        /* Model name cell */
+        .model-cell {
+            display: flex;
+            align-items: center;
+            padding: 4px 6px;
+            height: 48px;
+            position: relative;
+        }
+        .model-cell .bg {
+            position: absolute;
+            inset: 0;
+            opacity: 0.45;
+            z-index: 0;
+        }
+        .model-icon {
+            width: 22px;
+            height: 22px;
+            object-fit: contain;
+            flex-shrink: 0;
+            z-index: 1;
+            margin-right: 5px;
+        }
+        .model-name {
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: #222;
+            z-index: 1;
+            line-height: 1.2;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            flex: 1;
+            min-width: 0;
+        }
+        .lock-icon {
+            width: 14px;
+            height: 14px;
+            object-fit: contain;
+            flex-shrink: 0;
+            z-index: 1;
+            margin-left: 3px;
+            opacity: 0.7;
+        }
+
+        /* SVG cells */
+        .chart-cell svg {
+            display: block;
+            width: 100%;
+            height: 48px;
+        }
+
+        @media (max-width: 900px) {
+            body { padding: 6px; }
+            .col-model { width: 160px; }
+            .model-name { font-size: 0.72rem; }
+            .summary-table th { font-size: 0.65rem; padding: 6px 3px; }
+            .col-rank { width: 28px; }
+            .rank-cell { font-size: 0.75rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>WeirdML Results Summary</h1>
+        <div class="header-links">
+            <a href="weirdml.html">&larr; Back to WeirdML</a>
+            <a href="weirdml_interactive.html">Interactive Plot</a>
+            <a href="data/weirdml_data.csv">CSV</a>
+        </div>
+    </div>
+    <div class="task-legend" id="task-legend"></div>
+    <table class="summary-table">
+        <thead>
+            <tr>
+                <th class="col-rank">#</th>
+                <th class="col-model">Model</th>
+                <th class="col-accuracy">Average Accuracy Across 17 Tasks</th>
+                <th class="col-cost">Cost / Run (USD)</th>
+                <th class="col-codelen">Code Length (#Lines)</th>
+                <th class="col-tokens">Output Tokens</th>
+            </tr>
+        </thead>
+        <tbody id="table-body"></tbody>
+    </table>
+
+<script>
+// ── Config ──
+const companyColors = {
+    'OpenAI': [116,170,156], 'Anthropic': [217,119,87], 'Google': [66,133,244],
+    'DeepSeek': [83,109,254], 'xAI': [77,77,77], 'Meta': [6,104,225],
+    'Mistral': [255,112,0], 'Qwen': [255,127,0], 'Moonshot': [0,132,255],
+    'ZhipuAI': [16,185,129], 'Inception': [26,26,46], 'Nvidia': [118,185,0],
+    'Other': [136,136,136]
+};
+const companyIcons = {
+    'OpenAI': 'assets/icons/openai_icon.png',
+    'Anthropic': 'assets/icons/claude_logo.png',
+    'Google': 'assets/icons/gemini_logo.png',
+    'DeepSeek': 'assets/icons/deepseek_whale.png',
+    'xAI': 'assets/icons/grok_logo.png',
+    'Meta': 'assets/icons/meta_logo.png',
+    'Mistral': 'assets/icons/mistral_logo.png',
+    'Qwen': 'assets/icons/alibaba_icon.png',
+    'Moonshot': 'assets/icons/kimi_logo.png',
+    'ZhipuAI': 'assets/icons/z-ai_logo.png',
+    'Inception': 'assets/icons/inception_icon.png',
+    'Nvidia': 'assets/icons/nvidia_logo.png',
+};
+
+function getCompany(name) {
+    const n = name.toLowerCase();
+    if (n.includes('gpt') || n.startsWith('o1') || n.startsWith('o3') || n.startsWith('o4')) return 'OpenAI';
+    if (n.includes('claude')) return 'Anthropic';
+    if (n.includes('gemini')) return 'Google';
+    if (n.includes('deepseek')) return 'DeepSeek';
+    if (n.includes('grok')) return 'xAI';
+    if (n.includes('llama')) return 'Meta';
+    if (n.includes('mistral') || n.includes('mixtral')) return 'Mistral';
+    if (n.includes('qwen')) return 'Qwen';
+    if (n.includes('kimi')) return 'Moonshot';
+    if (n.includes('glm')) return 'ZhipuAI';
+    if (n.includes('mercury')) return 'Inception';
+    if (n.includes('nemotron')) return 'Nvidia';
+    return 'Other';
+}
+
+function isModelOpen(name) {
+    const n = name.toLowerCase();
+    if (n.startsWith('gpt-3') || n.startsWith('gpt-4') || n.startsWith('o1') || n.startsWith('o3') || n.startsWith('o4')) return false;
+    if (n.startsWith('gpt-oss')) return true;
+    if (n.startsWith('gpt-5')) return false;
+    if (n.startsWith('glm')) return true;
+    if (n.startsWith('claude')) return false;
+    if (n.startsWith('gemini')) return false;
+    if (n.startsWith('gemma')) return true;
+    if (n.startsWith('llama')) return true;
+    if (n.startsWith('deepseek')) return true;
+    if (n.startsWith('qwen')) return true;
+    if (n.startsWith('grok')) return false;
+    if (n.startsWith('mistral') || n.startsWith('magistral')) return false;
+    if (n.startsWith('mixtral')) return true;
+    if (n.startsWith('kimi')) return true;
+    if (n.startsWith('nemotron')) return true;
+    if (n.startsWith('mercury')) return false;
+    return false;
+}
+
+// Task definitions (order matches CSV columns)
+const taskNames = [
+    'shapes_easy','shapes_hard','digits_unsup','chess_winners','kolmo_shuffle',
+    'classify_sentences','classify_shuffled','insert_patches','blunders_easy',
+    'blunders_hard','digits_generalize','shapes_variable','xor_easy','xor_hard',
+    'splash_easy','splash_hard','number_patterns'
+];
+
+// Marker shapes: cycle through these with filled/hollow variants
+const baseShapes = [
+    d3.symbolCircle, d3.symbolSquare, d3.symbolDiamond, d3.symbolTriangle,
+    d3.symbolStar, d3.symbolCross, d3.symbolWye
+];
+// Extended: each shape × filled then hollow
+const taskMarkers = [];
+for (const shape of baseShapes) {
+    taskMarkers.push({ shape, filled: true });
+    taskMarkers.push({ shape, filled: false });
+}
+// Extend if >14 tasks: add more shapes
+taskMarkers.push({ shape: d3.symbolCircle, filled: true });
+taskMarkers.push({ shape: d3.symbolSquare, filled: true });
+taskMarkers.push({ shape: d3.symbolDiamond, filled: true });
+
+const taskMarkerMap = {};
+taskNames.forEach((t, i) => {
+    taskMarkerMap[t] = taskMarkers[i % taskMarkers.length];
+});
+
+// Fixed limits
+const accLim = [0, 1];
+const costLim = [0, 5];
+const codeLenLim = [0, 1500];
+let tokensLim = [0, 35000];
+
+// ── Build task legend ──
+function buildLegend() {
+    const el = document.getElementById('task-legend');
+    el.innerHTML = taskNames.map((t, i) => {
+        const m = taskMarkerMap[t];
+        const gen = d3.symbol().type(m.shape).size(60);
+        const path = gen();
+        const fill = m.filled ? '#333' : 'none';
+        const stroke = m.filled ? 'none' : '#333';
+        const label = t.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+        return `<span class="task-legend-item">
+            <svg width="14" height="14" viewBox="-7 -7 14 14">
+                <path d="${path}" fill="${fill}" stroke="${stroke}" stroke-width="1.2"/>
+            </svg>${label}</span>`;
+    }).join('');
+}
+
+// ── Draw accuracy mini-chart ──
+function drawAccuracy(svg, d, taskData, w, h) {
+    const pad = { l: 2, r: 2 };
+    const iw = w - pad.l - pad.r;
+    const x = d3.scaleLinear().domain(accLim).range([pad.l, pad.l + iw]);
+    const company = getCompany(d.display_name);
+    const rgb = companyColors[company] || companyColors.Other;
+    const col = `rgb(${rgb.join(',')})`;
+
+    const mean = +d.avg_acc;
+    const se = +d.avg_acc_standard_error;
+    const lo = mean - 1.96 * se;
+    const hi = mean + 1.96 * se;
+    const cy = h / 2;
+
+    // Grid lines
+    for (let v = 0.1; v <= 0.9; v += 0.1) {
+        svg.append('line').attr('x1', x(v)).attr('x2', x(v))
+           .attr('y1', 2).attr('y2', h - 2)
+           .attr('stroke', '#ddd').attr('stroke-width', 0.5);
+    }
+
+    // Error bar (thick colored band)
+    svg.append('rect')
+       .attr('x', x(lo)).attr('width', Math.max(0, x(hi) - x(lo)))
+       .attr('y', cy - 16).attr('height', 32)
+       .attr('fill', col).attr('opacity', 0.7).attr('rx', 2);
+
+    // Mean line
+    svg.append('line')
+       .attr('x1', x(mean)).attr('x2', x(mean))
+       .attr('y1', cy - 18).attr('y2', cy + 18)
+       .attr('stroke', '#000').attr('stroke-width', 2).attr('opacity', 0.5);
+
+    // Individual task markers
+    taskData.forEach(({ task, val }) => {
+        const m = taskMarkerMap[task];
+        const gen = d3.symbol().type(m.shape).size(40);
+        const fill = m.filled ? '#333' : 'none';
+        const stroke = m.filled ? '#fff' : '#333';
+        const sw = m.filled ? 0.3 : 0.8;
+        svg.append('path')
+           .attr('d', gen())
+           .attr('transform', `translate(${x(val)},${cy})`)
+           .attr('fill', fill).attr('stroke', stroke).attr('stroke-width', sw)
+           .attr('opacity', 0.7);
+    });
+
+    // Value label
+    svg.append('text')
+       .attr('x', x(mean)).attr('y', cy - 20)
+       .attr('text-anchor', 'middle').attr('font-size', '10px')
+       .attr('font-weight', '500').attr('fill', '#333')
+       .text(mean.toFixed(3));
+}
+
+// ── Draw cost bar ──
+function drawCost(svg, d, w, h) {
+    const pad = { l: 2, r: 2 };
+    const iw = w - pad.l - pad.r;
+    const x = d3.scaleLinear().domain(costLim).range([pad.l, pad.l + iw]);
+    const company = getCompany(d.display_name);
+    const rgb = companyColors[company] || companyColors.Other;
+    const col = `rgb(${rgb.join(',')})`;
+    const cost = +d.cost_per_run_usd;
+    const cy = h / 2;
+
+    // Background tint
+    svg.append('rect').attr('x', 0).attr('y', 0).attr('width', w).attr('height', h)
+       .attr('fill', col).attr('opacity', 0.15);
+
+    if (cost > 0) {
+        svg.append('rect')
+           .attr('x', pad.l).attr('width', Math.max(1, x(Math.min(cost, costLim[1])) - pad.l))
+           .attr('y', cy - 14).attr('height', 28)
+           .attr('fill', col).attr('opacity', 0.8).attr('rx', 2);
+        const labelX = Math.min(x(cost), x(costLim[1] * 0.65));
+        svg.append('text')
+           .attr('x', labelX + 3).attr('y', cy + 4)
+           .attr('font-size', '10px').attr('fill', '#333')
+           .text(cost >= 1 ? `$${cost.toFixed(2)}` : `$${cost.toPrecision(3)}`);
+    }
+}
+
+// ── Draw code length range ──
+function drawCodeLen(svg, d, w, h) {
+    const pad = { l: 2, r: 2 };
+    const iw = w - pad.l - pad.r;
+    const x = d3.scaleLinear().domain(codeLenLim).range([pad.l, pad.l + iw]);
+    const company = getCompany(d.display_name);
+    const rgb = companyColors[company] || companyColors.Other;
+    const col = `rgb(${rgb.join(',')})`;
+    const p10 = +d.code_len_p10, p50 = +d.code_len_p50, p90 = +d.code_len_p90;
+    const cy = h / 2;
+
+    svg.append('rect').attr('x', 0).attr('y', 0).attr('width', w).attr('height', h)
+       .attr('fill', col).attr('opacity', 0.15);
+
+    // p10-p90 bar
+    svg.append('rect')
+       .attr('x', x(p10)).attr('width', Math.max(1, x(p90) - x(p10)))
+       .attr('y', cy - 16).attr('height', 32)
+       .attr('fill', col).attr('opacity', 0.7).attr('rx', 2);
+
+    // Median line
+    svg.append('line')
+       .attr('x1', x(p50)).attr('x2', x(p50))
+       .attr('y1', cy - 18).attr('y2', cy + 18)
+       .attr('stroke', '#000').attr('stroke-width', 2).attr('opacity', 0.5);
+
+    // Label
+    svg.append('text')
+       .attr('x', x(p50)).attr('y', cy - 20)
+       .attr('text-anchor', 'middle').attr('font-size', '10px')
+       .attr('font-weight', '500').attr('fill', '#333')
+       .text(Math.round(p50));
+}
+
+// ── Draw tokens bar ──
+function drawTokens(svg, d, w, h) {
+    const pad = { l: 2, r: 2 };
+    const iw = w - pad.l - pad.r;
+    const x = d3.scaleLinear().domain(tokensLim).range([pad.l, pad.l + iw]);
+    const company = getCompany(d.display_name);
+    const rgb = companyColors[company] || companyColors.Other;
+    const col = `rgb(${rgb.join(',')})`;
+    const tokens = +d.mean_total_output_tokens;
+    const cy = h / 2;
+
+    svg.append('rect').attr('x', 0).attr('y', 0).attr('width', w).attr('height', h)
+       .attr('fill', col).attr('opacity', 0.15);
+
+    if (tokens > 0) {
+        svg.append('rect')
+           .attr('x', pad.l).attr('width', Math.max(1, x(Math.min(tokens, tokensLim[1])) - pad.l))
+           .attr('y', cy - 14).attr('height', 28)
+           .attr('fill', col).attr('opacity', 0.8).attr('rx', 2);
+        const labelX = Math.min(x(tokens), x(tokensLim[1] * 0.65));
+        svg.append('text')
+           .attr('x', labelX + 3).attr('y', cy + 4)
+           .attr('font-size', '10px').attr('fill', '#333')
+           .text(Math.round(tokens).toLocaleString());
+    }
+}
+
+// ── Main ──
+d3.csv('data/weirdml_data.csv?' + Date.now()).then(data => {
+    // Sort by accuracy descending
+    data.sort((a, b) => +b.avg_acc - +a.avg_acc);
+
+    // Compute tokens limit from data
+    const maxTok = d3.max(data, d => +d.mean_total_output_tokens);
+    tokensLim = [0, Math.ceil(maxTok * 1.05 / 1000) * 1000];
+
+    buildLegend();
+
+    const tbody = document.getElementById('table-body');
+    const rowH = 48;
+
+    data.forEach((d, i) => {
+        const company = getCompany(d.display_name);
+        const rgb = companyColors[company] || companyColors.Other;
+        const iconSrc = companyIcons[company];
+        const internalName = d.internal_model_name || d.display_name;
+        const open = isModelOpen(internalName);
+        const lockSrc = open ? 'assets/icons/lock_unlocked_v4.png' : 'assets/icons/lock_locked_v4.png';
+
+        const tr = document.createElement('tr');
+
+        // Rank
+        const tdRank = document.createElement('td');
+        tdRank.className = 'rank-cell';
+        tdRank.textContent = i + 1;
+        tr.appendChild(tdRank);
+
+        // Model name
+        const tdModel = document.createElement('td');
+        tdModel.innerHTML = `<div class="model-cell">
+            <div class="bg" style="background:rgb(${rgb.join(',')})"></div>
+            ${iconSrc ? `<img class="model-icon" src="${iconSrc}" alt="">` : ''}
+            <span class="model-name">${d.display_name}</span>
+            <img class="lock-icon" src="${lockSrc}" alt="${open ? 'Open' : 'Closed'}" title="${open ? 'Open-source' : 'Closed-source'}">
+        </div>`;
+        tr.appendChild(tdModel);
+
+        // Accuracy
+        const tdAcc = document.createElement('td');
+        tdAcc.className = 'chart-cell';
+        tr.appendChild(tdAcc);
+
+        // Cost
+        const tdCost = document.createElement('td');
+        tdCost.className = 'chart-cell';
+        tr.appendChild(tdCost);
+
+        // Code length
+        const tdCode = document.createElement('td');
+        tdCode.className = 'chart-cell';
+        tr.appendChild(tdCode);
+
+        // Tokens
+        const tdTok = document.createElement('td');
+        tdTok.className = 'chart-cell';
+        tr.appendChild(tdTok);
+
+        tbody.appendChild(tr);
+
+        // Draw SVGs after DOM insertion (so dimensions are available)
+        requestAnimationFrame(() => {
+            // Accuracy
+            const accSvg = d3.select(tdAcc).append('svg').attr('width', tdAcc.clientWidth).attr('height', rowH);
+            const taskData = taskNames.map(t => ({ task: t, val: +d[t + '_acc'] })).filter(x => x.val > 0);
+            drawAccuracy(accSvg, d, taskData, tdAcc.clientWidth, rowH);
+
+            // Cost
+            const costSvg = d3.select(tdCost).append('svg').attr('width', tdCost.clientWidth).attr('height', rowH);
+            drawCost(costSvg, d, tdCost.clientWidth, rowH);
+
+            // Code length
+            const codeSvg = d3.select(tdCode).append('svg').attr('width', tdCode.clientWidth).attr('height', rowH);
+            drawCodeLen(codeSvg, d, tdCode.clientWidth, rowH);
+
+            // Tokens
+            const tokSvg = d3.select(tdTok).append('svg').attr('width', tdTok.clientWidth).attr('height', rowH);
+            drawTokens(tokSvg, d, tdTok.clientWidth, rowH);
+        });
+    });
+});
+</script>
+</body>
+</html>
