@@ -26,21 +26,26 @@ Each task comes with a task prompt describing the problem precisely and some exa
 
 ## Results
 
-<div style="display: flex; gap: 24px; margin: 20px 0; align-items: flex-start; flex-wrap: wrap;">
-  <div style="text-align: center;">
-    <a href="/weirdml_table.html" style="text-decoration: none;">
-      <img src="images_v2/weirdml_table_preview.png" alt="Data Table Preview" style="height: 260px; width: auto; border: 1px solid #ddd; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-    </a>
-    <br>
-    <a href="/weirdml_table.html" style="color: #3498db;">Explore the full WeirdML data →</a> (<a href="{{ "/data/weirdml_data.csv" | relative_url }}" style="color: #3498db;">CSV</a>)
+### Interactive Explorer
+
+<div style="margin: 20px 0;">
+  <div style="border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);">
+    <iframe src="/weirdml_interactive.html" style="width: 100%; height: 700px; border: none; display: block;"></iframe>
   </div>
-  <div style="text-align: center;">
-    <a href="/weirdml_interactive.html" style="text-decoration: none;">
-      <img src="images_v2/weirdml_interactive_preview.png" alt="Interactive Plot Preview" style="height: 260px; width: auto; border: 1px solid #ddd; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-    </a>
-    <br>
-    <a href="/weirdml_interactive.html" style="color: #3498db;">Open Interactive Plot →</a>
+  <p style="text-align: center; margin-top: 8px; font-size: 0.85rem; color: #64748b;">
+    <a href="/weirdml_interactive.html">Open in full page →</a>
+  </p>
+</div>
+
+### Model Overview
+
+<div style="margin: 20px 0;">
+  <div style="border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);">
+    <iframe src="/weirdml_summary.html" style="width: 100%; height: 900px; border: none; display: block;"></iframe>
   </div>
+  <p style="text-align: center; margin-top: 8px; font-size: 0.85rem; color: #64748b;">
+    <a href="/weirdml_summary.html">Open in full page →</a> · <a href="/weirdml_table.html">Full data table →</a> · <a href="{{ "/data/weirdml_data.csv" | relative_url }}">Download CSV</a>
+  </p>
 </div>
 
 ### Topline Results
