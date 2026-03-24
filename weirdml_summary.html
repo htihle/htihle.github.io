@@ -98,9 +98,21 @@ title: WeirdML Model Summary
         .col-rank { width: 36px; }
         .col-model { width: 230px; }
         .col-accuracy { width: auto; }
-        .col-cost { width: 130px; }
-        .col-codelen { width: 180px; }
-        .col-tokens { width: 140px; }
+        .col-cost { width: 150px; }
+        .col-codelen { width: 200px; }
+        .col-tokens { width: 160px; }
+
+        /* Tick rows */
+        .tick-row td {
+            height: 22px !important;
+            border-bottom: 1px solid #dee2e6;
+            padding: 0;
+            background: #f9fafb;
+        }
+        .tick-row.bottom-ticks td {
+            border-top: 1px solid #dee2e6;
+            border-bottom: none;
+        }
 
         /* Rank cell */
         .rank-cell {
@@ -466,6 +478,49 @@ function drawTokens(svg, d, w, h) {
     }
 }
 
+// ── Draw tick axis row ──
+function drawTickAxis(svg, domain, ticks, w, h, format, top) {
+    const pad = { l: 2, r: 2 };
+    const iw = w - pad.l - pad.r;
+    const x = d3.scaleLinear().domain(domain).range([pad.l, pad.l + iw]);
+    const tickY = top ? h - 1 : 1;
+    const labelY = top ? h - 4 : 12;
+
+    // Baseline
+    svg.append('line').attr('x1', pad.l).attr('x2', pad.l + iw)
+       .attr('y1', tickY).attr('y2', tickY)
+       .attr('stroke', '#bbb').attr('stroke-width', 0.5);
+
+    ticks.forEach(v => {
+        svg.append('line').attr('x1', x(v)).attr('x2', x(v))
+           .attr('y1', tickY).attr('y2', tickY + (top ? -4 : 4))
+           .attr('stroke', '#999').attr('stroke-width', 0.5);
+        svg.append('text').attr('x', x(v)).attr('y', labelY)
+           .attr('text-anchor', 'middle').attr('font-size', '9px')
+           .attr('fill', '#777').text(format(v));
+    });
+}
+
+function addTickRow(tbody, isTop, colWidths) {
+    const tr = document.createElement('tr');
+    tr.className = isTop ? 'tick-row' : 'tick-row bottom-ticks';
+
+    // Rank + Model: empty cells
+    const tdR = document.createElement('td'); tr.appendChild(tdR);
+    const tdM = document.createElement('td'); tr.appendChild(tdM);
+
+    // Chart cells
+    const cells = [];
+    for (let i = 0; i < 4; i++) {
+        const td = document.createElement('td');
+        td.className = 'chart-cell';
+        tr.appendChild(td);
+        cells.push(td);
+    }
+    tbody.appendChild(tr);
+    return { tr, cells };
+}
+
 // ── Main ──
 d3.csv('data/weirdml_data.csv?' + Date.now()).then(data => {
     // Sort by accuracy descending
@@ -479,6 +534,28 @@ d3.csv('data/weirdml_data.csv?' + Date.now()).then(data => {
 
     const tbody = document.getElementById('table-body');
     const rowH = 48;
+    const tickH = 22;
+
+    // Tick configurations for each column
+    const tickConfigs = [
+        { domain: accLim, ticks: [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0], fmt: v => v.toFixed(1) },
+        { domain: costLim, ticks: [0, 1, 2, 3, 4, 5], fmt: v => '$' + v },
+        { domain: codeLenLim, ticks: [0, 250, 500, 750, 1000, 1250, 1500], fmt: v => v },
+        { domain: tokensLim, ticks: null, fmt: v => v >= 1000 ? (v/1000) + 'k' : v }, // computed after tokensLim set
+    ];
+    // Compute token ticks
+    const tokStep = Math.ceil(tokensLim[1] / 5 / 1000) * 1000;
+    tickConfigs[3].ticks = d3.range(0, tokensLim[1] + 1, tokStep);
+
+    // Top tick row
+    const topTick = addTickRow(tbody, true);
+    requestAnimationFrame(() => {
+        topTick.cells.forEach((td, i) => {
+            const cfg = tickConfigs[i];
+            const svg = d3.select(td).append('svg').attr('width', td.clientWidth).attr('height', tickH);
+            drawTickAxis(svg, cfg.domain, cfg.ticks, td.clientWidth, tickH, cfg.fmt, true);
+        });
+    });
 
     data.forEach((d, i) => {
         const company = getCompany(d.display_name);
@@ -546,6 +623,16 @@ d3.csv('data/weirdml_data.csv?' + Date.now()).then(data => {
             // Tokens
             const tokSvg = d3.select(tdTok).append('svg').attr('width', tdTok.clientWidth).attr('height', rowH);
             drawTokens(tokSvg, d, tdTok.clientWidth, rowH);
+        });
+    });
+
+    // Bottom tick row
+    const botTick = addTickRow(tbody, false);
+    requestAnimationFrame(() => {
+        botTick.cells.forEach((td, i) => {
+            const cfg = tickConfigs[i];
+            const svg = d3.select(td).append('svg').attr('width', td.clientWidth).attr('height', tickH);
+            drawTickAxis(svg, cfg.domain, cfg.ticks, td.clientWidth, tickH, cfg.fmt, false);
         });
     });
 });
