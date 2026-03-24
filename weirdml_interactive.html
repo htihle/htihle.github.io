@@ -16,12 +16,12 @@ title: WeirdML Interactive Plot
 
         html, body {
             height: 100%;
+            margin: 0;
             overflow: hidden;
         }
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
-            margin: 0;
             padding: 15px;
             background: #f8f9fa;
             color: #333;
@@ -658,13 +658,8 @@ title: WeirdML Interactive Plot
             const container = document.getElementById('chart').parentElement;
             const width = container.clientWidth - 20;
 
-            // Match CSS breakpoint: mobile/narrow view uses less height
-            const isMobile = window.innerWidth <= 1200 || window.innerHeight <= 500;
-            const height = isPhone
-                ? Math.max(180, window.innerHeight - 130)
-                : isMobile
-                    ? Math.max(200, window.innerHeight - 170)
-                    : Math.max(400, window.innerHeight * 0.7);
+            // Use the actual container height so the chart fits without clipping
+            const height = Math.max(isPhone ? 180 : 200, container.clientHeight - 20);
 
             svg.attr('width', width).attr('height', height);
             svg.selectAll('*').remove();
