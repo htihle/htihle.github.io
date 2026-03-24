@@ -24,17 +24,21 @@ How good are Large Language Models (LLMs) at doing machine learning on novel dat
 
 Each task comes with a task prompt describing the problem precisely and some example code for loading data and saving predictions. The different tasks pose various challenges: some require heavy data augmentation, others need careful feature engineering, or require combining information from many different parts of the input.
 
-## Results <span style="font-size: 0.9rem; font-weight: normal; margin-left: 12px;"><a href="/weirdml_table.html">Data table</a> · <a href="{{ "/data/weirdml_data.csv" | relative_url }}">CSV</a></span>
+## Results
+
+<p style="font-size: 0.9rem; color: #64748b; margin-top: -0.5rem;">
+  Open standalone: <a href="/weirdml_interactive.html">Interactive plot</a> · <a href="/weirdml_summary.html">Model summary</a> · <a href="/weirdml_table.html">Data table</a> · <a href="{{ "/data/weirdml_data.csv" | relative_url }}">CSV</a>
+</p>
 
 <div style="margin: 20px 0;">
   <div style="border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);">
-    <iframe src="/weirdml_interactive.html" style="width: 100%; height: 700px; border: none; display: block;"></iframe>
+    <iframe src="/weirdml_interactive.html?embed" style="width: 100%; height: 700px; border: none; display: block;"></iframe>
   </div>
 </div>
 
 <div style="margin: 20px 0;">
   <div style="border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);">
-    <iframe id="summary-iframe" src="/weirdml_summary.html" style="width: 100%; border: none; display: block; height: 2200px;"></iframe>
+    <iframe id="summary-iframe" src="/weirdml_summary.html?embed" style="width: 100%; border: none; display: block; height: 2200px;"></iframe>
   </div>
 </div>
 
