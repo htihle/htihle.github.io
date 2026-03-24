@@ -32,7 +32,7 @@ Each task comes with a task prompt describing the problem precisely and some exa
 
 <div style="margin: 20px 0;">
   <div style="border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);">
-    <iframe src="/weirdml_interactive.html?embed" style="width: 100%; height: 700px; border: none; display: block;"></iframe>
+    <iframe src="/weirdml_interactive.html?embed" style="width: 100%; height: 1000px; border: none; display: block;"></iframe>
   </div>
 </div>
 
