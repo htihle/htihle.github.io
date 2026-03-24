@@ -780,6 +780,11 @@ d3.csv('data/weirdml_data.csv?' + Date.now()).then(data => {
             });
         });
     });
+
+    // Notify parent iframe of content height for auto-sizing
+    if (window.parent !== window) {
+        window.parent.postMessage({ type: 'iframeHeight', height: document.documentElement.scrollHeight }, '*');
+    }
 });
 </script>
 </body>
