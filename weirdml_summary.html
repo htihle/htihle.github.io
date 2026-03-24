@@ -64,7 +64,7 @@ title: WeirdML Model Summary
         .summary-table {
             width: 100%;
             border-collapse: separate;
-            border-spacing: 0;
+            border-spacing: 3px 0;
             background: white;
             border-radius: 8px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
@@ -209,7 +209,7 @@ const companyColors = {
     'DeepSeek': [83,109,254], 'xAI': [77,77,77], 'Meta': [6,104,225],
     'Mistral': [255,112,0], 'Qwen': [255,127,0], 'Moonshot': [0,132,255],
     'ZhipuAI': [16,185,129], 'Inception': [26,26,46], 'Nvidia': [118,185,0],
-    'Other': [136,136,136]
+    'MiniMax': [255,77,106], 'Other': [136,136,136]
 };
 const companyIcons = {
     'OpenAI': 'assets/icons/openai_icon.png',
@@ -224,6 +224,7 @@ const companyIcons = {
     'ZhipuAI': 'assets/icons/z-ai_logo.png',
     'Inception': 'assets/icons/inception_icon.png',
     'Nvidia': 'assets/icons/nvidia_logo.png',
+    'MiniMax': 'assets/icons/minimax_logo.png',
 };
 
 function getCompany(name) {
@@ -240,6 +241,7 @@ function getCompany(name) {
     if (n.includes('glm')) return 'ZhipuAI';
     if (n.includes('mercury')) return 'Inception';
     if (n.includes('nemotron')) return 'Nvidia';
+    if (n.includes('minimax')) return 'MiniMax';
     return 'Other';
 }
 
@@ -261,6 +263,7 @@ function isModelOpen(name) {
     if (n.startsWith('kimi')) return true;
     if (n.startsWith('nemotron')) return true;
     if (n.startsWith('mercury')) return false;
+    if (n.startsWith('minimax')) return true;
     return false;
 }
 
@@ -330,6 +333,10 @@ function drawAccuracy(svg, d, taskData, w, h) {
     const lo = mean - 1.96 * se;
     const hi = mean + 1.96 * se;
     const cy = h / 2;
+
+    // Background tint
+    svg.append('rect').attr('x', 0).attr('y', 0).attr('width', w).attr('height', h)
+       .attr('fill', col).attr('opacity', 0.15);
 
     // Grid lines
     for (let v = 0.1; v <= 0.9; v += 0.1) {
