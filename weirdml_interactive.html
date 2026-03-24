@@ -923,14 +923,21 @@ title: WeirdML Interactive Plot
                 }
 
                 // Helper: build step-function path points from frontier steps
-                function buildStepPoints(steps, xScale, startX) {
-                    const pts = [{ x: startX, y: 0 }];
+                function buildStepPoints(steps, xScale) {
+                    if (steps.length === 0) return [];
+                    const pts = [];
                     for (let i = 0; i < steps.length; i++) {
                         const sx = xScale(steps[i].date);
-                        // Horizontal to this point at previous level
-                        pts.push({ x: sx, y: pts[pts.length - 1].y });
-                        // Vertical jump
-                        pts.push({ x: sx, y: steps[i].acc });
+                        if (i === 0) {
+                            // Start at first point: vertical drop from bottom then up
+                            pts.push({ x: sx, y: 0 });
+                            pts.push({ x: sx, y: steps[i].acc });
+                        } else {
+                            // Horizontal to this point at previous level
+                            pts.push({ x: sx, y: pts[pts.length - 1].y });
+                            // Vertical jump
+                            pts.push({ x: sx, y: steps[i].acc });
+                        }
                     }
                     // Extend to today
                     const today = xScale(new Date());
@@ -950,9 +957,8 @@ title: WeirdML Interactive Plot
                     return val;
                 }
 
-                const startX = 0; // left edge of chart
-                const openPts = buildStepPoints(openSteps, xScale, startX);
-                const closedPts = buildStepPoints(closedSteps, xScale, startX);
+                const openPts = buildStepPoints(openSteps, xScale);
+                const closedPts = buildStepPoints(closedSteps, xScale);
 
                 // Build step-shaped fill data by collecting all transition
                 // x-values from both frontiers and adding pre/post-jump pairs
