@@ -106,18 +106,15 @@ title: WeirdML Model Summary
             position: relative;
         }
         .summary-table tr:last-child td { border-bottom: none; }
-        .summary-table th.chart-th {
-            position: sticky;
-            top: 0;
-            overflow: visible;
-        }
-        .summary-table th.chart-th svg.th-ticks {
+
+        /* Tick overlay sits above the table, bypassing sticky stacking */
+        .table-wrap { position: relative; }
+        .tick-overlay {
             position: absolute;
-            bottom: -16px;
-            left: 0;
-            z-index: 20;
             pointer-events: none;
+            z-index: 20;
         }
+        .tick-overlay svg { display: block; }
 
         /* Column widths */
         .col-rank { width: 36px; }
@@ -208,19 +205,21 @@ title: WeirdML Model Summary
         </div>
     </div>
     <div class="task-legend" id="task-legend"></div>
+    <div class="table-wrap" id="table-wrap">
     <table class="summary-table">
         <thead>
             <tr>
                 <th class="col-rank">#</th>
                 <th class="col-model">Model</th>
-                <th class="col-accuracy chart-th" id="th-acc">Average Accuracy Across 17 Tasks</th>
-                <th class="col-cost chart-th" id="th-cost">Cost / Run (USD)</th>
-                <th class="col-codelen chart-th" id="th-code">Code Length (#Lines)</th>
-                <th class="col-tokens chart-th" id="th-tok">Output Tokens</th>
+                <th class="col-accuracy">Average Accuracy Across 17 Tasks</th>
+                <th class="col-cost">Cost / Run (USD)</th>
+                <th class="col-codelen">Code Length (#Lines)</th>
+                <th class="col-tokens">Output Tokens</th>
             </tr>
         </thead>
         <tbody id="table-body"></tbody>
     </table>
+    </div>
 
 <script>
 // ── Config ──
@@ -688,23 +687,39 @@ d3.csv('data/weirdml_data.csv?' + Date.now()).then(data => {
         });
     });
 
-    // Draw top ticks inside the th elements (avoids sticky header stacking issues)
+    // Draw top ticks as overlay divs positioned above the table's data area
+    // This bypasses the sticky thead stacking context entirely
     requestAnimationFrame(() => {
-        const thIds = ['th-acc', 'th-cost', 'th-code', 'th-tok'];
-        thIds.forEach((id, ci) => {
-            const th = document.getElementById(id);
-            const w = th.clientWidth;
-            const tickH = 16;
+        const wrap = document.getElementById('table-wrap');
+        const wrapRect = wrap.getBoundingClientRect();
+
+        // Get the first data row's chart cells to know exact positions
+        const firstRow = tbody.querySelector('tr');
+        if (!firstRow) return;
+        const chartTds = [firstRow.cells[2], firstRow.cells[3], firstRow.cells[4], firstRow.cells[5]];
+
+        chartTds.forEach((td, ci) => {
+            const tdRect = td.getBoundingClientRect();
             const cfg = tickConfigs[ci];
+            const w = td.clientWidth;
+            const tickH = 16;
             const pad = { l: 2, r: 2 };
             const iw = w - pad.l - pad.r;
             const x = d3.scaleLinear().domain(cfg.domain).range([pad.l, pad.l + iw]);
 
-            const svg = d3.select(th).append('svg')
-                .attr('class', 'th-ticks')
+            // Position overlay at the top edge of this td, extending upward
+            const overlay = document.createElement('div');
+            overlay.className = 'tick-overlay';
+            overlay.style.left = (tdRect.left - wrapRect.left) + 'px';
+            overlay.style.top = (tdRect.top - wrapRect.top - tickH) + 'px';
+            overlay.style.width = w + 'px';
+            overlay.style.height = tickH + 'px';
+            wrap.appendChild(overlay);
+
+            const svg = d3.select(overlay).append('svg')
                 .attr('width', w).attr('height', tickH);
 
-            // Baseline at top of tick area
+            // Baseline at bottom of tick area (top of data)
             svg.append('line').attr('x1', pad.l).attr('x2', pad.l + iw)
                .attr('y1', tickH).attr('y2', tickH)
                .attr('stroke', '#aaa').attr('stroke-width', 0.5);
