@@ -91,7 +91,7 @@ title: WeirdML Model Summary
             color: #555;
             text-transform: uppercase;
             letter-spacing: 0.3px;
-            padding: 10px 6px;
+            padding: 12px 6px;
             text-align: center;
             z-index: 10;
         }
@@ -414,7 +414,7 @@ function drawAccuracy(svg, d, taskData, w, h) {
     for (let v = 0.1; v <= 0.9; v += 0.1) {
         svg.append('line').attr('x1', x(v)).attr('x2', x(v))
            .attr('y1', 2).attr('y2', h - 2)
-           .attr('stroke', '#ddd').attr('stroke-width', 0.5);
+           .attr('stroke', '#bbb').attr('stroke-width', 0.7);
     }
 
     // Error bar (thick colored band)
@@ -474,6 +474,13 @@ function drawCost(svg, d, w, h) {
     svg.append('rect').attr('x', 0).attr('y', 0).attr('width', w).attr('height', h)
        .attr('fill', col).attr('opacity', 0.25);
 
+    // Grid lines
+    for (let v = 1; v <= 4; v++) {
+        svg.append('line').attr('x1', x(v)).attr('x2', x(v))
+           .attr('y1', 2).attr('y2', h - 2)
+           .attr('stroke', '#bbb').attr('stroke-width', 0.7);
+    }
+
     if (cost > 0) {
         svg.append('rect')
            .attr('x', pad.l).attr('width', Math.max(1, x(Math.min(cost, costLim[1])) - pad.l))
@@ -500,6 +507,13 @@ function drawCodeLen(svg, d, w, h) {
 
     svg.append('rect').attr('x', 0).attr('y', 0).attr('width', w).attr('height', h)
        .attr('fill', col).attr('opacity', 0.25);
+
+    // Grid lines
+    [500, 1000].forEach(v => {
+        svg.append('line').attr('x1', x(v)).attr('x2', x(v))
+           .attr('y1', 2).attr('y2', h - 2)
+           .attr('stroke', '#bbb').attr('stroke-width', 0.7);
+    });
 
     // p10-p90 bar
     svg.append('rect')
@@ -540,6 +554,14 @@ function drawTokens(svg, d, w, h) {
 
     svg.append('rect').attr('x', 0).attr('y', 0).attr('width', w).attr('height', h)
        .attr('fill', col).attr('opacity', 0.25);
+
+    // Grid lines
+    const tokStep = Math.ceil(tokensLim[1] / 5 / 1000) * 1000;
+    for (let v = tokStep; v < tokensLim[1]; v += tokStep) {
+        svg.append('line').attr('x1', x(v)).attr('x2', x(v))
+           .attr('y1', 2).attr('y2', h - 2)
+           .attr('stroke', '#bbb').attr('stroke-width', 0.7);
+    }
 
     if (tokens > 0) {
         svg.append('rect')
@@ -605,7 +627,7 @@ d3.csv('data/weirdml_data.csv?' + Date.now()).then(data => {
 
     // Tick configurations for each column
     const tickConfigs = [
-        { domain: accLim, ticks: [0, 0.2, 0.4, 0.6, 0.8, 1.0], fmt: v => v.toFixed(1) },
+        { domain: accLim, ticks: [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0], fmt: v => v.toFixed(1) },
         { domain: costLim, ticks: [0, 1, 2, 3, 4, 5], fmt: v => '$' + v },
         { domain: codeLenLim, ticks: [0, 500, 1000, 1500], fmt: v => v },
         { domain: tokensLim, ticks: null, fmt: v => v >= 1000 ? (v/1000) + 'k' : v },
