@@ -96,17 +96,17 @@ title: WeirdML Model Summary
 
         /* Column widths */
         .col-rank { width: 36px; }
-        .col-model { width: 220px; }
+        .col-model { width: 230px; }
         .col-accuracy { width: auto; }
-        .col-cost { width: 100px; }
-        .col-codelen { width: 140px; }
-        .col-tokens { width: 110px; }
+        .col-cost { width: 130px; }
+        .col-codelen { width: 180px; }
+        .col-tokens { width: 140px; }
 
         /* Rank cell */
         .rank-cell {
             text-align: center;
             font-weight: 600;
-            font-size: 0.85rem;
+            font-size: 0.95rem;
             color: #888;
         }
 
@@ -133,7 +133,7 @@ title: WeirdML Model Summary
             margin-right: 5px;
         }
         .model-name {
-            font-size: 0.82rem;
+            font-size: 0.9rem;
             font-weight: 600;
             color: #222;
             z-index: 1;
@@ -356,12 +356,19 @@ function drawAccuracy(svg, d, taskData, w, h) {
            .attr('opacity', 0.7);
     });
 
-    // Value label
-    svg.append('text')
-       .attr('x', x(mean)).attr('y', cy - 20)
-       .attr('text-anchor', 'middle').attr('font-size', '10px')
-       .attr('font-weight', '500').attr('fill', '#333')
+    // Value label on top of bar with white background
+    const labelX = x(mean);
+    const labelG = svg.append('g');
+    const labelText = labelG.append('text')
+       .attr('x', labelX).attr('y', cy + 4)
+       .attr('text-anchor', 'middle').attr('font-size', '11px')
+       .attr('font-weight', '600').attr('fill', '#111')
        .text(mean.toFixed(3));
+    const bbox = labelText.node().getBBox();
+    labelG.insert('rect', 'text')
+       .attr('x', bbox.x - 2).attr('y', bbox.y - 1)
+       .attr('width', bbox.width + 4).attr('height', bbox.height + 2)
+       .attr('fill', 'white').attr('opacity', 0.8).attr('rx', 2);
 }
 
 // ── Draw cost bar ──
@@ -387,7 +394,7 @@ function drawCost(svg, d, w, h) {
         const labelX = Math.min(x(cost), x(costLim[1] * 0.65));
         svg.append('text')
            .attr('x', labelX + 3).attr('y', cy + 4)
-           .attr('font-size', '10px').attr('fill', '#333')
+           .attr('font-size', '11px').attr('fill', '#333')
            .text(cost >= 1 ? `$${cost.toFixed(2)}` : `$${cost.toPrecision(3)}`);
     }
 }
@@ -418,12 +425,18 @@ function drawCodeLen(svg, d, w, h) {
        .attr('y1', cy - 18).attr('y2', cy + 18)
        .attr('stroke', '#000').attr('stroke-width', 2).attr('opacity', 0.5);
 
-    // Label
-    svg.append('text')
-       .attr('x', x(p50)).attr('y', cy - 20)
-       .attr('text-anchor', 'middle').attr('font-size', '10px')
-       .attr('font-weight', '500').attr('fill', '#333')
+    // Label on top of bar with white background
+    const clG = svg.append('g');
+    const clText = clG.append('text')
+       .attr('x', x(p50)).attr('y', cy + 4)
+       .attr('text-anchor', 'middle').attr('font-size', '11px')
+       .attr('font-weight', '600').attr('fill', '#111')
        .text(Math.round(p50));
+    const clBbox = clText.node().getBBox();
+    clG.insert('rect', 'text')
+       .attr('x', clBbox.x - 2).attr('y', clBbox.y - 1)
+       .attr('width', clBbox.width + 4).attr('height', clBbox.height + 2)
+       .attr('fill', 'white').attr('opacity', 0.8).attr('rx', 2);
 }
 
 // ── Draw tokens bar ──
@@ -448,7 +461,7 @@ function drawTokens(svg, d, w, h) {
         const labelX = Math.min(x(tokens), x(tokensLim[1] * 0.65));
         svg.append('text')
            .attr('x', labelX + 3).attr('y', cy + 4)
-           .attr('font-size', '10px').attr('fill', '#333')
+           .attr('font-size', '11px').attr('fill', '#333')
            .text(Math.round(tokens).toLocaleString());
     }
 }
