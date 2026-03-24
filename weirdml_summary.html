@@ -72,17 +72,6 @@ title: WeirdML Model Summary
         }
         .summary-table thead {
             position: relative;
-            background: #f1f3f5;
-        }
-        .summary-table thead::before {
-            content: '';
-            position: absolute;
-            left: 0;
-            right: 0;
-            top: 0;
-            bottom: 0;
-            background: #f1f3f5;
-            z-index: 0;
         }
         .summary-table thead::after {
             content: '';
@@ -127,6 +116,12 @@ title: WeirdML Model Summary
             overflow: visible;
         }
         .tick-overlay svg { display: block; overflow: visible; }
+        .thead-bg-fill {
+            position: absolute;
+            background: #f1f3f5;
+            z-index: 9;
+            pointer-events: none;
+        }
 
         /* Column widths */
         .col-rank { width: 36px; }
@@ -699,11 +694,21 @@ d3.csv('data/weirdml_data.csv?' + Date.now()).then(data => {
         });
     });
 
-    // Draw top ticks as overlay divs positioned above the table's data area
-    // This bypasses the sticky thead stacking context entirely
+    // Fill grey header gaps and draw top ticks as overlay divs
     requestAnimationFrame(() => {
         const wrap = document.getElementById('table-wrap');
         const wrapRect = wrap.getBoundingClientRect();
+
+        // Grey background fill behind the header to cover border-spacing gaps
+        const thead = document.querySelector('.summary-table thead');
+        const theadRect = thead.getBoundingClientRect();
+        const bgFill = document.createElement('div');
+        bgFill.className = 'thead-bg-fill';
+        bgFill.style.left = (theadRect.left - wrapRect.left) + 'px';
+        bgFill.style.top = (theadRect.top - wrapRect.top) + 'px';
+        bgFill.style.width = theadRect.width + 'px';
+        bgFill.style.height = theadRect.height + 'px';
+        wrap.appendChild(bgFill);
 
         // Get the first data row's chart cells to know exact positions
         const firstRow = tbody.querySelector('tr');
