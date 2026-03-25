@@ -69,6 +69,7 @@ title: WeirdML Model Summary
             border-radius: 8px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
             table-layout: fixed;
+            min-width: 1000px;
         }
         .summary-table thead {
             position: relative;
@@ -108,7 +109,7 @@ title: WeirdML Model Summary
         .summary-table tr:last-child td { border-bottom: none; }
 
         /* Tick overlay sits above the table, bypassing sticky stacking */
-        .table-wrap { position: relative; }
+        .table-wrap { position: relative; overflow-x: auto; }
         .tick-overlay {
             position: absolute;
             pointer-events: none;
