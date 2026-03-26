@@ -646,6 +646,7 @@ d3.csv('data/weirdml_data.csv?' + Date.now()).then(data => {
     tickConfigs[3].ticks = d3.range(0, tokensLim[1] + 1, tokStep);
 
     const n = data.length;
+    const rowRefs = [];
 
     data.forEach((d, i) => {
         const company = getCompany(d.display_name);
@@ -698,9 +699,27 @@ d3.csv('data/weirdml_data.csv?' + Date.now()).then(data => {
 
         tbody.appendChild(tr);
 
-        // Draw SVGs after DOM insertion (so dimensions are available)
-        requestAnimationFrame(() => {
-            const chartCells = [tdAcc, tdCost, tdCode, tdTok];
+        // Store references for redrawing
+        rowRefs.push({ d, isFirst, isLast, cells: [tdAcc, tdCost, tdCode, tdTok] });
+    });
+
+    // ── Render all SVG charts and overlays ──
+    function renderCharts() {
+        // Clear existing SVGs from chart cells
+        rowRefs.forEach(ref => {
+            ref.cells.forEach(td => {
+                const existing = td.querySelector('svg');
+                if (existing) existing.remove();
+            });
+        });
+
+        // Clear existing overlays and bg fills
+        const wrap = document.getElementById('table-wrap');
+        wrap.querySelectorAll('.tick-overlay, .thead-bg-fill').forEach(el => el.remove());
+
+        // Draw SVGs in each row
+        rowRefs.forEach(ref => {
+            const { d, isLast, cells } = ref;
             const drawFns = [
                 (svg, w, h) => {
                     const taskData = taskNames.map(t => ({ task: t, val: +d[t + '_acc'] })).filter(x => x.val > 0);
@@ -711,26 +730,21 @@ d3.csv('data/weirdml_data.csv?' + Date.now()).then(data => {
                 (svg, w, h) => drawTokens(svg, d, w, h),
             ];
 
-            chartCells.forEach((td, ci) => {
+            cells.forEach((td, ci) => {
                 const w = td.clientWidth;
                 const svg = d3.select(td).append('svg').attr('width', w).attr('height', rowH);
                 drawFns[ci](svg, w, rowH);
 
-                // Draw bottom ticks on last row (overflow downward)
                 const cfg = tickConfigs[ci];
                 if (isLast) {
                     drawTicksInCell(svg, cfg.domain, cfg.ticks, w, rowH, cfg.fmt, 'bottom');
                 }
             });
         });
-    });
 
-    // Fill grey header gaps and draw top ticks as overlay divs
-    requestAnimationFrame(() => {
-        const wrap = document.getElementById('table-wrap');
+        // Fill grey header gaps and draw top ticks as overlay divs
         const wrapRect = wrap.getBoundingClientRect();
 
-        // Grey background fill behind the header to cover border-spacing gaps
         const thead = document.querySelector('.summary-table thead');
         const theadRect = thead.getBoundingClientRect();
         const bgFill = document.createElement('div');
@@ -741,7 +755,6 @@ d3.csv('data/weirdml_data.csv?' + Date.now()).then(data => {
         bgFill.style.height = theadRect.height + 'px';
         wrap.appendChild(bgFill);
 
-        // Get the first data row's chart cells to know exact positions
         const firstRow = tbody.querySelector('tr');
         if (!firstRow) return;
         const chartTds = [firstRow.cells[2], firstRow.cells[3], firstRow.cells[4], firstRow.cells[5]];
@@ -755,7 +768,6 @@ d3.csv('data/weirdml_data.csv?' + Date.now()).then(data => {
             const iw = w - pad.l - pad.r;
             const x = d3.scaleLinear().domain(cfg.domain).range([pad.l, pad.l + iw]);
 
-            // Position overlay at the top edge of this td, extending upward
             const overlay = document.createElement('div');
             overlay.className = 'tick-overlay';
             overlay.style.left = (tdRect.left - wrapRect.left) + 'px';
@@ -767,7 +779,6 @@ d3.csv('data/weirdml_data.csv?' + Date.now()).then(data => {
             const svg = d3.select(overlay).append('svg')
                 .attr('width', w).attr('height', tickH);
 
-            // Baseline at bottom of tick area (top of data)
             svg.append('line').attr('x1', pad.l).attr('x2', pad.l + iw)
                .attr('y1', tickH).attr('y2', tickH)
                .attr('stroke', '#aaa').attr('stroke-width', 0.5);
@@ -782,12 +793,22 @@ d3.csv('data/weirdml_data.csv?' + Date.now()).then(data => {
                    .attr('fill', '#777').text(cfg.fmt(v));
             });
         });
-    });
 
-    // Notify parent iframe of content height for auto-sizing
-    if (window.parent !== window) {
-        window.parent.postMessage({ type: 'iframeHeight', height: document.documentElement.scrollHeight }, '*');
+        // Notify parent iframe of content height for auto-sizing
+        if (window.parent !== window) {
+            window.parent.postMessage({ type: 'iframeHeight', height: document.documentElement.scrollHeight }, '*');
+        }
     }
+
+    // Initial render
+    requestAnimationFrame(renderCharts);
+
+    // Redraw on resize (debounced)
+    let resizeTimer;
+    window.addEventListener('resize', () => {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(() => requestAnimationFrame(renderCharts), 150);
+    });
 });
 </script>
 </body>
