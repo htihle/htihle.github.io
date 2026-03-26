@@ -69,7 +69,7 @@ title: WeirdML Model Summary
             border-radius: 8px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
             table-layout: fixed;
-            min-width: 1000px;
+            min-width: 700px;
         }
         .summary-table thead {
             position: relative;
@@ -201,10 +201,14 @@ title: WeirdML Model Summary
 
         @media (max-width: 900px) {
             body { padding: 6px; }
-            .col-model { width: 160px; }
+            .summary-table { border-spacing: 8px 0; }
+            .col-rank { width: 24px; }
+            .col-model { width: 130px; }
+            .col-cost { width: 80px; }
+            .col-codelen { width: 100px; }
+            .col-tokens { width: 85px; }
             .model-name { font-size: 0.72rem; }
             .summary-table th { font-size: 0.65rem; padding: 6px 3px; }
-            .col-rank { width: 28px; }
             .rank-cell { font-size: 0.75rem; }
         }
     </style>
