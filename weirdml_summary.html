@@ -248,7 +248,7 @@ const companyColors = {
     'DeepSeek': [79,107,247], 'xAI': [77,77,77], 'Meta': [0,122,247],
     'Mistral': [238,59,59], 'Qwen': [255,127,0], 'Moonshot': [0,132,255],
     'ZhipuAI': [105,90,205], 'Inception': [26,26,46], 'Nvidia': [118,185,0],
-    'MiniMax': [255,77,106], 'Other': [136,136,136]
+    'MiniMax': [255,77,106], 'Gemma': [46,204,113], 'Other': [136,136,136]
 };
 const companyIcons = {
     'OpenAI': 'assets/icons/openai_icon.png',
@@ -264,12 +264,14 @@ const companyIcons = {
     'Inception': 'assets/icons/inception_icon.png',
     'Nvidia': 'assets/icons/nvidia_logo.png',
     'MiniMax': 'assets/icons/minimax_logo.png',
+    'Gemma': 'assets/icons/gemma-logo.png',
 };
 
 function getCompany(name) {
     const n = name.toLowerCase();
     if (n.includes('gpt') || n.startsWith('o1') || n.startsWith('o3') || n.startsWith('o4')) return 'OpenAI';
     if (n.includes('claude')) return 'Anthropic';
+    if (n.includes('gemma')) return 'Gemma';
     if (n.includes('gemini')) return 'Google';
     if (n.includes('deepseek')) return 'DeepSeek';
     if (n.includes('grok')) return 'xAI';
