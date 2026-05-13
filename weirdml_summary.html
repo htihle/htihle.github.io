@@ -299,6 +299,7 @@ function isModelOpen(name) {
     if (n.startsWith('deepseek')) return true;
     if (n.startsWith('qwen')) return true;
     if (n.startsWith('grok')) return false;
+    if (n.startsWith('mistral-medium-3.5')) return true;
     if (n.startsWith('mistral') || n.startsWith('magistral')) return false;
     if (n.startsWith('mixtral')) return true;
     if (n.startsWith('kimi')) return true;
