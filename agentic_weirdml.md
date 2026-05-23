@@ -43,7 +43,7 @@ under-performance that single-shot submission occasionally produces, rather
 than raising the ceiling.
 
 <div class="figure">
-  <img src="images_v2/agentic/01b_per_task_dots.png" alt="Per-task accuracy for the two agentic models against the regular WeirdML frontier" width="800">
+  <img src="images_v2/01b_per_task_dots.png" alt="Per-task accuracy for the two agentic models against the regular WeirdML frontier" width="800">
   <p class="figure-caption"><strong>Figure 1.</strong> Per-task accuracy for the two agentic models (each shown as two faded dots for the individual runs and a solid dot for the mean), against the best score recorded by any model on the regular, non-agentic WeirdML benchmark (grey). Tasks are in the canonical WeirdML order. On most tasks both agentic models sit right up against the regular-benchmark frontier; the remaining gap to the grey points is concentrated in a handful of harder tasks.</p>
 </div>
 
@@ -58,7 +58,7 @@ a large gain, whereas GPT-5.5 is already strong single-shot and has less
 room to improve.
 
 <div class="figure">
-  <img src="images_v2/agentic/03_agentic_vs_non_agentic.png" alt="Agentic vs non-agentic accuracy for the same model on each task" width="800">
+  <img src="images_v2/03_agentic_vs_non_agentic.png" alt="Agentic vs non-agentic accuracy for the same model on each task" width="800">
   <p class="figure-caption"><strong>Figure 2.</strong> Agentic vs. non-agentic accuracy for the same model on each task. Each arrow runs from the model's best non-agentic score on the regular benchmark to its agentic score (green where the agent helps, red where it hurts); the number beside each task is the difference. Averaged over the 17 tasks, the agentic scaffold adds <strong>+11.5 points</strong> for Opus 4.7 and <strong>+3.3 points</strong> for GPT-5.5.</p>
 </div>
 
@@ -93,7 +93,7 @@ to two orders of magnitude above the non-agentic runs, reflecting the large
 number of model calls the agents make while iterating.
 
 <div class="figure">
-  <img src="images_v2/agentic/02_cost_vs_accuracy.png" alt="Mean accuracy vs cost per single-task run on a log cost axis" width="800">
+  <img src="images_v2/02_cost_vs_accuracy.png" alt="Mean accuracy vs cost per single-task run on a log cost axis" width="800">
   <p class="figure-caption"><strong>Figure 3.</strong> Mean accuracy vs. cost per single-task run, on a log cost axis. Grey points are all model configurations on the regular WeirdML benchmark, with the regular-benchmark Pareto frontier drawn through them. The two agentic runs (stars) and the same models' best non-agentic configurations (circles) are highlighted; arrows connect each model's non-agentic point to its agentic point.</p>
 </div>
 
