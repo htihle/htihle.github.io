@@ -13,6 +13,8 @@ Most recent updates and discussion can be found on [X (@htihle)](https://x.com/h
 
 For the original WeirdML v1 results and analysis, visit the archived page: [WeirdML v1](weirdml_v1.html).
 
+For a complementary experiment where models drive a coding agent that can freely explore the data and iterate, see [Agentic WeirdML](agentic_weirdml.html).
+
 ## Introduction
 
 How good are Large Language Models (LLMs) at doing machine learning on novel datasets? The WeirdML benchmark presents LLMs with weird and unusual machine learning tasks, designed to require careful thinking and actual understanding to solve, and tests an LLM's ability to:
