@@ -49,10 +49,8 @@ A full run covers all 17 tasks, and the two runs per model cost **\$179 in
 total for GPT-5.5** and **\$305 for Opus 4.7**. Spread over the 34 single-task
 runs that represents, that is roughly **\$5 per task-run for GPT-5.5** and
 **\$9 for Opus 4.7** — more than the non-agentic runs, but only by a factor of
-a few, well under a single order of magnitude. On the cost-vs-accuracy
-landscape (Figure 1) the agentic runs land just past the regular-benchmark
-Pareto frontier, the premium reflecting the many model calls the agents make
-while iterating.
+a few (about \$1.8 → \$9.0) and only about **2×** for GPT-5.5 (about \$2.6 →
+\$5.3).
 
 <div class="figure">
   <img src="images_v2/02_cost_vs_accuracy.png" alt="Mean accuracy vs cost per single-task run on a log cost axis" width="800">
@@ -66,9 +64,7 @@ model's best non-agentic configuration on the regular benchmark shows the
 size of the effect. The scaffold lifts **Claude Opus 4.7** from **76.4%** to
 **87.9%** and **GPT-5.5** from **84.9%** to **88.3%** (the non-agentic
 baselines are the `claude-opus-4.7 (high)` and `gpt-5.5 (xhigh)`
-configurations). That accuracy gain comes at roughly **5×** the cost per
-task-run for Opus 4.7 (about \$1.8 → \$9.0) and only about **2×** for GPT-5.5
-(about \$2.6 → \$5.3).
+configurations).
 
 <div class="figure">
   <img src="images_v2/03_agentic_vs_non_agentic.png" alt="Agentic vs non-agentic accuracy for the same model on each task" width="800">
