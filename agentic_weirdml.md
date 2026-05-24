@@ -47,10 +47,9 @@ ever achieved on each task).
 
 A full run covers all 17 tasks, and the two runs per model cost **\$179 in
 total for GPT-5.5** and **\$305 for Opus 4.7**. Spread over the 34 single-task
-runs that represents, that is roughly **\$5 per task-run for GPT-5.5** and
-**\$9 for Opus 4.7** — more than the non-agentic runs, but only by a factor of
-a few (about \$1.8 → \$9.0) and only about **2×** for GPT-5.5 (about \$2.6 →
-\$5.3).
+runs that represents, that is more than the non-agentic runs but only by a
+factor of a few — about **5×** for **Opus 4.7** (\$1.8 → \$9.0 per task-run)
+and only about **2×** for **GPT-5.5** (\$2.6 → \$5.3).
 
 <div class="figure">
   <img src="images_v2/02_cost_vs_accuracy.png" alt="Mean accuracy vs cost per single-task run on a log cost axis" width="800">
@@ -74,9 +73,7 @@ configurations).
 The more interesting part is *how* the gap to the non-agentic results closes.
 The agentic models did not, for the most part, set new peak scores on
 individual tasks. Instead they **much more reliably landed close to optimal
-on every task** — the agentic scaffold removes most of the catastrophic
-under-performance that single-shot submission occasionally produces, rather
-than raising the ceiling.
+on every task**.
 
 <div class="figure">
   <img src="images_v2/01b_per_task_dots.png" alt="Per-task accuracy for the two agentic models against the regular WeirdML frontier" width="800">
