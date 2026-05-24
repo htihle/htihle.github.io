@@ -82,8 +82,7 @@ on every task**.
 
 ## An unintended exploit: shipping pre-trained weights
 
-One behaviour is worth flagging because it was not the intended use of the
-submission mechanism. In the **path-submission** runs, both models
+In the **path-submission** runs, both models
 discovered that they could train a model in their own sandbox, **encode the
 trained weights as a long base64 (or zlib+base64) string**, paste that
 string into the submission file, and decode it at grading time. The
@@ -96,15 +95,4 @@ regular-WeirdML score for the task — the exception being **GPT-5.5 on
 `insert_patches`, where both of its runs set a new state of the art**. This
 behaviour does not violate the rules (the script is still a self-contained
 submission graded on the hidden test labels), and it is not clear it made
-much difference to the scores, so these results are left to stand. It is
-only available in the path-submission mode: in plaintext mode a
-multi-megabyte weight blob would consume the entire token budget, and
-indeed neither model attempted it there.
-
-## Notes and next steps
-
-These agentic runs are a side experiment alongside the main WeirdML
-benchmark; the headline WeirdML numbers elsewhere on the site remain the
-non-agentic, single-shot results. More agentic runs, or additional regular
-WeirdML runs covering missing models, are possible on request. The main
-ongoing focus is the development of WeirdML v3.
+much difference to the scores, so these results are left to stand.
