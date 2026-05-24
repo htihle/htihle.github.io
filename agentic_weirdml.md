@@ -12,16 +12,13 @@ description: A complementary agentic setup for the WeirdML benchmark, where the 
 
 ## Introduction
 
-The regular WeirdML benchmark gives a model a fixed budget of five code
-submissions and no ability to run code itself: the model writes a training
-script "blind", it is executed once in a sandbox, and the resulting test
-accuracy is returned. This page reports a complementary **agentic** setup,
-where the model instead drives a coding agent that can freely explore the
-data and iterate before it commits to an answer. Two frontier models were
-evaluated this way — **GPT-5.5** (via the `codex_cli` harness) and **Claude
-Opus 4.7** (via the `claude_code` harness) — using the same 17 tasks, hidden
-test labels, and grading as the regular benchmark, so the scores are directly
-comparable.
+This page reports an **agentic** variant of the WeirdML benchmark, where
+instead of submitting code "blind" for a single scored execution the model
+drives a coding agent that can freely explore the data and iterate before it
+commits to an answer. Two frontier models were evaluated — **GPT-5.5**
+(`codex_cli` harness) and **Claude Opus 4.7** (`claude_code` harness) — on the
+same 17 tasks, hidden test labels, and grading as the regular benchmark, so
+the scores are directly comparable.
 
 The setup mirrors the regular WeirdML grading as closely as possible:
 
@@ -46,12 +43,16 @@ Averaged over two runs, **GPT-5.5 scored 88.3%** and **Claude Opus 4.7
 scored 87.9%**. Both are well ahead of their non-agentic counterparts on
 the regular benchmark, but still short of the known per-task upper bound of
 **92.3%** (the average, over the 17 tasks, of the best score any model has
-ever achieved on each task). The two runs cost **\$179 in total for GPT-5.5**
-and **\$305 for Opus 4.7**: placed on the full WeirdML cost-vs-accuracy
-landscape, the agentic runs sit at the high-accuracy, high-cost corner — they
-push past the regular-benchmark Pareto frontier on accuracy, but at a per-task
-cost one to two orders of magnitude above the non-agentic runs, reflecting the
-large number of model calls the agents make while iterating.
+ever achieved on each task).
+
+A full run covers all 17 tasks, and the two runs per model cost **\$179 in
+total for GPT-5.5** and **\$305 for Opus 4.7**. Spread over the 34 single-task
+runs that represents, that is roughly **\$5 per task-run for GPT-5.5** and
+**\$9 for Opus 4.7** — more than the non-agentic runs, but only by a factor of
+a few, well under a single order of magnitude. On the cost-vs-accuracy
+landscape (Figure 1) the agentic runs land just past the regular-benchmark
+Pareto frontier, the premium reflecting the many model calls the agents make
+while iterating.
 
 <div class="figure">
   <img src="images_v2/02_cost_vs_accuracy.png" alt="Mean accuracy vs cost per single-task run on a log cost axis" width="800">
@@ -60,13 +61,14 @@ large number of model calls the agents make while iterating.
 
 ## Compared to the non-agentic benchmark
 
-Holding the model fixed and comparing the agentic result to the same
+Holding the model fixed and comparing each agentic result to the same
 model's best non-agentic configuration on the regular benchmark shows the
-size of the effect. The agentic scaffold helps **Claude Opus 4.7** far
-more than **GPT-5.5** — Opus 4.7's non-agentic configuration is
-comparatively weak on this benchmark, so the freedom to experiment buys it
-a large gain, whereas GPT-5.5 is already strong single-shot and has less
-room to improve.
+size of the effect. The scaffold lifts **Claude Opus 4.7** from **76.4%** to
+**87.9%** and **GPT-5.5** from **84.9%** to **88.3%** (the non-agentic
+baselines are the `claude-opus-4.7 (high)` and `gpt-5.5 (xhigh)`
+configurations). That accuracy gain comes at roughly **5×** the cost per
+task-run for Opus 4.7 (about \$1.8 → \$9.0) and only about **2×** for GPT-5.5
+(about \$2.6 → \$5.3).
 
 <div class="figure">
   <img src="images_v2/03_agentic_vs_non_agentic.png" alt="Agentic vs non-agentic accuracy for the same model on each task" width="800">
