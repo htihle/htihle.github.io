@@ -729,7 +729,7 @@ d3.csv('data/weirdml_data.csv?' + Date.now()).then(data => {
             const { d, isLast, cells } = ref;
             const drawFns = [
                 (svg, w, h) => {
-                    const taskData = taskNames.map(t => ({ task: t, val: +d[t + '_acc'] })).filter(x => x.val > 0);
+                    const taskData = taskNames.map(t => ({ task: t, val: +d[t + '_acc'] })).filter(x => Number.isFinite(x.val));
                     drawAccuracy(svg, d, taskData, w, h);
                 },
                 (svg, w, h) => drawCost(svg, d, w, h),
