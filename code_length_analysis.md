@@ -1,10 +1,10 @@
 ---
 layout: default
-title: Why does GPT write 5x more code than Claude? by Fable
+title: Why does GPT write 5x more code than Claude?
 description: An analysis of code length on the WeirdML benchmark — why recent GPT models write dramatically longer solutions than recent Claude models, and what all that extra code is actually doing.
 ---
 
-# Why does GPT write 5x more code than Claude?
+# Why does GPT write 5x more code than Claude? by Fable
 
 <p style="font-size: 0.9rem; color: #64748b; margin-top: -0.5rem;">
   An analysis of code length on WeirdML — June 2026. Back to the main <a href="weirdml.html">WeirdML</a> page.
