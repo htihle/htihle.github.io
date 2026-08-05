@@ -16,7 +16,7 @@ I write about AI capabilities, benchmarks, and research on [LessWrong](https://w
     </div>
   </a>
   <a href="https://www.lesswrong.com/posts/JzfcJMgfkhfRhwg4C/a-benchmark-is-a-sensor" class="blog-card">
-    <img class="blog-card-img" src="images_v2/benchmark_sensor.png" alt="">
+    <img class="blog-card-img" src="https://res.cloudinary.com/lesswrong-2-0/image/upload/w_360,c_fill,ar_1.5,g_auto,q_auto/v1778059541/lexical_client_uploads/g4zrapqlajswzv3pprkg.png" alt="">
     <div class="blog-card-content">
       <span class="blog-card-title">A benchmark is a sensor</span>
       <span class="blog-card-desc">With Mathias Bynke. An AI capability benchmark is like a sensor with a certain sensitivity within a certain range of capabilities: it cannot distinguish models when all tasks are too hard or too easy, but has peak sensitivity in a middle range where small capability differences show up clearly in the score.</span>
