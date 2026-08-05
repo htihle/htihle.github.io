@@ -8,6 +8,20 @@ title: Blog
 I write about AI capabilities, benchmarks, and research on [LessWrong](https://www.lesswrong.com/).
 
 <div class="blog-grid">
+  <a href="https://www.lesswrong.com/posts/rJcCrXyEsJKmmDpWG/how-far-behind-are-open-models" class="blog-card">
+    <img class="blog-card-img" src="images_v2/open_closed_gap_over_time.png" alt="">
+    <div class="blog-card-content">
+      <span class="blog-card-title">How far behind are open models?</span>
+      <span class="blog-card-desc">Measuring the gap between open-weights and closed models across 17 benchmarks using data from the Epoch AI Benchmarking Hub. On private, contamination-resistant benchmarks open models are roughly 8&ndash;10 months behind the closed frontier, while on public benchmarks the gap is roughly 4&ndash;6 months&mdash;and the gap has been growing since DeepSeek R1.</span>
+    </div>
+  </a>
+  <a href="https://www.lesswrong.com/posts/JzfcJMgfkhfRhwg4C/a-benchmark-is-a-sensor" class="blog-card">
+    <img class="blog-card-img" src="images_v2/benchmark_sensor.png" alt="">
+    <div class="blog-card-content">
+      <span class="blog-card-title">A benchmark is a sensor</span>
+      <span class="blog-card-desc">With Mathias Bynke. An AI capability benchmark is like a sensor with a certain sensitivity within a certain range of capabilities: it cannot distinguish models when all tasks are too hard or too easy, but has peak sensitivity in a middle range where small capability differences show up clearly in the score.</span>
+    </div>
+  </a>
   <a href="https://www.lesswrong.com/posts/hoQd3rE7WEaduBmMT/weirdml-time-horizons" class="blog-card">
     <img class="blog-card-img" src="https://res.cloudinary.com/lesswrong-2-0/image/upload/w_360,c_fill,ar_1.5,g_auto,q_auto/v1/mirroredImages/hoQd3rE7WEaduBmMT/fnoemletsgzk1mzmmrqj" alt="">
     <div class="blog-card-content">
