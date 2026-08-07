@@ -13,7 +13,7 @@ Most recent updates and discussion can be found on [X (@htihle)](https://x.com/h
 
 For the original WeirdML v1 results and analysis, visit the archived page: [WeirdML v1](weirdml_v1.html).
 
-Related: [Agentic WeirdML](agentic_weirdml.html) (models driving a coding agent that can explore the data and iterate) · [Why does GPT write 5x more code than Claude?](code_length_analysis.html) (an analysis of code length on the benchmark).
+Related: [Agentic WeirdML](agentic_weirdml.html) (models driving a coding agent that can explore the data and iterate) · [Why does GPT write 5x more code than Claude?](code_length_analysis.html) (an analysis of code length on the benchmark) · [Exploring instead of scoring](exploration_weirdml.html) (an analysis of models that spend scored submissions on exploring the data).
 
 ## Introduction
 
