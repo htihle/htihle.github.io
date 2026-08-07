@@ -114,7 +114,7 @@ def get_provider_key(model_name: str) -> str:
     if name.startswith("claude"): return "anthropic"
     if name.startswith("gemini"): return "gemini"
     if name.startswith("gemma"): return "gemma"
-    if name.startswith("llama"): return "meta"
+    if name.startswith(("llama", "muse")): return "meta"
     if name.startswith("deepseek"): return "deepseek"
     if name.startswith("grok"): return "xai"
     if name.startswith(("mistral", "mixtral")): return "mistral"
