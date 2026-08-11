@@ -82,13 +82,14 @@ ICON_PATHS = {
     "alibaba": "assets/icons/alibaba_icon.png",
     "kimi": "assets/icons/kimi_logo.png",
     "minimax": "assets/icons/minimax_logo.png",
+    "thinkingmachines": "assets/icons/thinking_machines_logo.png",
 }
 
 # RESTORED ORIGINAL (LARGER) VALUES
 CUSTOM_ICON_ZOOMS = {
     "meta": 0.06, "deepseek": 0.09, "gemini": 0.11, "xai": 0.11,
     "anthropic": 0.11, "alibaba": 0.023, "gemma": 0.04, "openai": 0.08,
-    "mistral": 0.08, "kimi": 0.08, "minimax": 0.11,
+    "mistral": 0.08, "kimi": 0.08, "minimax": 0.11, "thinkingmachines": 0.11,
 }
 
 PROVIDER_COLORS = {
@@ -103,6 +104,7 @@ PROVIDER_COLORS = {
     "mistral": (0.933, 0.231, 0.231),
     "kimi": (0.000, 0.518, 1.000),
     "minimax": (1.0, 0.302, 0.416),
+    "thinkingmachines": (0.576, 0.200, 0.918),
     "unknown": (0.5, 0.5, 0.5),
 }
 
@@ -121,6 +123,7 @@ def get_provider_key(model_name: str) -> str:
     if name.startswith("qwen"): return "alibaba"
     if name.startswith("kimi"): return "kimi"
     if name.startswith("minimax"): return "minimax"
+    if name.startswith("inkling"): return "thinkingmachines"
     return "unknown"
 
 def get_provider_color(model_name: str) -> tuple:
