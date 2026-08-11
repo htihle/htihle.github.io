@@ -104,7 +104,7 @@ PROVIDER_COLORS = {
     "mistral": (0.933, 0.231, 0.231),
     "kimi": (0.000, 0.518, 1.000),
     "minimax": (1.0, 0.302, 0.416),
-    "thinkingmachines": (0.576, 0.200, 0.918),
+    "thinkingmachines": (0.086, 0.075, 0.067),
     "unknown": (0.5, 0.5, 0.5),
 }
 
