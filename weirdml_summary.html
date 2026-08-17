@@ -248,7 +248,8 @@ const companyColors = {
     'DeepSeek': [79,107,247], 'xAI': [77,77,77], 'Meta': [0,122,247],
     'Mistral': [238,59,59], 'Qwen': [255,127,0], 'Moonshot': [0,132,255],
     'ZhipuAI': [105,90,205], 'Inception': [26,26,46], 'Nvidia': [118,185,0],
-    'MiniMax': [255,77,106], 'Gemma': [46,204,113], 'Other': [136,136,136]
+    'MiniMax': [255,77,106], 'Gemma': [46,204,113], 'Thinking Machines': [22,19,17],
+    'Other': [136,136,136]
 };
 const companyIcons = {
     'OpenAI': 'assets/icons/openai_icon.png',
@@ -265,6 +266,7 @@ const companyIcons = {
     'Nvidia': 'assets/icons/nvidia_logo.png',
     'MiniMax': 'assets/icons/minimax_logo.png',
     'Gemma': 'assets/icons/gemma-logo.png',
+    'Thinking Machines': 'assets/icons/thinking_machines_logo.png',
 };
 
 function getCompany(name) {
@@ -275,7 +277,7 @@ function getCompany(name) {
     if (n.includes('gemini')) return 'Google';
     if (n.includes('deepseek')) return 'DeepSeek';
     if (n.includes('grok')) return 'xAI';
-    if (n.includes('llama')) return 'Meta';
+    if (n.includes('llama') || n.includes('muse')) return 'Meta';
     if (n.includes('mistral') || n.includes('mixtral')) return 'Mistral';
     if (n.includes('qwen')) return 'Qwen';
     if (n.includes('kimi')) return 'Moonshot';
@@ -283,6 +285,7 @@ function getCompany(name) {
     if (n.includes('mercury')) return 'Inception';
     if (n.includes('nemotron')) return 'Nvidia';
     if (n.includes('minimax')) return 'MiniMax';
+    if (n.includes('inkling')) return 'Thinking Machines';
     return 'Other';
 }
 
