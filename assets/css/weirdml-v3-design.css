@@ -541,6 +541,10 @@ body.v3-plot { height: auto; overflow: visible; }
    Selected tasks page: keep its dark design; only align the shared nav.
    ------------------------------------------------------------------ */
 body:has(.weirdml-task-page) main h1 { color: #f1f5f9; }
+body:has(.weirdml-task-page) main h2,
+body:has(.weirdml-task-page) main h3,
+body:has(.weirdml-task-page) main strong { color: #f1f5f9; }
+body:has(.weirdml-task-page) main p { color: #b7c5d1; }
 body:has(.weirdml-task-page) main h1::after { background: #5fc3e6; }
 /* Selected tasks: the site header, band and page share one dark surface; the band fades into the page. */
 body:has(.weirdml-task-page) .site-header { background-color: rgba(255, 255, 255, 0.95); border-bottom: 1px solid var(--color-border, #e2e8f0); }
