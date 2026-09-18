@@ -181,7 +181,7 @@ permalink: /weirdml_table.html
 <div class="header">
   <h1>WeirdML: Data Table</h1>
   <div class="header-links">
-    <a href="weirdml.html">&larr; Back to WeirdML</a>
+    <a href="weirdml_v2.html">&larr; Back to WeirdML v2</a>
     <a href="weirdml_interactive.html">Interactive plot</a>
     <a href="data/weirdml_data.csv">CSV</a>
   </div>

@@ -1,252 +1,48 @@
 ---
 layout: default
 title: WeirdML
+weirdml_section: results
 ---
 
-# WeirdML
+{% include weirdml-v3-theme.html %}
 
-<div class="highlight-box">
-  <strong>Version 2 of WeirdML is now out!</strong> We're also pleased to announce that WeirdML is now included in <a href="https://epoch.ai/data/ai-benchmarking-dashboard">Epoch AI's Benchmarking Hub</a>. We're grateful to <a href="https://metr.org">METR</a> for supporting the API costs of this project.
+<div class="v3-hero" markdown="1">
+
+# WeirdML v3
+
+WeirdML (v3) is an **agentic benchmark** featuring **11 complex hand-made tasks** made to challenge the model to explore and understand unfamiliar data, develop machine learning and data analysis pipelines and produce appropriate results despite limited data, unspecified goals and/or very limited feedback.
+{: .weirdml-intro }
+
+WeirdML v3 was created by me ([Håvard Tveit Ihle]({{ '/' | relative_url }})) at the [Norwegian Defence Research Establishment (NDRE)](https://www.ffi.no/en/about-ffi). API costs were supported primarily by [EpochAI](https://epoch.ai/), secondarily by [METR](https://metr.org/) and [NDRE](https://www.ffi.no/en/about-ffi). Thanks for the support!
+
+Previous versions: [WeirdML v2](weirdml_v2.html) · [WeirdML v1](weirdml_v1.html).
+
+{% include weirdml-v3-nav.html %}
+
 </div>
 
-Most recent updates and discussion can be found on [X (@htihle)](https://x.com/htihle).
+<div id="results"></div>
 
-For the original WeirdML v1 results and analysis, visit the archived page: [WeirdML v1](weirdml_v1.html).
-
-Related: [Agentic WeirdML](agentic_weirdml.html) (models driving a coding agent that can explore the data and iterate) · [Why does GPT write 5x more code than Claude?](code_length_analysis.html) (an analysis of code length on the benchmark) · [Exploring instead of scoring](exploration_weirdml.html) (an analysis of models that spend scored submissions on exploring the data).
-
-## Introduction
-
-How good are Large Language Models (LLMs) at doing machine learning on novel datasets? The WeirdML benchmark presents LLMs with weird and unusual machine learning tasks, designed to require careful thinking and actual understanding to solve, and tests an LLM's ability to:
-
-1. Actually understand the properties of the data and the problem
-2. Come up with an appropriate ML architecture and training setup for the problem, and generate working PyTorch code that implements the solution
-3. Debug and improve the solution over 5 iterations based on terminal output and the accuracy on the test set
-4. Make good use of limited computational resources and time
-
-Each task comes with a task prompt describing the problem precisely and some example code for loading data and saving predictions. The different tasks pose various challenges: some require heavy data augmentation, others need careful feature engineering, or require combining information from many different parts of the input.
-
-## Results
-
-<p style="font-size: 0.9rem; color: #64748b; margin-top: -0.5rem;">
-  Open standalone: <a href="/weirdml_interactive.html">Interactive plot</a> · <a href="/weirdml_summary.html">Model summary</a> · <a href="/weirdml_table.html">Data table</a> · <a href="{{ "/data/weirdml_data.csv" | relative_url }}">CSV</a>
+<p class="v3-standalone">
+  Open standalone: <a href="{{ '/weirdml_v3_interactive.html' | relative_url }}">Interactive plot</a> · <a href="{{ '/weirdml_v3_summary.html' | relative_url }}">Model summary</a> · <a href="{{ '/assets/data/weirdml_v3.json' | relative_url }}">Prepared data (.json)</a> · <a href="{{ '/data/weirdml_v3_results.json' | relative_url }}">Full data (.json)</a>
 </p>
 
-<div style="margin: 20px 0;">
-  <div style="border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);">
-    <iframe src="/weirdml_interactive.html?embed" style="width: 100%; height: 1000px; border: none; display: block;"></iframe>
-  </div>
+<div class="v3-embed">
+  <iframe title="WeirdML v3 interactive progress plot" src="{{ '/weirdml_v3_interactive.html' | relative_url }}?embed" scrolling="no"></iframe>
 </div>
 
-<div style="margin: 20px 0;">
-  <div style="border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);">
-    <iframe id="summary-iframe" src="/weirdml_summary.html?embed" style="width: 100%; border: none; display: block; height: 2200px;"></iframe>
-  </div>
-  <p class="figure-caption">This figure provides a comprehensive summary of model performance across multiple metrics for models that have results for all included tasks. The 'Average Accuracy Across Tasks' column shows the overall mean accuracy (bold number) calculated as the average of the mean max accuracy for each task. That is, for each model, we take the maximum accuracy of the 5 iterations per run, we average these values over all the runs for a given task (typically 5 runs/model/task), then we average these results over all the 17 tasks. The thick horizontal bar represents the 95% confidence interval around this mean, estimated using bootstrap, reflecting the variability between different runs on each task. Individual task means are shown as scatter points, with distinct markers for each task type (see legend on top). The 'Cost per Run (USD)' column presents the average total cost incurred per model run, including all iterations. The 'Code Length (#Lines)' column illustrates the distribution of Python code lengths generated by each model, with the thick horizontal bar spanning the 10th to 90th percentile and a vertical line indicating the median number of lines. Finally, the 'Total Output Tokens' column displays the average number of output tokens per LLM call (reasoning tokens plus regular completion tokens).</p>
+**In the Tokens view above, each model’s line shows its average best-so-far effective score across all 11 tasks. That model’s official score is 80% normalized area under its line on a logarithmic token axis, plus 20% of its final value.** Only the interval from **500k to 50M tokens** contributes to the area; earlier progress is shown for context, and the best score reached before 500k carries into the scoring window. The best-so-far score is carried forward to the full 50M-token limit, even if a run ends early.
+{: .v3-note }
+
+The curve averages runs within each configuration, then weights each of the 11 tasks equally; hinted and hintless twins each receive half their task’s weight. Ship Detect’s cost-weighted tokens are scaled ×25: its native 20k–2M scoring window maps to 500k–50M on the combined plot. Effective scores include normalization and hint penalties; they are not raw accuracy. Select **Per Task** to explore any of the 15 configurations, **Cost** or **Date** to compare official scores, or **Open vs Closed** to compare the score frontiers over time.
+{: .v3-note }
+
+<div class="v3-embed">
+  <iframe id="v3-summary-iframe" title="WeirdML v3 model summary" src="{{ '/weirdml_v3_summary.html' | relative_url }}?embed" scrolling="no"></iframe>
 </div>
 
-<script>
-window.addEventListener('message', function(e) {
-  if (e.data && e.data.type === 'iframeHeight') {
-    document.getElementById('summary-iframe').style.height = e.data.height + 'px';
-  }
-});
-</script>
+Shaded score bands show approximate 95% run-uncertainty intervals, with variance pooled across configurations and models. Black markers show all 15 configuration means. Cost is mean API cost per run, using the same task weighting as scores. Final Best Score is the equally weighted mean final effective score. Harness shows the agent software and version used for the included runs. Only models with at least one valid run in every configuration are included.
+{: .v3-note }
 
-<div class="figure">
-  <img src="images_v2/weirdml_cost_vs_accuracy.png" alt="Cost vs Accuracy" width="800">
-  <p class="figure-caption">This scatter plot visualizes the trade-off between the cost and the overall average accuracy across all tasks for each model. The X-axis (Average Cost per Run) is on a logarithmic scale, representing the total estimated cost in USD for a complete run including all iterations. The Y-axis (Average Max Accuracy) shows the overall mean accuracy, as detailed in the Model Performance Summary figure. The actual datapoints are in the middle of each company logo, not the text.</p>
-</div>
 
-<div class="figure">
-  <img src="images_v2/weirdml_tokens_vs_accuracy.png" alt="Tokens vs Accuracy" width="800">
-  <p class="figure-caption">This scatter plot visualizes the trade-off between the number of output tokens and the overall average accuracy across all tasks for each model. The X-axis (Average total output tokens per response) is on a logarithmic scale, representing the total number of output tokens (reasoning tokens plus regular completion tokens). The Y-axis (Average Max Accuracy) shows the overall mean accuracy, as detailed in the Model Performance Summary figure. The actual datapoints are in the middle of each company logo, not the text.</p>
-</div>
-
-<div class="figure">
-  <img src="images_v2/weirdml_accuracy_progression.png" alt="Accuracy Progression" width="800">
-  <p class="figure-caption">Accuracy progression over five iterations. For each of the five highlighted models the marker shows the mean of the per-task "best-so-far" test accuracy after iteration n, averaged over all runs and all 17 WeirdML tasks; the vertical whiskers are 95% bootstrap confidence intervals. A single iteration (leftmost point) captures zero-shot code generation, while later points incorporate up to four rounds of feedback in the form of the test accuracy and terminal output from the python execution.</p>
-</div>
-
-### Evolution of frontier over time
-
-I have now added basically all the relevant frontier models back in time. Older models than mid-2023 are not included since they generally have too small context windows to solve the tasks, they would probably score very low as well. Notable missing models are o1-pro (this is too expensive to run) and gemini-1.0-ultra (not available in API any more).
-
-<div class="figure">
-  <video width="100%" controls autoplay loop muted>
-    <source src="animations/WeirdML_task_evolution.mp4" type="video/mp4">
-  </video>
-  <p class="figure-caption">This animation shows the evolution of state-of-the-art performance on each individual WeirdML task over time. At each point in time, the visualization displays the best score achieved so far on each task and which model holds that record. As time progresses, you can see records being broken and new models taking the lead on different tasks.</p>
-</div>
-
-<div class="figure">
-  <img src="images_v2/weirdml_date_vs_accuracy.png" alt="Date vs Accuracy" width="800">
-  <p class="figure-caption">This scatter plot shows the relationship between model release dates and their achieved accuracy. Each icon corresponds to a model positioned according to its release date on the X-axis and its overall accuracy on the Y-axis, providing an overview of how model performance has progressed chronologically. The actual datapoints are in the middle of each company logo, not the text.</p>
-</div>
-
-<div class="figure">
-  <video width="100%" controls autoplay loop muted>
-    <source src="animations/weirdml_cost_frontier.mp4" type="video/mp4">
-  </video>
-  <p class="figure-caption">This animation shows the evolution of the cost-accuracy Pareto frontier over time. As time progresses, new models appear and the frontier (representing the best accuracy achievable at each cost level) shifts outward, illustrating the rapid improvements in model efficiency. Models that once defined the frontier are eventually surpassed by newer, more capable or cost-effective alternatives.</p>
-</div>
-
-<div class="figure">
-  <img src="images_v2/weirdml_accuracy_cost_frontier_evolution.png" alt="Cost-Accuracy Frontier Evolution" width="800">
-  <p class="figure-caption">This figure illustrates the evolution of the cost-accuracy frontier over time, showing snapshots at six-month intervals from July 2023 to July 2025. Each colored curve represents the most cost-effective models (lowest cost for highest accuracy) available up to that date, highlighting rapid advancements in model efficiency and accuracy over the period. The icons represent individual models placed according to their cost per run (logarithmic X-axis) and overall accuracy (Y-axis). The actual datapoints are in the middle of each company logo, not the text.</p>
-</div>
-
-### Open vs Closed Models
-
-<div class="figure">
-  <img src="images_v2/weirdml_date_vs_accuracy_with_frontiers.png" alt="Open vs Closed Models" width="800">
-  <p class="figure-caption">This scatter plot compares the progress of open-weights versus closed-weights models over time, plotting their release dates against their achieved accuracy. The step-like frontier curves represent the best accuracy achieved by open-weights (blue) and closed-weights (green) models, respectively, at any given time. Shaded regions emphasize periods where closed models held a clear accuracy advantage, highlighting the competitive dynamics between open and closed approaches. The actual datapoints are in the middle of each company logo, not the text.</p>
-</div>
-
-<div class="figure">
-  <img src="images_v2/weirdml_open_model_delay_timeline.png" alt="Open Model Delay Timeline" width="900">
-  <p class="figure-caption">This timeline visualizes the delays experienced by open-weights models in reaching various accuracy thresholds initially achieved by closed-weights models. Each horizontal line indicates the period from when a closed-weights model first reached an accuracy threshold (left icon) until an open-weights model achieved the same level (right icon). The annotated delays in months quantifies the gap between closed-weights models and open-weights models over time.</p>
-</div>
-
-### Cost decrease over time
-
-See blog post for more details: [Inference costs for hard coding tasks halve roughly every two months](https://www.lesswrong.com/posts/ifSBamvobbyB9KWjK/inference-costs-for-hard-coding-tasks-halve-roughly-every)
-
-<div class="figure">
-  <img src="images_v2/weirdml_cost_to_accuracy_over_time_overlaid.png" alt="Cost to Accuracy Over Time" width="800">
-  <p class="figure-caption">Here we see the cost to run the cheapest model that could achieve each 5% level of accuracy and how it declines over time. This is the average cost to solve a single task (in 5 iterations/model calls). We show the results for each accuracy level from 5% up to 55%, which is the highest 5% increment achieved to date.</p>
-</div>
-
-<div class="figure">
-  <img src="images_v2/weirdml_cost_to_accuracy_over_time_overlaid_normalized.png" alt="Normalized Cost Over Time" width="800">
-  <p class="figure-caption">Here we see the normalized cost (the cost at each time compared to the cost when the threshold was first achieved), and how that evolves over time for each threshold. We can then fit a curve to these data.</p>
-</div>
-
-## Evaluation Setup
-
-The evaluation uses an automated pipeline that:
-1. Presents the task to the LLM
-2. Executes the generated code in an isolated environment
-3. Evaluates the results against the test set
-4. Provides feedback (terminal output from the code execution and test accuracy) to the LLM for improvement
-
-<div class="figure">
-  <img src="images_v2/evaluation_setup.png" alt="Evaluation Setup" width="500">
-  <p class="figure-caption">Evaluation pipeline showing the flow from LLM code generation through isolated execution to metric evaluation and feedback, with fixed computational constraints enforced via Docker.</p>
-</div>
-
-### System Architecture
-
-The system executes code in a Docker container with strict resource limits (TITAN V GPU with 12GB memory, 120-second timeout). This ensures fair comparison between models and tests their ability to work within realistic constraints.
-
-Each 'run' is 5 iterations, i.e., the LLM gets 5 submissions, and 4 rounds of feedback, allowing them to learn from feedback and improve their solutions ([full system prompt](prompts/system_prompt_v2.md)). The accuracy of each run is the maximum test accuracy achieved over all the 5 submissions in that run.
-
-For each task we give each model (at least) 5 runs (due to the high cost, o3-pro, claude-4-opus and gpt-4.5 only get 2 runs per task), in order to take into account the large variance in performance that we see for the same model on the same task. The final score for each model on that task is the mean accuracy over all the runs.
-
-## Tasks
-
-The LLMs are evaluated on several different machine learning tasks. These tasks are intended to be possible to solve with a very limited amount of data, while still being hard to solve. They should also require the LLMs to think clearly and actually understand the data and its properties, not just blindly apply a standard ML recipe.
-
-Below is a more detailed description of the six first tasks, which are the ones that were used in WeirdML v1. I will not be sharing details about all the thirteen new tasks beyond the task names. So these six can be seen as example tasks, and the new tasks are a hidden test set that the models have not seen online before. We here also show results for each individual run on these six tasks, to give a better idea of the variance in performance for each model on each task, and how these tasks are getting saturated.
-
-<div class="figure">
-  <img src="images/train_examples_easy.png" alt="Shapes Easy Examples" width="600">
-  <p class="figure-caption">Example data from the Shapes (Easy) task. The shapes are always centered and have fixed orientation and size, making this the simpler variant of the shape recognition tasks.</p>
-</div>
-
-### Shapes (Easy)
-
-A shape classification task ([task prompt](prompts/task_prompt_shapes_easy.md)) where models must identify one of five shapes (circle, square, triangle, pentagon, star) from a set of 512 2D coordinates. Only some of the points make up the shape, the other points are noise. The shapes are always centered and have fixed orientation and size, making this the simpler variant of the shape recognition tasks. The training set has 1000 samples.
-
-Here the model needs to come up with a way to encode the data that is invariant to permutations of the points. The distribution of points along the shape also varies greatly, so the model needs to combine information from many points to make a good prediction.
-
-<div class="figure">
-  <img src="images_v2/shapes_easy_max_accuracy_comparison.png" alt="Shapes Easy Results" width="800">
-  <p class="figure-caption">Maximum accuracy for each run on the Shapes (Easy) task by each model. The bars show the mean value over all the runs. The grey dots represent results for individual runs.</p>
-</div>
-
-We can see from the figure that this task is basically solved at this point. If you are not careful in your architecture, it is very easy to completely overfit on the training data, but if you do something somewhat reasonable, it is not that hard to score basically perfect.
-
-<div class="figure">
-  <img src="images/train_examples_hard.png" alt="Shapes Hard Examples" width="600">
-  <p class="figure-caption">Example data from the Shapes (Hard) task. The shapes are randomly positioned, oriented, and sized, making this a more challenging variant of the shape recognition tasks.</p>
-</div>
-
-### Shapes (Hard)
-
-Similar to Shapes (Easy), but with random positioning, orientation, and size of the shapes ([task prompt](prompts/task_prompt_shapes_hard.md)). This tests the model's ability to create translation, rotation, and scale invariant features. Good data augmentation is also crucial on this one.
-
-<div class="figure">
-  <img src="images_v2/shapes_hard_max_accuracy_comparison.png" alt="Shapes Hard Results" width="800">
-  <p class="figure-caption">Maximum accuracy for each run on the Shapes (Hard) task by each model. The bars show the mean value over all the runs. The grey dots represent results for individual runs.</p>
-</div>
-
-While similar in structure to the easy version, this task is much harder. In the easy task, when the shapes are always in the same positions, the model can learn what positions correspond to what shapes. This is not possible here, now you need to use the relative position of the different points in a rotationally invariant and scale invariant way, which is much harder.
-
-While most models usually do little better than chance, the best models do consistently better, and we have a best score of almost 90%.
-
-<div class="figure">
-  <img src="images/scrambled_vs_unscrambled_easy.png" alt="Shuffle Easy Examples" width="500">
-  <p class="figure-caption">Example data from the Image Patch Shuffling (Easy) task. Models must arrange 9 shuffled grayscale image patches (9x9 pixels each) to reconstruct the original 27x27 image.</p>
-</div>
-
-### Image Patch Shuffling (Easy)
-
-Models must arrange 9 shuffled grayscale image patches (9x9 pixels each) to reconstruct the original 27x27 image. All patches are guaranteed to be part of a single, coherent image ([task prompt](prompts/task_prompt_shuffle_easy.md)). The training set has 1000 images.
-
-The original images here are from the fashion MNIST dataset, which is a greyscale dataset of 28x28 images of fashion items, with the items of clothing in the middle against a black background. This means that the position of an individual patch can often be inferred from the patch itself, since for example, a patch in the left of the image will tend to contain the left side of the item of clothing etc. This allows you to get a decent score even if you are not combining the information from the different patches in a good way.
-
-<div class="figure">
-  <img src="images_v2/shuffle_easy_max_accuracy_comparison.png" alt="Shuffle Easy Results" width="800">
-  <p class="figure-caption">Maximum accuracy for each run on the Image Patch Shuffling (Easy) task by each model. The bars show the mean value over all the runs. The grey dots represent results for individual runs.</p>
-</div>
-
-<div class="figure">
-  <img src="images/scrambled_vs_unscrambled_hard.png" alt="Shuffle Hard Examples" width="500">
-  <p class="figure-caption">Example data from the Image Patch Shuffling (Hard) task. Models must arrange 9 shuffled RGB image patches (9x9 pixels each) from a random 27x27 subset of a larger 64x64 image.</p>
-</div>
-
-### Image Patch Shuffling (Hard)
-
-A more challenging version where patches are in RGB and taken from a random 27x27 subset of a larger 64x64 image ([task prompt](prompts/task_prompt_shuffle_hard.md)). The setup here is very similar to the easy version, but now you cannot infer the position of a patch from the patch itself, as the patches are taken from a random subset of the image (so a left patch can be taken from the center of the image). The original images are now also taken from imagenette (a subset of imagenet), which has a much more varied background and which makes it harder to infer the position of the individual patches. This means that the model needs to combine information from the different patches, and use the fact that the patches are supposed to fit well next to each other to make a good prediction.
-
-<div class="figure">
-  <img src="images_v2/shuffle_hard_max_accuracy_comparison.png" alt="Shuffle Hard Results" width="800">
-  <p class="figure-caption">Maximum accuracy for each run on the Image Patch Shuffling (Hard) task by each model. The bars show the mean value over all the runs. The grey dots represent results for individual runs.</p>
-</div>
-
-<div class="figure">
-  <img src="images/chess-games.png" alt="Chess Examples" width="600">
-  <p class="figure-caption">Example data from the Chess Game Outcome Prediction task. Models must predict the outcome of chess games (white wins, black wins, or draw) from game move sequences given as strings (here truncated).</p>
-</div>
-
-### Chess Game Outcome Prediction
-
-Predict the outcome of chess games (white wins, black wins, or draw) from game move sequences ([task prompt](prompts/task_prompt_chess_winners.md)). The data consists of games played by beginners (rated below 1300), with moves in standard algebraic notation. Note that with 50% probability, the last move (for a single player) is removed, to prevent models using who moves last as a signal for the outcome. The training set has 1000 games.
-
-Here the models need to split the string into moves, then convert the string for each move into some kind of hand-crafted or learned features, and finally use these features to predict the outcome of the game, while dealing with the variable length of the chess games. Once some good features are found, there should be plenty of patterns that can be used to do significantly better than chance on predicting the outcome of the games.
-
-<div class="figure">
-  <img src="images_v2/chess_winners_max_accuracy_comparison.png" alt="Chess Results" width="800">
-  <p class="figure-caption">Maximum accuracy for each run on the Chess Game Outcome Prediction task by each model. The bars show the mean value over all the runs. The grey dots represent results for individual runs.</p>
-</div>
-
-Simply guessing white wins always will give you about 50% here, which is why I put the "random chance" line at 50% for this task. There has not been much progress on this task since WeirdML v1, suggesting it is very hard to achieve above 80% here, although I still think it is possible to score better with the right approach.
-
-<div class="figure">
-  <img src="images/train_test_data.png" alt="Digits Examples" width="600">
-  <p class="figure-caption">Example data from the Unsupervised Digit Recognition task. Models must classify digits with only 26 labeled examples and a large set of unlabeled data.</p>
-</div>
-
-### Unsupervised Digit Recognition
-
-A semi-supervised learning task where models must classify digits with only 26 labeled examples and a large set of unlabeled data ([task prompt](prompts/task_prompt_digits_unsup.md)). The challenge is complicated by uneven class distribution in the unlabeled set. The unlabeled training set is almost 16000 samples.
-
-This is perhaps the most straightforward task, as a fairly standard semi-supervised machine learning recipe can be applied, but it is at least a dataset that the models have not seen before, and making semi-supervised learning work at all is not trivial.
-
-<div class="figure">
-  <img src="images_v2/digits_unsup_max_accuracy_comparison.png" alt="Digits Results" width="800">
-  <p class="figure-caption">Maximum accuracy for each run on the Unsupervised Digit Recognition task by each model. The bars show the mean value over all the runs. The grey dots represent results for individual runs.</p>
-</div>
-
-Here the models have improved a lot since WeirdML v1, and the best models now all consistently score well.
+<script src="{{ '/assets/js/weirdml-v3-page.js' | relative_url }}" defer></script>

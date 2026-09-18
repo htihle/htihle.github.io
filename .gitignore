@@ -1,1 +1,12 @@
 _site/
+.jekyll-cache/
+.bundle/
+__pycache__/
+
+# Working notes and local tooling, not part of the published site
+AGENTS.md
+CLAUDE.md
+.claude/
+scripts/backups/
+scripts/exports/
+selected_tasks_page.zip

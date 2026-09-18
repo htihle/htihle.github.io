@@ -1,0 +1,5 @@
+<nav class="weirdml-nav" aria-label="WeirdML v3 sections">
+  <a href="{{ '/weirdml.html' | relative_url }}" {% if page.weirdml_section == 'results' %}aria-current="page"{% endif %}>Results</a>
+  <a href="{{ '/weirdml_tasks.html' | relative_url }}" {% if page.weirdml_section == 'tasks' %}aria-current="page"{% endif %}>Selected tasks</a>
+  <a href="{{ '/weirdml_scoring.html' | relative_url }}" {% if page.weirdml_section == 'scoring' %}aria-current="page"{% endif %}>Scoring</a>
+</nav>

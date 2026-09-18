@@ -13,3 +13,7 @@
 
 {% feed_meta %}
 {% seo %}
+
+{% if page.weirdml_section %}
+<link rel="stylesheet" href="{{ '/assets/css/weirdml-v3-sections.css' | relative_url }}">
+{% endif %}

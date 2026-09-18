@@ -1,0 +1,466 @@
+---
+layout: nothing
+title: WeirdML v3 Interactive Plot
+---
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WeirdML Interactive Plot</title>
+    <script src="assets/js/vendor/d3.v7.min.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100%;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            padding: 15px;
+            background: #f8f9fa;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            position: relative;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 1.4rem;
+            color: #2c3e50;
+        }
+
+        .header-links {
+            position: absolute;
+            top: 0;
+            left: 0;
+            display: flex;
+            gap: 12px;
+        }
+
+        .header-links a {
+            color: #3498db;
+            text-decoration: none;
+            font-size: 0.85rem;
+        }
+
+        .header-links a:hover {
+            text-decoration: underline;
+        }
+
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .control-group label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 5px;
+        }
+
+        .control-btn {
+            padding: 6px 12px;
+            border: 2px solid #3498db;
+            background: white;
+            color: #3498db;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .control-btn:hover {
+            background: #ecf6fd;
+        }
+
+        .control-btn.active {
+            background: #3498db;
+            color: white;
+        }
+
+        .chart-container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            padding: 10px;
+            overflow: hidden;
+            /* manipulation = allow pan+pinch but disable double-tap-zoom,
+               which eliminates Safari's 300ms tap delay */
+            touch-action: manipulation;
+            flex: 1;
+            min-height: 0;
+        }
+
+        #chart {
+            width: 100%;
+            height: 100%;
+            /* cursor:pointer makes iOS Safari treat the SVG as "clickable",
+               which is required for click events to fire reliably.
+               touch-action:manipulation removes the 300ms tap delay. */
+            cursor: pointer;
+            touch-action: manipulation;
+        }
+
+        .tooltip {
+            position: absolute;
+            pointer-events: none;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            font-size: 0.85rem;
+            max-width: 300px;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.15s ease;
+        }
+
+        .tooltip.visible {
+            opacity: 1;
+        }
+
+        .tooltip-title {
+            font-weight: 600;
+            font-size: 1rem;
+            margin-bottom: 8px;
+            color: #2c3e50;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 6px;
+        }
+
+        .tooltip-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 4px 0;
+        }
+
+        .tooltip-label {
+            color: #666;
+        }
+
+        .tooltip-value {
+            font-weight: 500;
+            color: #333;
+        }
+
+        .model-icon {
+            cursor: pointer;
+        }
+
+        .model-dot {
+            cursor: pointer;
+            transition: r 0.15s ease;
+        }
+
+        .model-dot:hover {
+            r: 12;
+        }
+
+        .model-label {
+            font-size: 13px;
+            font-weight: 500;
+            fill: #333;
+            pointer-events: none;
+        }
+
+        .axis-label {
+            font-size: 13px;
+            font-weight: 500;
+            fill: #555;
+        }
+
+        .legend {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 15px;
+            padding: 10px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.85rem;
+            color: #555;
+        }
+
+        .legend-icon {
+            width: 20px;
+            height: 20px;
+            object-fit: contain;
+        }
+
+        .legend-dot {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+        }
+
+        /* Tablet / narrow desktop */
+        @media (max-width: 1200px), (max-height: 500px) {
+            body {
+                padding: 8px;
+            }
+
+            .header {
+                margin-bottom: 8px;
+            }
+
+            .header h1 {
+                font-size: 1.1rem;
+            }
+
+            .header-links {
+                position: static;
+                justify-content: center;
+                margin-top: 6px;
+                gap: 10px;
+            }
+
+            .header-links a {
+                font-size: 0.75rem;
+            }
+
+            .controls {
+                padding: 8px;
+                gap: 8px;
+                margin-bottom: 8px;
+            }
+
+            .control-group label {
+                font-size: 0.65rem;
+            }
+
+            .control-btn {
+                padding: 5px 10px;
+                font-size: 0.75rem;
+            }
+
+            .chart-container {
+                padding: 5px;
+            }
+
+            #chart {
+                min-height: 200px;
+            }
+
+            .model-label {
+                font-size: 10px;
+            }
+
+            .legend {
+                display: flex !important;
+                gap: 6px;
+                padding: 4px;
+                margin-top: 5px;
+            }
+
+            .legend-item {
+                font-size: 0.65rem;
+                gap: 3px;
+            }
+
+            .legend-icon {
+                width: 14px;
+                height: 14px;
+            }
+
+            .legend-dot {
+                width: 10px;
+                height: 10px;
+            }
+        }
+
+        /* Mobile phone */
+        @media (max-width: 600px) {
+            body {
+                padding: 4px;
+            }
+
+            .header {
+                margin-bottom: 4px;
+            }
+
+            .header h1 {
+                font-size: 0.95rem;
+            }
+
+            .controls {
+                padding: 6px;
+                gap: 6px;
+                margin-bottom: 4px;
+            }
+
+            .control-group {
+                gap: 3px;
+            }
+
+            .control-group label {
+                font-size: 0.6rem;
+            }
+
+            .button-group {
+                gap: 3px;
+            }
+
+            .control-btn {
+                padding: 4px 7px;
+                font-size: 0.65rem;
+                border-width: 1.5px;
+            }
+
+            .chart-container {
+                padding: 3px;
+                border-radius: 6px;
+            }
+
+            #chart {
+                min-height: 180px;
+            }
+
+            .model-label {
+                font-size: 8px;
+            }
+
+            .legend {
+                gap: 4px;
+                padding: 3px;
+                margin-top: 3px;
+            }
+
+            .legend-item {
+                font-size: 0.6rem;
+                gap: 2px;
+            }
+
+            .legend-icon {
+                width: 12px;
+                height: 12px;
+            }
+
+            .legend-dot {
+                width: 8px;
+                height: 8px;
+            }
+
+            /* Fixed bottom info panel for touch devices */
+            .tooltip.mobile-panel {
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                top: auto;
+                max-width: 100%;
+                border-radius: 12px 12px 0 0;
+                padding: 10px 14px;
+                box-shadow: 0 -4px 16px rgba(0,0,0,0.2);
+                transform: translateY(100%);
+                transition: transform 0.2s ease, opacity 0.15s ease;
+                z-index: 1001;
+            }
+
+            .tooltip.mobile-panel.visible {
+                transform: translateY(0);
+                opacity: 1;
+            }
+
+            .tooltip.mobile-panel .tooltip-title {
+                font-size: 0.9rem;
+                margin-bottom: 4px;
+                padding-bottom: 4px;
+            }
+
+            .tooltip.mobile-panel .tooltip-row {
+                margin: 2px 0;
+                font-size: 0.8rem;
+            }
+        }
+    </style>
+    <script>if (new URLSearchParams(location.search).has('embed')) document.documentElement.classList.add('embed');</script>
+    <style>.embed .header-links { display: none; }</style>
+{% include weirdml-v3-theme.html %}
+</head>
+<body class="v3-plot">
+    <div class="header">
+        <h1>WeirdML v3: Interactive Model Comparison</h1>
+        <div class="header-links">
+            <a href="weirdml.html">&larr; Back to WeirdML v3</a>
+            <a href="weirdml_v3_summary.html">Model Summary</a>
+            <a href="assets/data/weirdml_v3.json">JSON</a>
+        </div>
+    </div>
+
+    <div class="controls">
+        <div class="control-group">
+            <label>X-Axis</label>
+            <div class="button-group">
+                <button class="control-btn active" data-mode="overall" aria-pressed="true">Tokens</button>
+                <button class="control-btn" data-mode="cost">Cost</button>
+                <button class="control-btn" data-mode="date">Date</button>
+                <button class="control-btn" data-mode="frontier">Open vs Closed</button>
+                <button class="control-btn" data-mode="task" aria-pressed="false">Per Task</button>
+            </div>
+        </div>
+        <div class="control-group" id="task-control" style="display: none;">
+            <label for="task-select">Task Configuration</label>
+            <select id="task-select" class="control-btn"></select>
+        </div>
+        <div class="control-group">
+            <label>Scale</label>
+            <div class="button-group">
+                <button class="control-btn scale-btn active" data-scale="log">Log</button>
+                <button class="control-btn scale-btn" data-scale="linear">Linear</button>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="chart-container">
+        <svg id="chart" role="img" aria-label="Mean effective score versus tokens"></svg>
+    </div>
+
+    <div class="legend" id="legend"></div>
+
+    <div class="tooltip" id="tooltip"></div>
+
+    <script src="assets/js/weirdml-v3-plot.js"></script>
+    <script src="assets/js/vendor/html2canvas.min.js"></script>
+    <script src="assets/js/weirdml-v3-export.js"></script>
+</body>
+</html>

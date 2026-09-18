@@ -1,6 +1,6 @@
 ---
 layout: nothing
-title: WeirdML Model Summary
+title: WeirdML v3 Model Summary
 ---
 <!DOCTYPE html>
 <html lang="en">
@@ -8,7 +8,7 @@ title: WeirdML Model Summary
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WeirdML Model Summary</title>
-    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="assets/js/vendor/d3.v7.min.js"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
@@ -129,7 +129,14 @@ title: WeirdML Model Summary
         .col-model { width: 230px; }
         .col-accuracy { width: auto; }
         .col-cost { width: 105px; }
-        .col-codelen { width: 140px; }
+        .col-final { width: 150px; }
+        .col-harness { width: 166px; }
+        .harness-cell { padding: 8px 12px !important; }
+        .harness-name { font-size: 12px; font-weight: 600; color: #333; }
+        .harness-version { font-size: 11px; color: #666; font-family: monospace; margin-top: 3px; }
+        .harness-entry { display: flex; align-items: center; gap: 9px; }
+        .harness-icon { width: 24px; height: 24px; object-fit: contain; flex-shrink: 0; }
+        .harness-entry + .harness-entry { margin-top: 8px; }
         .col-tokens { width: 112px; }
 
         /* Rank cell */
@@ -205,7 +212,7 @@ title: WeirdML Model Summary
             .col-rank { width: 24px; }
             .col-model { width: 130px; }
             .col-cost { width: 80px; }
-            .col-codelen { width: 100px; }
+            .col-harness { width: 140px; }
             .col-tokens { width: 85px; }
             .model-name { font-size: 0.72rem; }
             .summary-table th { font-size: 0.65rem; padding: 6px 3px; }
@@ -214,14 +221,15 @@ title: WeirdML Model Summary
     </style>
     <script>if (new URLSearchParams(location.search).has('embed')) document.documentElement.classList.add('embed');</script>
     <style>.embed .header-links { display: none; }</style>
+{% include weirdml-v3-theme.html %}
 </head>
-<body>
+<body class="v3-summary">
     <div class="header">
-        <h1>WeirdML Results Summary</h1>
+        <h1>WeirdML v3 Results Summary</h1>
         <div class="header-links">
-            <a href="weirdml_v2.html">&larr; Back to WeirdML v2</a>
-            <a href="weirdml_interactive.html">Interactive Plot</a>
-            <a href="data/weirdml_data.csv">CSV</a>
+            <a href="weirdml.html">&larr; Back to WeirdML v3</a>
+            <a href="weirdml_v3_interactive.html">Interactive Plot</a>
+            <a href="assets/data/weirdml_v3.json">JSON</a>
         </div>
     </div>
     <div class="task-legend" id="task-legend"></div>
@@ -231,10 +239,10 @@ title: WeirdML Model Summary
             <tr>
                 <th class="col-rank">#</th>
                 <th class="col-model">Model</th>
-                <th class="col-accuracy">Average Accuracy Across 17 Tasks</th>
+                <th class="col-accuracy">Average Score Across 11 Tasks</th>
                 <th class="col-cost">Cost / Run (USD)</th>
-                <th class="col-codelen">Code Length (#Lines)</th>
-                <th class="col-tokens">Output Tokens</th>
+                <th class="col-final">Final Best Score</th>
+                <th class="col-harness">Harness</th>
             </tr>
         </thead>
         <tbody id="table-body"></tbody>
@@ -249,6 +257,7 @@ const companyColors = {
     'Mistral': [238,59,59], 'Qwen': [255,127,0], 'Moonshot': [0,132,255],
     'ZhipuAI': [105,90,205], 'Inception': [26,26,46], 'Nvidia': [118,185,0],
     'MiniMax': [255,77,106], 'Gemma': [46,204,113], 'Thinking Machines': [22,19,17],
+    'Synthetic Strong': [216,95,58], 'Synthetic Weak': [16,163,127],
     'Other': [136,136,136]
 };
 const companyIcons = {
@@ -271,6 +280,8 @@ const companyIcons = {
 
 function getCompany(name) {
     const n = name.toLowerCase();
+    if (n.includes('synthetic strong')) return 'Synthetic Strong';
+    if (n.includes('synthetic weak')) return 'Synthetic Weak';
     if (n.includes('gpt') || n.startsWith('o1') || n.startsWith('o3') || n.startsWith('o4')) return 'OpenAI';
     if (n.includes('claude')) return 'Anthropic';
     if (n.includes('gemma')) return 'Gemma';
@@ -313,12 +324,8 @@ function isModelOpen(name) {
 }
 
 // Task definitions (order matches CSV columns)
-const taskNames = [
-    'shapes_easy','shapes_hard','digits_unsup','chess_winners','kolmo_shuffle',
-    'classify_sentences','classify_shuffled','insert_patches','blunders_easy',
-    'blunders_hard','digits_generalize','shapes_variable','xor_easy','xor_hard',
-    'splash_easy','splash_hard','number_patterns'
-];
+let taskNames = [];
+let taskLabels = {};
 
 // Custom symbol: pentagon
 const symbolPentagon = {
@@ -332,51 +339,53 @@ const symbolPentagon = {
     }
 };
 
-// Marker definitions matching matplotlib: o, s, D, ^, v, <, >, p, *
-// Each shape gets filled then hollow, assigned in task order
-const taskMarkerDefs = [
-    { shape: d3.symbolCircle,   filled: true,  rot: 0 },    // shapes_easy
-    { shape: d3.symbolCircle,   filled: false, rot: 0 },    // shapes_hard
-    { shape: d3.symbolSquare,   filled: true,  rot: 0 },    // digits_unsup
-    { shape: d3.symbolSquare,   filled: false, rot: 0 },    // chess_winners
-    { shape: d3.symbolDiamond,  filled: true,  rot: 0 },    // kolmo_shuffle
-    { shape: d3.symbolDiamond,  filled: false, rot: 0 },    // classify_sentences
-    { shape: d3.symbolTriangle, filled: true,  rot: 0 },    // classify_shuffled
-    { shape: d3.symbolTriangle, filled: false, rot: 0 },    // insert_patches
-    { shape: d3.symbolTriangle, filled: true,  rot: 180 },  // blunders_easy
-    { shape: d3.symbolTriangle, filled: false, rot: 180 },  // blunders_hard
-    { shape: d3.symbolTriangle, filled: true,  rot: -90 },  // digits_generalize
-    { shape: d3.symbolTriangle, filled: false, rot: -90 },  // shapes_variable
-    { shape: d3.symbolTriangle, filled: true,  rot: 90 },   // xor_easy
-    { shape: d3.symbolTriangle, filled: false, rot: 90 },   // xor_hard
-    { shape: symbolPentagon,    filled: true,  rot: 0 },    // splash_easy
-    { shape: symbolPentagon,    filled: false, rot: 0 },    // splash_hard
-    { shape: d3.symbolStar,     filled: true,  rot: 0 },    // number_patterns
-];
-
+const markerShapes = {
+    circle: d3.symbolCircle, square: d3.symbolSquare, diamond: d3.symbolDiamond,
+    triangle: d3.symbolTriangle, pentagon: symbolPentagon, star: d3.symbolStar,
+    cross: d3.symbolCross, wye: d3.symbolWye
+};
 const taskMarkerMap = {};
-taskNames.forEach((t, i) => {
-    taskMarkerMap[t] = taskMarkerDefs[i];
-});
+let taskPairs = [];
 
 // Fixed limits
 const accLim = [0, 1];
-const costLim = [0, 5];
-const codeLenLim = [0, 1500];
-let tokensLim = [0, 35000];
+let costLim = [0, 5];
+const finalBestLim = [0, 1];
 
 // ── Build task legend ──
 function buildLegend() {
     const el = document.getElementById('task-legend');
-    // Grid: each column is a shape pair (filled on top, hollow below)
-    // Group tasks into pairs: [0,1], [2,3], ... and last one (number_patterns) is solo
-    const pairs = [];
-    for (let i = 0; i < taskNames.length; i += 2) {
-        if (i + 1 < taskNames.length) {
-            pairs.push([taskNames[i], taskNames[i+1]]);
-        } else {
-            pairs.push([taskNames[i]]);
-        }
+    const pairs = taskPairs;
+    // PNG export: one SVG with explicit symbol and label positions, so the rasteriser cannot misalign them.
+    if (new URLSearchParams(location.search).has('png')) {
+        el.innerHTML = '';
+        const font = "Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+        const fontSize = '12.5px', rowH = 21, symW = 22, gapX = 24;
+        const probe = d3.select(el).append('svg').attr('width', 1).attr('height', 1);
+        const probeText = probe.append('text').style('font-family', font).style('font-size', fontSize);
+        const widths = pairs.map(pair => Math.max(...pair.filter(Boolean).map(task => {
+            probeText.text(taskLabels[task]); return probeText.node().getComputedTextLength();
+        })));
+        probe.remove();
+        const total = Math.ceil(widths.reduce((sum, w) => sum + w + symW + gapX, -gapX)) + 2;
+        const svg = d3.select(el).append('svg').attr('class', 'task-legend-svg')
+            .attr('width', total).attr('height', rowH * 2).attr('viewBox', `0 0 ${total} ${rowH * 2}`)
+            .style('max-width', '100%').style('height', 'auto').style('display', 'block');
+        let x = 1;
+        pairs.forEach((pair, i) => {
+            for (let row = 0; row < 2; row++) {
+                const task = pair[row];
+                if (!task) continue;
+                const m = taskMarkerMap[task], y = row * rowH + rowH / 2;
+                svg.append('path').attr('d', d3.symbol().type(m.shape).size(60)())
+                    .attr('transform', `translate(${x + 7},${y}) rotate(${m.rot || 0})`)
+                    .attr('fill', m.filled ? '#333' : 'none').attr('stroke', m.filled ? 'none' : '#333').attr('stroke-width', 1.2);
+                svg.append('text').attr('x', x + symW).attr('y', y).attr('dominant-baseline', 'central')
+                    .style('font-family', font).style('font-size', fontSize).attr('fill', '#3a4a58').text(taskLabels[task]);
+            }
+            x += widths[i] + symW + gapX;
+        });
+        return;
     }
 
     function renderItem(t) {
@@ -386,27 +395,22 @@ function buildLegend() {
         const fill = m.filled ? '#333' : 'none';
         const stroke = m.filled ? 'none' : '#333';
         const rotAttr = m.rot ? ` transform="rotate(${m.rot})"` : '';
-        const label = t.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+        const label = taskLabels[t];
         return `<span class="task-legend-item">
             <svg width="14" height="14" viewBox="-7 -7 14 14">
                 <path d="${path}" fill="${fill}" stroke="${stroke}" stroke-width="1.2"${rotAttr}/>
             </svg>${label}</span>`;
     }
 
-    let html = '<div style="display:grid;grid-template-columns:repeat(' + pairs.length + ',auto);gap:1px 14px;justify-content:center">';
-    // Top row: filled markers
-    for (const pair of pairs) {
-        html += renderItem(pair[0]);
-    }
-    // Bottom row: hollow markers (or empty cell for solo)
-    for (const pair of pairs) {
-        if (pair.length > 1) {
-            html += renderItem(pair[1]);
-        } else {
-            html += '<span></span>';
+    // V2 layout: two entries per column, keeping hint twins together.
+    let html = '<div style="width:100%;max-width:100%;overflow-x:auto"><div style="display:grid;grid-template-columns:repeat(' + pairs.length + ',auto);grid-template-rows:repeat(2,auto);gap:1px 14px;justify-content:center;width:max-content;min-width:100%;white-space:nowrap">';
+    for (let row = 0; row < 2; row++) {
+        for (const pair of pairs) {
+            const task = pair[row];
+            html += task ? renderItem(task) : '<span></span>';
         }
     }
-    html += '</div>';
+    html += '</div></div>';
     el.innerHTML = html;
 }
 
@@ -420,9 +424,7 @@ function drawAccuracy(svg, d, taskData, w, h) {
     const col = `rgb(${rgb.join(',')})`;
 
     const mean = +d.avg_acc;
-    const se = +d.avg_acc_standard_error;
-    const lo = mean - 1.96 * se;
-    const hi = mean + 1.96 * se;
+    const [lo, hi] = d.interval;
     const cy = h / 2;
 
     // Background tint
@@ -494,13 +496,16 @@ function drawCost(svg, d, w, h) {
        .attr('fill', col).attr('opacity', 0.25);
 
     // Grid lines
-    for (let v = 1; v <= 4; v++) {
+    for (const v of d3.ticks(0, costLim[1], 5).slice(1, -1)) {
         svg.append('line').attr('x1', x(v)).attr('x2', x(v))
            .attr('y1', 2).attr('y2', h - 2)
            .attr('stroke', '#bbb').attr('stroke-width', 0.7);
     }
 
-    if (cost > 0) {
+    if (d.cost_per_run_usd == null) {
+        svg.append('text').attr('x', w / 2).attr('y', cy + 4)
+           .attr('text-anchor', 'middle').attr('font-size', '11px').text('Unavailable');
+    } else if (cost >= 0) {
         svg.append('rect')
            .attr('x', pad.l).attr('width', Math.max(1, x(Math.min(cost, costLim[1])) - pad.l))
            .attr('y', cy - 14).attr('height', 28)
@@ -510,88 +515,6 @@ function drawCost(svg, d, w, h) {
            .attr('x', labelX + 3).attr('y', cy + 4)
            .attr('font-size', '11px').attr('fill', '#333')
            .text(cost >= 1 ? `$${cost.toFixed(2)}` : `$${cost.toPrecision(3)}`);
-    }
-}
-
-// ── Draw code length range ──
-function drawCodeLen(svg, d, w, h) {
-    const pad = { l: 2, r: 2 };
-    const iw = w - pad.l - pad.r;
-    const x = d3.scaleLinear().domain(codeLenLim).range([pad.l, pad.l + iw]);
-    const company = getCompany(d.display_name);
-    const rgb = companyColors[company] || companyColors.Other;
-    const col = `rgb(${rgb.join(',')})`;
-    const p10 = +d.code_len_p10, p50 = +d.code_len_p50, p90 = +d.code_len_p90;
-    const cy = h / 2;
-
-    svg.append('rect').attr('x', 0).attr('y', 0).attr('width', w).attr('height', h)
-       .attr('fill', col).attr('opacity', 0.25);
-
-    // Grid lines
-    [500, 1000].forEach(v => {
-        svg.append('line').attr('x1', x(v)).attr('x2', x(v))
-           .attr('y1', 2).attr('y2', h - 2)
-           .attr('stroke', '#bbb').attr('stroke-width', 0.7);
-    });
-
-    // p10-p90 bar
-    svg.append('rect')
-       .attr('x', x(p10)).attr('width', Math.max(1, x(p90) - x(p10)))
-       .attr('y', cy - 16).attr('height', 32)
-       .attr('fill', col).attr('opacity', 0.7).attr('rx', 2);
-
-    // Median line
-    svg.append('line')
-       .attr('x1', x(p50)).attr('x2', x(p50))
-       .attr('y1', cy - 18).attr('y2', cy + 18)
-       .attr('stroke', '#000').attr('stroke-width', 2).attr('opacity', 0.5);
-
-    // Label on top of bar with white background
-    const clG = svg.append('g');
-    const clText = clG.append('text')
-       .attr('x', x(p50)).attr('y', cy + 4)
-       .attr('text-anchor', 'middle').attr('font-size', '11px')
-       .attr('font-weight', '600').attr('fill', '#111')
-       .text(Math.round(p50));
-    const clBbox = clText.node().getBBox();
-    clG.insert('rect', 'text')
-       .attr('x', clBbox.x - 2).attr('y', clBbox.y - 1)
-       .attr('width', clBbox.width + 4).attr('height', clBbox.height + 2)
-       .attr('fill', 'white').attr('opacity', 0.8).attr('rx', 2);
-}
-
-// ── Draw tokens bar ──
-function drawTokens(svg, d, w, h) {
-    const pad = { l: 2, r: 2 };
-    const iw = w - pad.l - pad.r;
-    const x = d3.scaleLinear().domain(tokensLim).range([pad.l, pad.l + iw]);
-    const company = getCompany(d.display_name);
-    const rgb = companyColors[company] || companyColors.Other;
-    const col = `rgb(${rgb.join(',')})`;
-    const tokens = +d.mean_total_output_tokens;
-    const cy = h / 2;
-
-    svg.append('rect').attr('x', 0).attr('y', 0).attr('width', w).attr('height', h)
-       .attr('fill', col).attr('opacity', 0.25);
-
-    // Grid lines
-    const tokStep = Math.ceil(tokensLim[1] / 5 / 1000) * 1000;
-    for (let v = tokStep; v < tokensLim[1]; v += tokStep) {
-        svg.append('line').attr('x1', x(v)).attr('x2', x(v))
-           .attr('y1', 2).attr('y2', h - 2)
-           .attr('stroke', '#bbb').attr('stroke-width', 0.7);
-    }
-
-    if (tokens > 0) {
-        svg.append('rect')
-           .attr('x', pad.l).attr('width', Math.max(1, x(Math.min(tokens, tokensLim[1])) - pad.l))
-           .attr('y', cy - 14).attr('height', 28)
-           .attr('fill', col).attr('opacity', 0.8).attr('rx', 2);
-        const labelX = Math.min(x(tokens), x(tokensLim[1] * 0.65));
-        svg.append('text')
-           .attr('x', labelX + 3).attr('y', cy + 4)
-           .attr('font-size', '11px').attr('fill', '#333')
-           .text(Math.round(tokens).toLocaleString());
     }
 }
 
@@ -631,13 +554,25 @@ function drawTicksInCell(svg, domain, ticks, w, h, format, position) {
 }
 
 // ── Main ──
-d3.csv('data/weirdml_data.csv?' + Date.now()).then(data => {
-    // Sort by accuracy descending
-    data.sort((a, b) => +b.avg_acc - +a.avg_acc);
-
-    // Compute tokens limit from data
-    const maxTok = d3.max(data, d => +d.mean_total_output_tokens);
-    tokensLim = [0, Math.ceil(maxTok * 1.05 / 1000) * 1000];
+d3.json('assets/data/weirdml_v3.json').then(prepared => {
+    document.querySelector('.header h1').textContent = 'WeirdML v3 Results Summary' +
+        (prepared.mode === 'synthetic' ? ' — Synthetic Preview' : '');
+    taskNames = prepared.configurations.map(c => c.id);
+    taskLabels = Object.fromEntries(prepared.configurations.map(c => [c.id,
+        c.name + (c.hint_mode === 'Hints allowed' ? ' (hints)' : '')]));
+    prepared.configurations.forEach(config => {
+        taskMarkerMap[config.id] = {shape: markerShapes[config.marker.shape],
+            filled: config.marker.filled, rot: config.marker.rotation};
+    });
+    taskPairs = prepared.legend_columns;
+    // Only adapt field names here. All values and intervals are prepared offline.
+    const data = prepared.models.map(model => ({...model,
+        display_name: model.name, avg_acc: model.score,
+        cost_per_run_usd: model.mean_api_cost_usd,
+        ...Object.fromEntries(taskNames.map(task => [task + '_acc', model.configurations[task].score]))
+    }));
+    costLim = [0, d3.max(data, d => d.cost_per_run_usd) * 1.1 || 1];
+    costLim = d3.scaleLinear().domain(costLim).nice(5).domain();
 
     buildLegend();
 
@@ -647,14 +582,9 @@ d3.csv('data/weirdml_data.csv?' + Date.now()).then(data => {
     // Tick configurations for each column
     const tickConfigs = [
         { domain: accLim, ticks: [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0], fmt: v => v.toFixed(1) },
-        { domain: costLim, ticks: [0, 1, 2, 3, 4, 5], fmt: v => '$' + v },
-        { domain: codeLenLim, ticks: [0, 500, 1000, 1500], fmt: v => v },
-        { domain: tokensLim, ticks: null, fmt: v => v >= 1000 ? (v/1000) + 'k' : v },
+        { domain: costLim, ticks: [0, costLim[1]], fmt: v => '$' + v },
+        { domain: finalBestLim, ticks: [0, .5, 1], fmt: v => v.toFixed(1) },
     ];
-    // Compute token ticks
-    const tokStep = Math.ceil(tokensLim[1] / 5 / 1000) * 1000;
-    tickConfigs[3].ticks = d3.range(0, tokensLim[1] + 1, tokStep);
-
     const n = data.length;
     const rowRefs = [];
 
@@ -663,7 +593,7 @@ d3.csv('data/weirdml_data.csv?' + Date.now()).then(data => {
         const rgb = companyColors[company] || companyColors.Other;
         const iconSrc = companyIcons[company];
         const internalName = d.internal_model_name || d.display_name;
-        const open = isModelOpen(internalName);
+        const open = d.open_weights;
         const lockSrc = open ? 'assets/icons/lock_unlocked_v4.png' : 'assets/icons/lock_locked_v4.png';
 
         const isFirst = i === 0;
@@ -683,7 +613,7 @@ d3.csv('data/weirdml_data.csv?' + Date.now()).then(data => {
             <div class="bg" style="background:rgb(${rgb.join(',')})"></div>
             ${iconSrc ? `<img class="model-icon${company === 'OpenAI' ? ' model-icon-openai' : ''}" src="${iconSrc}" alt="">` : ''}
             <span class="model-name">${d.display_name}</span>
-            <img class="lock-icon" src="${lockSrc}" alt="${open ? 'Open' : 'Closed'}" title="${open ? 'Open-source' : 'Closed-source'}">
+            <img class="lock-icon" src="${lockSrc}" alt="${open ? 'Open' : 'Closed'}" title="${open ? 'Open weights' : 'Closed weights'}">
         </div>`;
         tr.appendChild(tdModel);
 
@@ -697,24 +627,51 @@ d3.csv('data/weirdml_data.csv?' + Date.now()).then(data => {
         tdCost.className = 'chart-cell';
         tr.appendChild(tdCost);
 
-        // Code length
-        const tdCode = document.createElement('td');
-        tdCode.className = 'chart-cell';
-        tr.appendChild(tdCode);
+        const tdFinal = document.createElement('td');
+        tdFinal.className = 'chart-cell';
+        tr.appendChild(tdFinal);
 
-        // Tokens
-        const tdTok = document.createElement('td');
-        tdTok.className = 'chart-cell';
-        tr.appendChild(tdTok);
+        // Harness metadata is prepared from all included runs, retaining mixed versions.
+        const tdHarness = document.createElement('td');
+        tdHarness.className = 'harness-cell';
+        tdHarness.style.background = `rgba(${rgb.join(',')},0.12)`;
+        const harnessNames = {codex_cli: 'Codex CLI', claude_code: 'Claude Code',
+            gemini_cli: 'Gemini CLI', opencode: 'OpenCode'};
+        const harnessIcons = {codex_cli: 'codex.svg', claude_code: 'claude-code.svg',
+            gemini_cli: 'gemini-cli.png', opencode: 'opencode.svg'};
+        (d.harnesses || []).forEach(harness => {
+            const entry = document.createElement('div');
+            entry.className = 'harness-entry';
+            const name = document.createElement('div');
+            name.className = 'harness-name';
+            name.textContent = harnessNames[harness.name] || harness.name;
+            const version = document.createElement('div');
+            version.className = 'harness-version';
+            version.textContent = harness.version ? `v${harness.version.replace(/^v/, '')}` : 'Version unavailable';
+            const iconFile = harnessIcons[harness.name];
+            if (iconFile) {
+                const icon = document.createElement('img');
+                icon.className = 'harness-icon';
+                icon.src = 'assets/icons/harnesses/' + iconFile;
+                icon.alt = '';
+                entry.appendChild(icon);
+            }
+            const label = document.createElement('div');
+            label.append(name, version);
+            entry.appendChild(label);
+            tdHarness.appendChild(entry);
+        });
+        tr.appendChild(tdHarness);
 
         tbody.appendChild(tr);
 
         // Store references for redrawing
-        rowRefs.push({ d, isFirst, isLast, cells: [tdAcc, tdCost, tdCode, tdTok] });
+        rowRefs.push({ d, isFirst, isLast, cells: [tdAcc, tdCost, tdFinal] });
     });
 
     // ── Render all SVG charts and overlays ──
     function renderCharts() {
+        buildLegend();
         // Clear existing SVGs from chart cells
         rowRefs.forEach(ref => {
             ref.cells.forEach(td => {
@@ -736,8 +693,9 @@ d3.csv('data/weirdml_data.csv?' + Date.now()).then(data => {
                     drawAccuracy(svg, d, taskData, w, h);
                 },
                 (svg, w, h) => drawCost(svg, d, w, h),
-                (svg, w, h) => drawCodeLen(svg, d, w, h),
-                (svg, w, h) => drawTokens(svg, d, w, h),
+                (svg, w, h) => drawAccuracy(svg, {...d, avg_acc: d.mean_final_best,
+                    interval: [d.mean_final_best, d.mean_final_best]},
+                    taskNames.map(task => ({task, val: d.configurations[task].final_best})), w, h),
             ];
 
             cells.forEach((td, ci) => {
@@ -767,7 +725,7 @@ d3.csv('data/weirdml_data.csv?' + Date.now()).then(data => {
 
         const firstRow = tbody.querySelector('tr');
         if (!firstRow) return;
-        const chartTds = [firstRow.cells[2], firstRow.cells[3], firstRow.cells[4], firstRow.cells[5]];
+        const chartTds = [firstRow.cells[2], firstRow.cells[3], firstRow.cells[4]];
 
         chartTds.forEach((td, ci) => {
             const tdRect = td.getBoundingClientRect();
@@ -806,7 +764,7 @@ d3.csv('data/weirdml_data.csv?' + Date.now()).then(data => {
 
         // Notify parent iframe of content height for auto-sizing
         if (window.parent !== window) {
-            window.parent.postMessage({ type: 'iframeHeight', height: document.documentElement.scrollHeight }, '*');
+            window.parent.postMessage({ type: 'v3SummaryHeight', height: document.getElementById('table-wrap').getBoundingClientRect().bottom + window.scrollY + parseFloat(getComputedStyle(document.body).paddingBottom) + 4 }, '*');
         }
     }
 
@@ -819,7 +777,9 @@ d3.csv('data/weirdml_data.csv?' + Date.now()).then(data => {
         clearTimeout(resizeTimer);
         resizeTimer = setTimeout(() => requestAnimationFrame(renderCharts), 150);
     });
-});
+}).catch(error => { document.querySelector('.header h1').textContent = 'Could not load v3 results: ' + error.message; });
 </script>
+    <script src="assets/js/vendor/html2canvas.min.js"></script>
+    <script src="assets/js/weirdml-v3-export.js"></script>
 </body>
 </html>

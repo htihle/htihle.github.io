@@ -26,6 +26,11 @@ exclude:
   - Gemfile.lock
   - README.md
   - vendor
+  - AGENTS.md
+  - CLAUDE.md
+  - scripts
+  - tests
+  - selected_tasks_page.zip
 
 # Defaults
 defaults:
@@ -33,3 +38,4 @@ defaults:
       path: ""
     values:
       layout: "default"
+

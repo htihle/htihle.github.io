@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 300" role="img" aria-label="Best-so-far curve stepping from 0.20 to 0.80 at 20M tokens">
+<style>
+.t{font-family:Inter, system-ui, -apple-system, 'Segoe UI', sans-serif;fill:#3a4a58;font-size:12px}
+.m{font-family:'JetBrains Mono', ui-monospace, Menlo, monospace;fill:#6a7987;font-size:12px}
+.h{paint-order:stroke;stroke:#ffffff;stroke-width:4px;stroke-linejoin:round}
+.lab{fill:#6a7987}
+.strong{fill:#17212b;font-weight:600}
+.grid{stroke:#e4e8ec;stroke-width:1}
+.axis{stroke:#cfd6dc;stroke-width:1}
+.step{fill:none;stroke:#0e6f88;stroke-width:2.25;stroke-linejoin:round;stroke-linecap:round}
+.num{font-family:Inter, system-ui, -apple-system, 'Segoe UI', sans-serif;font-weight:600;fill:#ffffff;text-anchor:middle}
+.numw{fill:#b9536b}
+</style>
+<rect width="440" height="300" fill="#ffffff"/>
+<text x="10.0" y="20.0" class="t strong" text-anchor="start" font-size="12">Best so far</text>
+<line x1="48" y1="242.0" x2="420" y2="242.0" class="grid"/>
+<text x="38.0" y="246.3" class="m" text-anchor="end" font-size="12">0</text>
+<line x1="48" y1="191.5" x2="420" y2="191.5" class="grid"/>
+<text x="38.0" y="195.8" class="m" text-anchor="end" font-size="12">.25</text>
+<line x1="48" y1="141.0" x2="420" y2="141.0" class="grid"/>
+<text x="38.0" y="145.3" class="m" text-anchor="end" font-size="12">.50</text>
+<line x1="48" y1="90.5" x2="420" y2="90.5" class="grid"/>
+<text x="38.0" y="94.8" class="m" text-anchor="end" font-size="12">.75</text>
+<line x1="48" y1="40.0" x2="420" y2="40.0" class="grid"/>
+<text x="38.0" y="44.3" class="m" text-anchor="end" font-size="12">1</text>
+<line x1="48" y1="242" x2="420" y2="242" class="axis"/>
+<line x1="48.0" y1="242" x2="48.0" y2="247" class="axis"/>
+<text x="48.0" y="266.0" class="m" text-anchor="start" font-size="12">500k</text>
+<line x1="234.0" y1="242" x2="234.0" y2="247" class="axis"/>
+<text x="234.0" y="266.0" class="m" text-anchor="middle" font-size="12">5M</text>
+<line x1="346.0" y1="242" x2="346.0" y2="247" class="axis"/>
+<text x="346.0" y="266.0" class="m" text-anchor="middle" font-size="12">20M</text>
+<line x1="420.0" y1="242" x2="420.0" y2="247" class="axis"/>
+<text x="420.0" y="266.0" class="m" text-anchor="end" font-size="12">50M</text>
+<text x="234.0" y="290.0" class="t lab" text-anchor="middle" font-size="12">Total tokens (log scale)</text>
+<path d="M48.0,201.6 H346.0 V80.4 H420.0 V80.4 V242 H48.0 Z" fill="#0e6f88" fill-opacity="0.10"/>
+<path d="M48.0,201.6 H346.0 V80.4 H420.0 V80.4" class="step"/>
+<line x1="346.0" y1="80.4" x2="346.0" y2="242" stroke="#0e6f88" stroke-opacity="0.45" stroke-width="1" stroke-dasharray="2 3"/>
+<circle cx="346.0" cy="80.4" r="6.5" fill="#ffffff"/>
+<circle cx="346.0" cy="80.4" r="4.5" fill="#0e6f88"/>
+<text x="54.0" y="193.6" class="m strong" text-anchor="start" font-size="12">0.20</text>
+<text x="418.0" y="70.4" class="t strong h" text-anchor="end" font-size="12">Final best 0.80</text>
+<text x="234.0" y="226.1" class="t strong h" text-anchor="middle" font-size="12">Area 0.319</text>
+</svg>

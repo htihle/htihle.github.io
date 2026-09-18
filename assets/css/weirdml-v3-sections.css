@@ -1,0 +1,149 @@
+/* Shared section navigation and task/scoring layouts; works with either theme. */
+.weirdml-nav { display: flex; gap: 6px; flex-wrap: wrap; padding: 6px; margin: 30px 0; background: #edf3f3; border: 1px solid #d8e5e6; border-radius: 12px; width: fit-content; }
+.weirdml-nav a { display: block; padding: 10px 20px; border-radius: 7px; color: #425c68; font-size: 14px; font-weight: 650; text-decoration: none; }
+.weirdml-nav a[aria-current='page'] { color: white !important; background: #183e49; box-shadow: 0 2px 5px #173e4920; }
+.weirdml-nav a:hover:not([aria-current]) { background: #dfeaea; }
+.weirdml-nav a:focus-visible, .task-cards a:focus-visible, .figure-open:focus-visible, .task-lightbox button:focus-visible { outline: 3px solid #087e83; outline-offset: 4px; }
+.weirdml-task-page { --figure-ground: #0a0e14; color: #223c48; }
+.weirdml-task-page .task-intro { max-width: 850px; }
+.weirdml-task-page .task-credit { font-size: 13px; color: #5c717c; }
+.task-cards { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 18px; margin: 30px 0; }
+.task-cards a { display: block; min-width: 0; border: 1px solid #d8e5e6; background: white; border-radius: 12px; overflow: hidden; text-decoration: none; color: #223c48; transition: transform .15s ease, box-shadow .15s ease; }
+.task-cards a:hover { transform: translateY(-3px); box-shadow: 0 10px 25px #173e4918; }
+.task-cards img { display: block; width: 100%; height: auto; aspect-ratio: 1; object-fit: contain; background: var(--figure-ground); }
+.task-cards a > span { display: flex; justify-content: space-between; gap: 5px; padding: 14px; font-size: 14px; font-weight: 650; }
+.figure-key { display: flex; flex-wrap: wrap; gap: 12px 22px; padding: 18px; border-radius: 10px; background: #121821; color: #d2dce4; font-size: 13px; }
+.figure-key span { display: inline-flex; align-items: center; gap: 8px; }
+.figure-key i { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+.weirdml-task-page .task { margin-top: 60px; padding-top: 38px; border-top: 1px solid #d8e5e6; scroll-margin-top: 90px; }
+.weirdml-task-page .task h2 { font-size: clamp(28px, 4vw, 42px); line-height: 1.15; letter-spacing: -.035em; border: none; margin: 10px 0 18px; }
+.weirdml-task-page .task h2 small { display: inline-block; font-size: 13px; font-weight: 500; letter-spacing: 0; color: #5c717c; margin-left: 10px; }
+.weirdml-task-page .eyebrow { color: #08747b; font-size: 11px; text-transform: uppercase; letter-spacing: .1em; font-weight: 650; }
+.weirdml-task-page .ask { font-size: clamp(17px, 2vw, 21px); color: #425c68; line-height: 1.65; max-width: 850px; margin-bottom: 28px; }
+.weirdml-task-page .fig { margin: 0 0 28px; }
+.figure-open { display: block; position: relative; width: 100%; padding: 14px; border: 1px solid #243040; border-radius: 12px; background: var(--figure-ground); cursor: zoom-in; }
+.figure-open img { display: block; width: 100%; height: auto; margin: 0; }
+.figure-open-label { position: absolute; bottom: 10px; right: 12px; border: 1px solid #455365; border-radius: 5px; padding: 4px 9px; background: #121821ed; color: #e8edf2; font: 11px ui-sans-serif, system-ui, sans-serif; }
+.weirdml-task-page figcaption { font-size: 13px; line-height: 1.65; color: #526773; padding: 12px 4px 0; max-width: 1000px; }
+.weirdml-task-page .cols { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 26px; margin: 36px 0 26px; }
+.weirdml-task-page .col { border-top: 3px solid #a2b9c1; padding-top: 14px; }
+.weirdml-task-page .col.given { border-color: #2799bd; }
+.weirdml-task-page .col.withheld { border-color: #ce902c; }
+.weirdml-task-page .col.scored { border-color: #68963f; }
+.weirdml-task-page .col h3 { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; margin: 0 0 16px; }
+.weirdml-task-page .col ul { padding: 0 0 0 18px; margin: 0; }
+.weirdml-task-page .col li { font-size: 14px; color: #425c68; line-height: 1.7; margin-bottom: 12px; }
+.weirdml-task-page .prose { max-width: 880px; }
+.weirdml-task-page .prose p { font-size: 16px; line-height: 1.8; }
+.weirdml-task-page .facts { display: flex; flex-wrap: wrap; gap: 18px 28px; border-top: 1px solid #d8e5e6; border-bottom: 1px solid #d8e5e6; padding: 18px 0; margin-top: 26px; }
+.weirdml-task-page .fact { display: flex; flex-direction: column; gap: 5px; }
+.weirdml-task-page .fact .k { font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: #526773; }
+.weirdml-task-page .fact .v { font-family: ui-monospace, monospace; font-size: 12px; }
+.task-source-note { margin: 48px 0 12px; font-size: 13px; color: #526773; }
+.benchmark-canary { font-family: ui-monospace, monospace; font-size: 10px; line-height: 1.7; color: #526773; overflow-wrap: anywhere; }
+.task-lightbox { width: min(96vw, 1800px); max-width: 96vw; max-height: 94vh; padding: 18px; border: 1px solid #455365; border-radius: 12px; background: #0a0e14; color: #e8edf2; }
+.task-lightbox::backdrop { background: #08121dec; }
+.lightbox-toolbar { display: flex; justify-content: flex-end; gap: 8px; margin-bottom: 12px; }
+.task-lightbox button { padding: 8px 14px; border: 1px solid #455365; border-radius: 6px; color: #e8edf2; background: #171f2a; font: inherit; font-size: 13px; cursor: pointer; }
+.lightbox-image { max-height: 65vh; overflow: auto; }
+.lightbox-image img { display: block; width: auto; max-width: 100%; max-height: 65vh; margin: auto; object-fit: contain; }
+.task-lightbox.actual-size .lightbox-image img { width: 2000px; max-width: none; max-height: none; }
+.task-lightbox #lightbox-caption { color: #b7c5d1; font-size: 13px; line-height: 1.6; margin: 14px 0 0; }
+body:has(.task-lightbox[open]) { overflow: hidden; }
+.weirdml-scoring-page { max-width: 1000px; }
+.weirdml-scoring-page > p, .weirdml-scoring-page > ul { max-width: 850px; }
+.weirdml-scoring-page h2 { margin-top: 40px; }
+.weirdml-scoring-page li { margin-bottom: 9px; }
+.score-equation { display: grid; grid-template-columns: 1fr auto 1fr; gap: 18px; align-items: center; background: #183e49; color: #fff; padding: 26px; border-radius: 14px; margin: 28px 0; }
+.score-equation > div { display: flex; flex-direction: column; gap: 6px; }
+.score-equation b { font-size: 40px; line-height: 1; letter-spacing: -.04em; }
+.score-equation span { font-size: 14px; color: #cce1e5; }
+.scoring-example { margin: 28px 0; padding: 22px; border: 1px solid #d8e5e6; border-radius: 12px; background: #fff; }
+.scoring-example svg { display: block; width: 100%; height: auto; }
+.scoring-example figcaption { font-size: 14px; color: #425c68; margin-top: 16px; }
+.weirdml-scoring-page details { margin: 20px 0; border: 1px solid #d8e5e6; border-radius: 10px; padding: 18px; }
+.weirdml-scoring-page summary { cursor: pointer; font-weight: 650; }
+.weirdml-scoring-page details p { margin-top: 16px; font-size: 14px; }
+@media (max-width: 700px) {
+  .weirdml-nav { width: 100%; justify-content: space-between; gap: 2px; padding: 4px; }
+  .weirdml-nav a { padding: 9px 11px; font-size: 12px; }
+  .task-cards { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; }
+  .task-cards a > span { font-size: 12px; padding: 10px; }
+  .weirdml-task-page .cols { grid-template-columns: 1fr; gap: 20px; }
+  .weirdml-task-page .task { margin-top: 40px; padding-top: 28px; }
+  .figure-open { padding: 8px 8px 32px; }
+  .figure-open-label { bottom: 6px; right: 8px; font-size: 10px; }
+  .figure-key { gap: 10px 16px; font-size: 11px; }
+  .task-lightbox { padding: 12px; }
+  .score-equation { gap: 12px; padding: 22px 18px; }
+  .score-equation b { font-size: 32px; }
+  .score-equation span { font-size: 12px; }
+}
+@media (prefers-reduced-motion: reduce) { .task-cards a { transition: none; } }
+
+/* The selected-task figures were designed for a dark ground. Extend that
+   treatment across this page, keeping Results and Scoring unchanged. */
+body:has(.weirdml-task-page) {
+  background: #0a0e14 !important;
+  color: #e8edf2;
+  color-scheme: dark;
+}
+body:has(.weirdml-task-page) .site-header {
+  background: #0a0e14;
+  border-bottom: 1px solid #243040;
+}
+body:has(.weirdml-task-page) .site-title,
+body:has(.weirdml-task-page) .nav-toggle { color: #e8edf2; }
+body:has(.weirdml-task-page) .nav-link { color: #a9b4c0; }
+body:has(.weirdml-task-page) .nav-link:hover,
+body:has(.weirdml-task-page) .nav-link.active { background: #172d36; color: #79d1ee; }
+body:has(.weirdml-task-page) main > .container > h1 { color: #f1f5f9; }
+body:has(.weirdml-task-page) main h1::before { color: #5fc3e6; }
+body:has(.weirdml-task-page) main h2,
+body:has(.weirdml-task-page) main h3,
+body:has(.weirdml-task-page) main strong { color: #e8edf2; }
+body:has(.weirdml-task-page) main > .container > p { color: #a9b4c0; }
+body:has(.weirdml-task-page) main a { color: #79d1ee; }
+body:has(.weirdml-task-page) .weirdml-nav { background: #121821; border-color: #2f3d4f; }
+body:has(.weirdml-task-page) .weirdml-nav a { color: #b7c5d1; }
+body:has(.weirdml-task-page) .weirdml-nav a[aria-current='page'] { background: #294c5a; color: #fff !important; }
+body:has(.weirdml-task-page) .weirdml-nav a:hover:not([aria-current]) { background: #1c2936; }
+.weirdml-task-page { color: #dce5ed; }
+.weirdml-task-page .task-intro p,
+.weirdml-task-page .ask,
+.weirdml-task-page .col li { color: #b7c5d1; }
+.weirdml-task-page .task-credit,
+.weirdml-task-page figcaption,
+.weirdml-task-page .task h2 small,
+.weirdml-task-page .fact .k,
+.weirdml-task-page .task-source-note,
+.weirdml-task-page .benchmark-canary { color: #9eafbf; }
+.weirdml-task-page .eyebrow { color: #5fc3e6; }
+.weirdml-task-page .task,
+.weirdml-task-page .facts { border-color: #2b3949; }
+.weirdml-task-page .task-cards a { background: #121821; border-color: #2b3949; color: #e8edf2; }
+.weirdml-task-page .task-cards a:hover { border-color: #5a788b; box-shadow: 0 10px 30px #0005; }
+.weirdml-task-page .figure-key { border: 1px solid #2b3949; }
+.weirdml-task-page .fig .figure-open { border-color: #2b3949; }
+.weirdml-task-page .col.given { border-color: #5fc3e6; }
+.weirdml-task-page .col.withheld { border-color: #f2b35b; }
+.weirdml-task-page .col.scored { border-color: #9fd470; }
+.weirdml-task-page .col.given h3 { color: #5fc3e6; }
+.weirdml-task-page .col.withheld h3 { color: #f2b35b; }
+.weirdml-task-page .col.scored h3 { color: #9fd470; }
+body:has(.weirdml-task-page) :focus-visible { outline-color: #5fc3e6; }
+body:has(.weirdml-task-page) .site-footer { background: #0a0e14; border-top: 1px solid #243040; }
+@media (max-width: 768px) {
+  body:has(.weirdml-task-page) .site-nav { background: #121821; border-color: #243040; }
+}
+/* Static scoring figures; SVGs stay crisp and require no client-side code. */
+.scoring-static { margin: 28px 0 42px; padding: 22px; background: white; border: 1px solid #d8e5e6; border-radius: 12px; }
+.scoring-static img { display: block; width: 100%; height: auto; }
+.scoring-static figcaption { font-size: 13px; line-height: 1.7; color: #526773; margin-top: 14px; }
+.scoring-comparison { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 24px; }
+.scoring-comparison h3 { font-size: 16px; margin: 0 0 12px; }
+.scoring-comparison p { font-size: 13px; margin: 8px 0; color: #526773; }
+@media(max-width:600px) {
+ .scoring-static { padding: 12px; }
+ .scoring-comparison { grid-template-columns: 1fr; gap: 26px; }
+}

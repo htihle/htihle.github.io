@@ -1,0 +1,605 @@
+/* WeirdML v3 visual design (2026-09-18). Loaded by _includes/weirdml-v3-theme.html
+   together with the self-hosted fonts in weirdml-v3-fonts.css.
+   No changes to scoring, task order, or dataset selection. */
+
+:root {
+  --v3-ink: #17212b;
+  --v3-ink-2: #3a4a58;
+  --v3-muted: #6a7987;
+  --v3-faint: #93a1ad;
+  --v3-accent: #0e6f88;
+  --v3-accent-strong: #0a586c;
+  --v3-accent-soft: #e6f2f5;
+  --v3-line: #e4e8ec;
+  --v3-line-strong: #cfd6dc;
+  --v3-paper: #fafaf9;
+  --v3-surface: #ffffff;
+  --v3-surface-2: #f4f5f6;
+  --v3-radius: 10px;
+  --v3-font: 'Inter', ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --v3-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --v3-shadow: 0 1px 2px rgb(23 33 43 / 0.04), 0 8px 24px -16px rgb(23 33 43 / 0.18);
+}
+
+/* ------------------------------------------------------------------
+   Section pages (Results, Selected tasks, Scoring): page frame
+   ------------------------------------------------------------------ */
+body:has(.weirdml-nav) {
+  font-family: var(--v3-font);
+  color: var(--v3-ink);
+  background: var(--v3-paper);
+  font-feature-settings: 'cv11', 'ss01';
+}
+body:has(.weirdml-nav) main > .container { max-width: 1240px; padding-top: 0; padding-bottom: 72px; }
+body:has(.weirdml-nav) main { overflow-x: clip; padding-top: 0; }
+
+body:has(.weirdml-nav) main h1 {
+  font-size: clamp(2.1rem, 4.2vw, 3rem);
+  line-height: 1.1;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  margin: 0 0 22px;
+  color: var(--v3-ink);
+  border: none;
+  padding: 0;
+}
+body:has(.weirdml-nav) main h1::after {
+  content: '';
+  display: block;
+  width: 44px;
+  height: 3px;
+  margin-top: 18px;
+  background: var(--v3-accent);
+  border-radius: 2px;
+}
+
+body:has(.weirdml-nav) .weirdml-intro {
+  font-size: clamp(1.05rem, 1.6vw, 1.25rem);
+  line-height: 1.6;
+  max-width: 820px;
+  color: var(--v3-ink-2);
+  margin: 0 0 18px;
+}
+body:has(.weirdml-nav) .weirdml-intro strong { color: var(--v3-ink); font-weight: 650; }
+/* Header band: full-bleed dark panel holding title, lede, credits and the section tabs. */
+.v3-hero {
+  --hero-bg: #0f1a24;
+  --hero-fg: #f2f5f8;
+  --hero-fg-2: #cfd8e1;
+  --hero-muted: #93a3b3;
+  --hero-accent: #5fc3e6;
+  --hero-line: rgb(255 255 255 / 0.14);
+  position: relative;
+  margin: 0 calc(50% - 50vw) 36px;
+  padding: 52px calc(50vw - 50%) 0;
+  background:
+    radial-gradient(ellipse 60% 80% at 100% 0%, rgb(95 195 230 / 0.10), transparent 60%),
+    radial-gradient(ellipse 40% 60% at 0% 100%, rgb(14 111 136 / 0.14), transparent 60%),
+    var(--hero-bg);
+  color: var(--hero-fg-2);
+}
+.v3-hero::after {
+  content: '';
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 1px;
+  background: var(--hero-line);
+}
+body:has(.weirdml-nav) .v3-hero h1 { color: var(--hero-fg); }
+body:has(.weirdml-nav) .v3-hero h1::after { background: var(--hero-accent); }
+body:has(.weirdml-nav) .v3-hero .weirdml-intro { color: var(--hero-fg-2); }
+body:has(.weirdml-nav) .v3-hero .weirdml-intro strong,
+body:has(.weirdml-nav) .v3-hero strong { color: var(--hero-fg); }
+/* The credits and previous-versions lines sit under the lede as quieter metadata. */
+.v3-hero > p:not(.weirdml-intro) {
+  font-size: 0.93rem;
+  line-height: 1.65;
+  max-width: 820px;
+  color: var(--hero-muted);
+  margin: 0 0 10px;
+}
+body:has(.weirdml-nav) .v3-hero a { color: var(--hero-accent); text-decoration-color: rgb(95 195 230 / 0.35); }
+body:has(.weirdml-nav) .v3-hero a:hover { color: #a5e2f5; text-decoration-color: currentColor; }
+.v3-hero .weirdml-nav { margin: 30px 0 0; border-bottom: none; }
+body:has(.weirdml-nav) .v3-hero .weirdml-nav a { color: var(--hero-muted); padding-bottom: 14px; margin-bottom: 0; }
+body:has(.weirdml-nav) .v3-hero .weirdml-nav a:hover:not([aria-current]) { color: var(--hero-fg); }
+body:has(.weirdml-nav) .v3-hero .weirdml-nav a[aria-current='page'] { color: var(--hero-fg) !important; border-bottom-color: var(--hero-accent); }
+.v3-hero .weirdml-nav a:focus-visible { outline-color: var(--hero-accent); }
+body:has(.weirdml-nav) main a { color: var(--v3-accent); text-decoration-color: rgb(14 111 136 / 0.35); text-underline-offset: 3px; }
+body:has(.weirdml-nav) main a:hover { color: var(--v3-accent-strong); text-decoration-color: currentColor; }
+body:has(.weirdml-nav) main p { line-height: 1.7; }
+body:has(.weirdml-nav) main strong { color: var(--v3-ink); }
+body:has(.weirdml-nav) main h2 {
+  font-size: 1.45rem;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+  font-weight: 650;
+  border: none;
+  padding: 0;
+  margin: 44px 0 14px;
+  color: var(--v3-ink);
+}
+
+/* Section navigation: underline tabs on a hairline. */
+.weirdml-nav {
+  display: flex;
+  gap: 0 30px;
+  flex-wrap: wrap;
+  width: 100%;
+  padding: 0;
+  margin: 26px 0 30px;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--v3-line-strong);
+  border-radius: 0;
+}
+.weirdml-nav a {
+  display: block;
+  padding: 10px 2px 12px;
+  margin-bottom: -1px;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  color: var(--v3-muted);
+  font-size: 0.95rem;
+  font-weight: 550;
+  letter-spacing: -0.005em;
+  text-decoration: none;
+  transition: color .15s ease, border-color .15s ease;
+}
+.weirdml-nav a:hover:not([aria-current]) { background: transparent; color: var(--v3-ink); }
+.weirdml-nav a[aria-current='page'] {
+  color: var(--v3-ink) !important;
+  background: transparent;
+  box-shadow: none;
+  border-bottom-color: var(--v3-accent);
+  font-weight: 650;
+}
+.weirdml-nav a:focus-visible { outline: 2px solid var(--v3-accent); outline-offset: 3px; border-radius: 4px; }
+
+/* Results page: embedded views as flat cards, with reading notes beneath. */
+.v3-standalone {
+  font-size: 0.82rem !important;
+  color: var(--v3-faint) !important;
+  margin: 28px 0 0 !important;
+  letter-spacing: 0.01em;
+}
+.v3-standalone a { color: var(--v3-muted); }
+.v3-embed {
+  margin: 10px 0 18px;
+  border: 1px solid var(--v3-line);
+  border-radius: var(--v3-radius);
+  background: var(--v3-surface);
+  box-shadow: var(--v3-shadow);
+  overflow: hidden;
+}
+.v3-embed iframe { width: 100%; border: none; display: block; }
+.v3-embed iframe[title='WeirdML v3 interactive progress plot'] { height: 900px; }
+.v3-embed #v3-summary-iframe { height: 420px; }
+.v3-note {
+  font-size: 0.92rem;
+  line-height: 1.7;
+  color: var(--v3-ink-2);
+  max-width: 940px;
+  margin: 0 0 14px;
+  padding-left: 16px;
+  border-left: 2px solid var(--v3-line-strong);
+}
+.v3-note + .v3-note { margin-top: -4px; }
+.v3-note + .v3-embed, .v3-note + div:has(> .v3-embed) { margin-top: 40px; }
+/* Fallbacks in case the page still uses the older inline-styled wrappers. */
+body:has(.weirdml-nav) div:has(> iframe) {
+  border: 1px solid var(--v3-line) !important;
+  border-radius: var(--v3-radius) !important;
+  box-shadow: var(--v3-shadow) !important;
+  background: var(--v3-surface);
+}
+
+/* ------------------------------------------------------------------
+   Shared standalone / embedded views (interactive plot, model summary)
+   ------------------------------------------------------------------ */
+body.v3-plot, body.v3-summary {
+  min-height: 0;
+  font-family: var(--v3-font);
+  color: var(--v3-ink);
+  background: var(--v3-paper);
+  padding: 22px 24px 24px;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'cv11', 'ss01', 'tnum';
+}
+.embed body.v3-plot, .embed body.v3-summary { background: var(--v3-surface); }
+/* Embedded views never scroll: the parent page sizes the iframe from the posted height. */
+html.embed, html.embed body { overflow: hidden !important; }
+.v3-plot .tooltip { top: 0; left: 0; }
+.v3-plot .header, .v3-summary .header { text-align: left; margin: 0 0 18px; }
+.v3-plot .header h1, .v3-summary .header h1 {
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  color: var(--v3-ink);
+  margin: 0;
+  line-height: 1.4;
+}
+.v3-plot .header::before, .v3-summary .header::before {
+  display: block;
+  font-family: var(--v3-mono);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  color: var(--v3-accent);
+  margin-bottom: 6px;
+}
+.v3-plot .header::before { content: '01 / EXPLORE THE RESULTS'; }
+.v3-summary .header::before { content: '02 / MODEL LEADERBOARD'; }
+.v3-plot .header-links, .v3-summary .header-links {
+  position: static;
+  justify-content: flex-start;
+  gap: 16px;
+  margin: 8px 0 0;
+}
+.v3-plot .header-links a, .v3-summary .header-links a { color: var(--v3-accent); font-size: 12px; }
+
+/* Controls: label above a segmented control. */
+.v3-plot .controls {
+  justify-content: flex-start;
+  align-items: flex-end;
+  padding: 0 0 16px;
+  gap: 14px 28px;
+  border: none;
+  border-bottom: 1px solid var(--v3-line);
+  background: transparent;
+  box-shadow: none;
+  border-radius: 0;
+  margin-bottom: 16px;
+}
+.v3-plot .control-group { gap: 6px; }
+.v3-plot .control-group label {
+  font-family: var(--v3-mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: var(--v3-muted);
+  text-transform: uppercase;
+}
+.v3-plot .button-group {
+  gap: 2px;
+  padding: 3px;
+  background: var(--v3-surface-2);
+  border: 1px solid var(--v3-line);
+  border-radius: 8px;
+}
+.v3-plot .control-btn {
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--v3-ink-2);
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 550;
+  min-height: 30px;
+  transition: background .15s ease, color .15s ease, box-shadow .15s ease;
+}
+.v3-plot .control-btn:hover { background: rgb(23 33 43 / 0.05); color: var(--v3-ink); }
+.v3-plot .control-btn.active {
+  background: var(--v3-surface);
+  color: var(--v3-ink);
+  font-weight: 650;
+  box-shadow: 0 1px 2px rgb(23 33 43 / 0.12), 0 0 0 1px rgb(23 33 43 / 0.06);
+}
+.v3-plot .control-btn:disabled { opacity: .4; cursor: default; }
+.v3-plot .control-btn:focus-visible, .v3-plot a:focus-visible, .v3-summary a:focus-visible {
+  outline: 2px solid var(--v3-accent);
+  outline-offset: 2px;
+}
+.v3-plot select.control-btn {
+  background: var(--v3-surface);
+  border-color: var(--v3-line-strong);
+  border-radius: 8px;
+  padding: 6px 10px;
+  min-height: 36px;
+  max-width: 100%;
+  color: var(--v3-ink);
+}
+
+/* Chart: quiet frame, muted axes, crisp labels. */
+.v3-plot .chart-container {
+  box-shadow: none;
+  border: 1px solid var(--v3-line);
+  border-radius: 8px;
+  padding: 10px;
+  background: var(--v3-surface);
+}
+.v3-plot #chart text { font-family: var(--v3-font); fill: var(--v3-muted); }
+.v3-plot #chart .axis-label { fill: var(--v3-ink-2); font-weight: 550; }
+.v3-plot #chart .domain { stroke: var(--v3-line-strong); }
+.v3-plot #chart .tick line { stroke: var(--v3-line-strong); }
+.v3-plot #chart .grid { opacity: .7; }
+.v3-plot #chart .grid .domain { display: none; }
+.v3-plot #chart .grid .tick line { stroke: #eceff2; }
+.v3-plot #chart .model-label {
+  font-weight: 600;
+  fill: var(--v3-ink);
+  paint-order: stroke;
+  stroke: #fff;
+  stroke-width: 3px;
+  stroke-linejoin: round;
+}
+/* Hover focus: one model forward, the rest recede; the legend follows. */
+.v3-plot .series, .v3-plot .comparison-model, .v3-plot .legend-item { transition: opacity .15s ease; }
+.v3-plot .series.dimmed, .v3-plot .comparison-model.dimmed { opacity: .16; }
+.v3-plot .series.focus .progress-line { stroke-width: 4.5; }
+.v3-plot .series.focus .model-label, .v3-plot .comparison-model.focus .model-label { font-size: 14px; }
+.v3-plot .legend-item.dimmed { opacity: .35; }
+.v3-plot .legend-item.focus { color: var(--v3-ink); }
+.v3-plot .legend-item:focus-visible { outline: 2px solid var(--v3-accent); outline-offset: 2px; border-radius: 4px; }
+.v3-plot .model-marker { cursor: pointer; }
+.v3-plot .scoring-window rect { fill: var(--v3-accent); opacity: .05; }
+.v3-plot .scoring-window line { stroke: var(--v3-accent); stroke-dasharray: 4 4; opacity: .55; }
+.v3-plot .scoring-window text { font-family: var(--v3-mono); font-size: 10px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; fill: var(--v3-accent); }
+.v3-plot .guide line { stroke: var(--v3-ink); opacity: .35; stroke-dasharray: 3 3; }
+.v3-plot .chart-note { fill: var(--v3-muted); }
+.v3-plot .label-connector { stroke-width: 1; opacity: .7; }
+.v3-plot .legend { justify-content: flex-start; gap: 6px 18px; margin-top: 14px; padding: 0 4px; }
+.v3-plot .legend-item {
+  padding: 2px 0;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--v3-ink-2);
+}
+.v3-plot .tooltip {
+  border: 1px solid var(--v3-line-strong);
+  border-radius: 10px;
+  box-shadow: 0 12px 32px -8px rgb(23 33 43 / 0.25);
+  padding: 14px;
+  font-family: var(--v3-font);
+}
+.v3-plot .tooltip { min-width: 250px; max-width: 330px; font-size: 12.5px; line-height: 1.45; }
+.v3-plot .tooltip-title { display: flex; align-items: center; gap: 8px; color: var(--v3-ink); border-bottom-color: var(--v3-line); font-size: 13px; font-weight: 650; }
+.v3-plot .tooltip-swatch { display: inline-block; width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+.v3-plot .tooltip-section { font-family: var(--v3-mono); font-size: 9.5px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--v3-muted); margin: 10px 0 4px; }
+.v3-plot .tooltip-row { gap: 16px; margin: 3px 0; }
+.v3-plot .tooltip-row.strong { margin-top: 6px; }
+.v3-plot .tooltip-row.strong .tooltip-value { color: var(--v3-accent); font-weight: 700; font-size: 13.5px; }
+.v3-plot .tooltip-label { display: inline-flex; align-items: center; gap: 7px; color: var(--v3-muted); }
+.v3-plot .tooltip-value { color: var(--v3-ink); font-weight: 550; font-variant-numeric: tabular-nums; }
+
+/* Leaderboard: keep task glyphs, bands and comparable axes; quiet the furniture. */
+.v3-summary .task-legend {
+  align-items: center;
+  padding: 10px 14px;
+  background: var(--v3-surface-2);
+  border: 1px solid var(--v3-line);
+  border-radius: 8px;
+  box-shadow: none;
+  margin-bottom: 14px;
+  color: var(--v3-ink-2);
+}
+.v3-summary .task-legend-item { min-height: 17px; }
+.v3-summary .table-wrap { border: 1px solid var(--v3-line); border-radius: 8px; background: var(--v3-surface); padding-bottom: 8px; }
+.v3-summary .summary-table { border-spacing: 12px 0; box-shadow: none; border-radius: 0; }
+.v3-summary .summary-table th {
+  background: var(--v3-surface-2);
+  color: var(--v3-muted);
+  font-family: var(--v3-mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 18px 5px 20px;
+}
+.v3-summary .thead-bg-fill { background: var(--v3-surface-2); }
+.v3-summary .summary-table thead::after { height: 1px; background: var(--v3-line); }
+.v3-summary .summary-table td { height: 62px; border-bottom-color: #edf0f2; }
+.v3-summary .model-cell { height: 62px; padding: 8px; }
+.v3-summary .model-cell .bg { opacity: .10; border-radius: 6px; inset: 7px 0; }
+.v3-summary .model-name { font-size: 13px; color: var(--v3-ink); font-weight: 600; letter-spacing: -0.005em; }
+.v3-summary .rank-cell { font-family: var(--v3-mono); font-size: 12px; color: var(--v3-muted); }
+.v3-summary tr:first-child .rank-cell { color: var(--v3-accent); font-weight: 700; }
+.v3-summary .harness-cell { background: transparent !important; }
+.v3-summary .harness-name { color: var(--v3-ink-2); font-size: 12px; font-weight: 500; }
+.v3-summary .harness-version { color: var(--v3-muted); font-family: var(--v3-mono); font-size: 10px; }
+.v3-summary .harness-icon { width: 22px; height: 22px; }
+.v3-summary .chart-cell svg > rect[opacity='0.25'] { opacity: .1; }
+.v3-summary .summary-table tbody tr:hover .model-cell .bg { opacity: .2; }
+
+/* Embeds expand with their contents; narrow leaderboards become stacked rows. */
+.v3-summary .table-wrap { overflow: visible; }
+.v3-summary .summary-table { min-width: 0; }
+.v3-summary .col-model { width: 210px; }
+.v3-summary .col-harness { width: 150px; }
+.v3-summary .task-legend > div { overflow: visible !important; }
+.v3-summary .task-legend > div > div {
+  width: fit-content !important; max-width: 100%; min-width: 0 !important;
+  margin-inline: auto;
+  grid-template-columns: repeat(8, minmax(0, max-content)) !important;
+  gap: 1px 12px !important; white-space: normal !important;
+}
+.v3-summary .task-legend-item { min-width: 0; font-size: 11px; }
+@media (max-width: 900px) {
+  .v3-summary .summary-table, .v3-summary .summary-table tbody { display: block; width: 100%; min-width: 0; }
+  .v3-summary .summary-table thead, .v3-summary .tick-overlay, .v3-summary .thead-bg-fill { display: none; }
+  .v3-summary .summary-table tr { display: grid; grid-template-columns: 26px minmax(0, 1fr) minmax(0, 1fr); gap: 8px; padding: 14px; border-bottom: 1px solid var(--v3-line); }
+  .v3-summary .summary-table tr:last-child { border-bottom: none; }
+  .v3-summary .summary-table td { display: block; min-width: 0; height: auto; border: none; }
+  .v3-summary .summary-table td:nth-child(1) { align-self: center; }
+  .v3-summary .summary-table td:nth-child(2) { grid-column: 2 / -1; }
+  .v3-summary .summary-table td:nth-child(3), .v3-summary .summary-table td:nth-child(5) { grid-column: 1 / -1; padding-bottom: 12px; }
+  .v3-summary .summary-table td:nth-child(5) { order: 1; }
+  .v3-summary .summary-table td:nth-child(4) { grid-column: 1 / 3; order: 2; }
+  .v3-summary .summary-table td:nth-child(6) { order: 2; grid-column: 3; padding: 0 !important; align-self: center; }
+  .v3-summary .model-cell { height: 48px; }
+  .v3-summary .chart-cell::before { display: block; font-family: var(--v3-mono); font-size: 10px; color: var(--v3-muted); letter-spacing: .08em; margin: 6px 0; }
+  .v3-summary td:nth-child(3)::before { content: 'AVERAGE SCORE ACROSS 11 TASKS'; }
+  .v3-summary td:nth-child(4)::before { content: 'COST / RUN (USD)'; }
+  .v3-summary td:nth-child(5)::before { content: 'FINAL BEST SCORE'; }
+  .v3-summary .task-legend-item { flex-direction: column; text-align: center; font-size: 9px; overflow-wrap: anywhere; gap: 3px; }
+  .v3-summary .task-legend > div > div { gap: 8px 4px !important; }
+}
+
+/* Shareable chart proportions and local PNG exports. */
+html:has(body.v3-plot) { height: auto; overflow: auto; }
+body.v3-plot { height: auto; overflow: visible; }
+.v3-plot .chart-container { flex: none; height: auto; aspect-ratio: 2 / 1; min-height: 300px; }
+.v3-plot #chart { display: block; }
+/* A quiet download action beside the title, outside the plotting controls. */
+.v3-plot .header, .v3-summary .header { position: relative; padding-right: 125px; }
+.png-toolbar { position: absolute; right: 0; top: 14px; display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+.png-button {
+  display: inline-flex; align-items: center; gap: 6px;
+  border: 1px solid var(--v3-line-strong); border-radius: 6px; padding: 5px 10px;
+  background: var(--v3-surface); color: var(--v3-ink-2);
+  font-family: inherit; font-size: 11.5px; font-weight: 550; cursor: pointer; white-space: nowrap;
+}
+.png-button:hover { background: var(--v3-surface-2); color: var(--v3-ink); }
+.png-button:focus-visible { outline: 2px solid var(--v3-accent); outline-offset: 2px; }
+.png-button:disabled { opacity: .5; cursor: wait; }
+.png-status { font-size: 10px; color: var(--v3-muted); }
+@media (max-width: 600px) {
+  .v3-plot .header, .v3-summary .header { padding-right: 0; }
+  .png-toolbar { position: static; align-items: flex-start; margin-top: 6px; }
+}
+.png-export .controls, .png-export .header-links, .png-export .png-toolbar, .png-export .tooltip { display: none !important; }
+.png-export body { background: #fff; padding: 28px 32px; }
+.png-export .header::before { content: 'WEIRDML / V3'; }
+.png-export .header h1 { font-size: 24px; }
+.png-export .header { margin-bottom: 16px; }
+.png-export body.v3-plot { height: 675px; overflow: hidden; }
+.png-export .v3-plot .chart-container { flex: 1; aspect-ratio: auto; min-height: 0; }
+.png-export .v3-plot .legend { flex-shrink: 0; margin-top: 14px; }
+.png-export .v3-plot .legend-item { font-size: 12px; }
+.png-export .v3-summary .task-legend { margin-bottom: 24px; }
+.png-export .v3-summary .model-name { overflow: visible; line-height: 1.4; }
+.png-export .v3-summary .col-model { width: 270px; }
+.png-export .v3-summary .col-cost { width: 130px; }
+.png-export .v3-summary .col-final { width: 190px; }
+/* The chart PNG has its own compact layout, independent of the website chrome. */
+.png-export body.v3-plot { padding: 12px 16px 10px; }
+.png-export .v3-plot .header { padding: 0 0 0 65px; margin: 0 0 2px; }
+.png-export .v3-plot .header::before { display: none; }
+.png-export .v3-plot .header h1 { font-size: 18px; line-height: 26px; font-weight: 600; letter-spacing: -.01em; }
+.png-export .v3-plot .chart-container { border: 0; border-radius: 0; padding: 0; background: #fff; }
+.png-export .v3-plot .legend { padding: 0 0 6px 65px; margin: 0; gap: 6px 18px; justify-content: flex-start; }
+.png-export .v3-plot .legend-item { border: 0; border-radius: 0; background: transparent; padding: 0; font-size: 11px; box-shadow: none; gap: 5px; }
+.png-export .v3-plot .legend-icon { display: none; }
+.png-export .v3-plot .legend { display: none !important; }
+.png-export * { font-feature-settings: normal !important; font-variant-numeric: normal !important; letter-spacing: normal !important; }
+.v3-plot .svg-legend-text { font-size: 12px; fill: var(--v3-ink-2); }
+.v3-plot .svg-attribution { font-family: var(--v3-mono); font-size: 11px; fill: var(--v3-faint); }
+/* The summary's task legend: plain rows the rasteriser lays out reliably. */
+.png-export .v3-summary .task-legend { padding: 12px 16px; }
+.png-export .v3-summary .task-legend > div { overflow: visible !important; }
+.png-export .v3-summary .task-legend > div > div { width: 100% !important; min-width: 0 !important; margin: 0 !important; justify-content: start !important; gap: 4px 0 !important; }
+.png-export .v3-summary .task-legend-item { display: block; white-space: nowrap; padding-right: 18px; font-size: 12px; line-height: 16px; }
+.png-export .v3-summary .task-legend-item svg { display: inline-block; vertical-align: -2px; margin-right: 6px; }
+.png-export .v3-plot .model-label { font-size: 14px; }
+.png-export .v3-plot .axis-label { font-size: 14px !important; }
+
+/* ------------------------------------------------------------------
+   Scoring page
+   ------------------------------------------------------------------ */
+.weirdml-scoring-page { max-width: 1000px; counter-reset: v3sec; }
+.weirdml-scoring-page > p, .weirdml-scoring-page > ul { max-width: 780px; color: var(--v3-ink-2); }
+.weirdml-scoring-page > p { font-size: 1.02rem; line-height: 1.75; }
+.weirdml-scoring-page h2 { margin-top: 56px; counter-increment: v3sec; }
+.weirdml-scoring-page h2::before {
+  content: counter(v3sec, decimal-leading-zero);
+  display: block;
+  font-family: var(--v3-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  color: var(--v3-accent);
+  margin-bottom: 8px;
+}
+.weirdml-scoring-page h2:first-of-type { margin-top: 8px; }
+.scoring-static {
+  margin: 26px 0 40px;
+  padding: 24px;
+  background: var(--v3-surface);
+  border: 1px solid var(--v3-line);
+  border-radius: var(--v3-radius);
+  box-shadow: var(--v3-shadow);
+}
+.scoring-static img { display: block; width: 100%; height: auto; }
+.scoring-static figcaption {
+  font-size: 0.85rem;
+  line-height: 1.65;
+  color: var(--v3-muted);
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--v3-line);
+}
+.scoring-comparison { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px; }
+.scoring-comparison h3 { font-size: 0.95rem; font-weight: 650; letter-spacing: -0.01em; margin: 0 0 12px; color: var(--v3-ink); }
+.scoring-comparison p { font-size: 0.85rem; margin: 10px 0 0; color: var(--v3-muted); font-variant-numeric: tabular-nums; }
+.scoring-comparison p b { color: var(--v3-ink); font-family: var(--v3-mono); font-weight: 600; font-size: 0.82rem; }
+
+/* ------------------------------------------------------------------
+   Selected tasks page: keep its dark design; only align the shared nav.
+   ------------------------------------------------------------------ */
+body:has(.weirdml-task-page) main h1 { color: #f1f5f9; }
+body:has(.weirdml-task-page) main h1::after { background: #5fc3e6; }
+/* Selected tasks: the site header, band and page share one dark surface; the band fades into the page. */
+body:has(.weirdml-task-page) .site-header { background-color: rgba(255, 255, 255, 0.95); border-bottom: 1px solid var(--color-border, #e2e8f0); }
+body:has(.weirdml-task-page) .site-title,
+body:has(.weirdml-task-page) .nav-toggle { color: var(--color-primary, #0f172a); }
+body:has(.weirdml-task-page) .nav-link { color: var(--color-text-muted, #64748b); }
+body:has(.weirdml-task-page) .nav-link:hover { color: var(--color-primary, #0f172a); background-color: var(--color-bg, #f8fafc); }
+body:has(.weirdml-task-page) .nav-link.active { color: var(--color-accent, #0891b2); background-color: var(--color-accent-subtle, #ecfeff); }
+@media (max-width: 768px) {
+  body:has(.weirdml-task-page) .site-nav { background: #fff; border-color: var(--color-border, #e2e8f0); }
+}
+body:has(.weirdml-task-page) .v3-hero {
+  --hero-bg: #0f1a24;
+  padding-bottom: 8px;
+  margin-bottom: 8px;
+  background:
+    linear-gradient(to bottom, rgb(10 14 20 / 0) 55%, #0a0e14 100%),
+    radial-gradient(ellipse 60% 80% at 100% 0%, rgb(95 195 230 / 0.10), transparent 60%),
+    radial-gradient(ellipse 40% 60% at 0% 100%, rgb(14 111 136 / 0.14), transparent 60%),
+    var(--hero-bg);
+}
+body:has(.weirdml-task-page) .v3-hero::after { display: none; }
+body:has(.weirdml-task-page) .v3-hero .weirdml-nav { border-bottom: 1px solid rgb(255 255 255 / 0.10); }
+body:has(.weirdml-task-page) .weirdml-nav { background: transparent; border: none; border-bottom: 1px solid #2b3949; }
+body:has(.weirdml-task-page) .weirdml-nav a { color: #9eafbf; }
+body:has(.weirdml-task-page) .weirdml-nav a:hover:not([aria-current]) { background: transparent; color: #e8edf2; }
+body:has(.weirdml-task-page) .weirdml-nav a[aria-current='page'] { background: transparent; color: #fff !important; border-bottom-color: #5fc3e6; }
+body:has(.weirdml-task-page) main a { color: #79d1ee; }
+body:has(.weirdml-task-page) main a:hover { color: #a5e2f5; }
+.weirdml-task-page .eyebrow { font-family: var(--v3-mono); }
+.weirdml-task-page .fact .k { font-family: var(--v3-mono); }
+.weirdml-task-page .col h3 { font-family: var(--v3-mono); letter-spacing: 0.1em; }
+
+/* ------------------------------------------------------------------
+   Responsive and motion
+   ------------------------------------------------------------------ */
+@media (max-width: 700px) {
+  .weirdml-nav { gap: 0 18px; width: 100%; justify-content: flex-start; padding: 0; }
+  .weirdml-nav a { padding: 9px 1px 10px; font-size: 0.9rem; }
+}
+@media (max-width: 600px) {
+  .v3-hero { padding-top: 30px; margin-bottom: 26px; }
+  .v3-hero .weirdml-nav { margin-top: 20px; }
+  body:has(.weirdml-nav) main h1 { margin-bottom: 18px; }
+  .v3-embed iframe[title='WeirdML v3 interactive progress plot'] { height: 860px; }
+  .v3-note { padding-left: 12px; }
+  body.v3-plot, body.v3-summary { padding: 14px 10px; }
+  .v3-plot .header h1, .v3-summary .header h1 { font-size: 14px; }
+  .v3-plot .controls { padding: 0 0 12px; gap: 12px 16px; }
+  .v3-plot .control-btn { padding: 7px 9px; min-height: 34px; font-size: 11.5px; }
+  .v3-plot .button-group { flex-wrap: wrap; }
+  .v3-plot .legend-item { font-size: 10.5px; }
+  .v3-plot .chart-container { padding: 4px; }
+  .v3-summary .task-legend { padding: 10px; font-size: 11px; }
+  .v3-summary .summary-table { min-width: 1000px; }
+  .v3-summary .col-model { width: 220px; }
+  .scoring-static { padding: 14px; }
+  .scoring-comparison { grid-template-columns: 1fr; gap: 26px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .v3-plot *, .v3-summary *, .weirdml-nav a { transition: none !important; }
+}
