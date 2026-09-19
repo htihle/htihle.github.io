@@ -240,10 +240,10 @@ title: WeirdML v3 Model Summary
             <tr>
                 <th class="col-rank">#</th>
                 <th class="col-model">Model</th>
-                <th class="col-accuracy">Average Score Across 11 Tasks</th>
-                <th class="col-cost">Cost / Run (USD)</th>
-                <th class="col-final">Final Best Score</th>
-                <th class="col-harness">Harness</th>
+                <th class="col-accuracy"><span class="long">Average Score Across 11 Tasks</span><span class="short">Avg score</span></th>
+                <th class="col-cost"><span class="long">Cost / Run (USD)</span><span class="short">Cost</span></th>
+                <th class="col-final"><span class="long">Final Best Score</span><span class="short">Final best</span></th>
+                <th class="col-harness"><span class="long">Harness</span><span class="short">Tool</span></th>
             </tr>
         </thead>
         <tbody id="table-body"></tbody>
@@ -416,7 +416,10 @@ function buildLegend() {
 }
 
 // ── Draw accuracy mini-chart ──
+// Sizes follow the row height: desktop rows are 48px, phone rows 40px (see renderCharts).
+const compactOf = h => h < 48;
 function drawAccuracy(svg, d, taskData, w, h) {
+    const compact = compactOf(h);
     const pad = { l: 2, r: 2 };
     const iw = w - pad.l - pad.r;
     const x = d3.scaleLinear().domain(accLim).range([pad.l, pad.l + iw]);
@@ -432,29 +435,30 @@ function drawAccuracy(svg, d, taskData, w, h) {
     svg.append('rect').attr('x', 0).attr('y', 0).attr('width', w).attr('height', h)
        .attr('fill', col).attr('opacity', 0.25);
 
-    // Grid lines
-    for (let v = 0.1; v <= 0.9; v += 0.1) {
+    // Grid lines (coarser on phones, where the cell is only ~100px wide)
+    for (const v of compact ? [0.25, 0.5, 0.75] : d3.range(0.1, 0.91, 0.1)) {
         svg.append('line').attr('x1', x(v)).attr('x2', x(v))
            .attr('y1', 2).attr('y2', h - 2)
            .attr('stroke', '#bbb').attr('stroke-width', 0.7);
     }
 
+    const bandH = compact ? 24 : 32, lineH = compact ? 28 : 36;
     // Error bar (thick colored band)
     svg.append('rect')
        .attr('x', x(lo)).attr('width', Math.max(0, x(hi) - x(lo)))
-       .attr('y', cy - 16).attr('height', 32)
+       .attr('y', cy - bandH / 2).attr('height', bandH)
        .attr('fill', col).attr('opacity', 0.7).attr('rx', 2);
 
     // Mean line
     svg.append('line')
        .attr('x1', x(mean)).attr('x2', x(mean))
-       .attr('y1', cy - 18).attr('y2', cy + 18)
-       .attr('stroke', '#000').attr('stroke-width', 2).attr('opacity', 0.5);
+       .attr('y1', cy - lineH / 2).attr('y2', cy + lineH / 2)
+       .attr('stroke', '#000').attr('stroke-width', compact ? 1.5 : 2).attr('opacity', 0.5);
 
     // Individual task markers
     taskData.forEach(({ task, val }) => {
         const m = taskMarkerMap[task];
-        const gen = d3.symbol().type(m.shape).size(40);
+        const gen = d3.symbol().type(m.shape).size(compact ? 14 : 40);
         const fill = m.filled ? '#333' : 'none';
         const stroke = m.filled ? '#fff' : '#333';
         const sw = m.filled ? 0.3 : 0.8;
@@ -470,8 +474,8 @@ function drawAccuracy(svg, d, taskData, w, h) {
     const labelX = x(mean);
     const labelG = svg.append('g');
     const labelText = labelG.append('text')
-       .attr('x', labelX).attr('y', cy + 4)
-       .attr('text-anchor', 'middle').attr('font-size', '11px')
+       .attr('x', labelX).attr('y', cy + (compact ? 3 : 4))
+       .attr('text-anchor', 'middle').attr('font-size', compact ? '8px' : '11px')
        .attr('font-weight', '600').attr('fill', '#111')
        .text(mean.toFixed(3));
     const bbox = labelText.node().getBBox();
@@ -483,6 +487,7 @@ function drawAccuracy(svg, d, taskData, w, h) {
 
 // ── Draw cost bar ──
 function drawCost(svg, d, w, h) {
+    const compact = compactOf(h);
     const pad = { l: 2, r: 2 };
     const iw = w - pad.l - pad.r;
     const x = d3.scaleLinear().domain(costLim).range([pad.l, pad.l + iw]);
@@ -497,25 +502,38 @@ function drawCost(svg, d, w, h) {
        .attr('fill', col).attr('opacity', 0.25);
 
     // Grid lines
-    for (const v of d3.ticks(0, costLim[1], 5).slice(1, -1)) {
+    for (const v of compact ? [costLim[1] / 2] : d3.ticks(0, costLim[1], 5).slice(1, -1)) {
         svg.append('line').attr('x1', x(v)).attr('x2', x(v))
            .attr('y1', 2).attr('y2', h - 2)
            .attr('stroke', '#bbb').attr('stroke-width', 0.7);
     }
 
+    const barH = compact ? 20 : 28;
     if (d.cost_per_run_usd == null) {
         svg.append('text').attr('x', w / 2).attr('y', cy + 4)
-           .attr('text-anchor', 'middle').attr('font-size', '11px').text('Unavailable');
+           .attr('text-anchor', 'middle').attr('font-size', compact ? '8px' : '11px').text(compact ? 'n/a' : 'Unavailable');
     } else if (cost >= 0) {
         svg.append('rect')
            .attr('x', pad.l).attr('width', Math.max(1, x(Math.min(cost, costLim[1])) - pad.l))
-           .attr('y', cy - 14).attr('height', 28)
+           .attr('y', cy - barH / 2).attr('height', barH)
            .attr('fill', col).attr('opacity', 0.8).attr('rx', 2);
-        const labelX = Math.min(x(cost), x(costLim[1] * 0.65));
-        svg.append('text')
-           .attr('x', labelX + 3).attr('y', cy + 4)
-           .attr('font-size', '11px').attr('fill', '#333')
-           .text(cost >= 1 ? `$${cost.toFixed(2)}` : `$${cost.toPrecision(3)}`);
+        const label = cost >= 1 ? `$${cost.toFixed(2)}` : `$${cost.toPrecision(3)}`;
+        if (compact) {
+            // No room beside a short bar: centre the label over the cell on a light backing.
+            const labelG = svg.append('g');
+            const text = labelG.append('text').attr('x', w / 2).attr('y', cy + 3)
+               .attr('text-anchor', 'middle').attr('font-size', '7.5px').attr('font-weight', '600').attr('fill', '#111').text(label);
+            const bbox = text.node().getBBox();
+            labelG.insert('rect', 'text').attr('x', bbox.x - 2).attr('y', bbox.y - 1)
+               .attr('width', bbox.width + 4).attr('height', bbox.height + 2)
+               .attr('fill', 'white').attr('opacity', 0.8).attr('rx', 2);
+        } else {
+            const labelX = Math.min(x(cost), x(costLim[1] * 0.65));
+            svg.append('text')
+               .attr('x', labelX + 3).attr('y', cy + 4)
+               .attr('font-size', '11px').attr('fill', '#333')
+               .text(label);
+        }
     }
 }
 
@@ -543,13 +561,15 @@ function drawTicksInCell(svg, domain, ticks, w, h, format, position) {
        .attr('y1', baseY).attr('y2', baseY)
        .attr('stroke', '#aaa').attr('stroke-width', 0.5);
 
-    ticks.forEach(v => {
+    const compact = compactOf(h);
+    ticks.forEach((v, i) => {
         const tx = x(v);
         svg.append('line').attr('x1', tx).attr('x2', tx)
            .attr('y1', baseY).attr('y2', baseY + tickDir * tickLen)
            .attr('stroke', '#999').attr('stroke-width', 0.5);
         svg.append('text').attr('x', tx).attr('y', labelY)
-           .attr('text-anchor', 'middle').attr('font-size', '9px')
+           .attr('text-anchor', compact ? (i === 0 ? 'start' : i === ticks.length - 1 ? 'end' : 'middle') : 'middle')
+           .attr('font-size', compact ? '7px' : '9px')
            .attr('fill', '#777').text(format(v));
     });
 }
@@ -578,14 +598,17 @@ d3.json('assets/data/weirdml_v3.json').then(prepared => {
     buildLegend();
 
     const tbody = document.getElementById('table-body');
-    const rowH = 48;
+    // Phones (see weirdml-v3-design.css) get shorter rows; the draw functions scale with rowH.
+    const isCompact = () => window.matchMedia('(max-width: 600px)').matches;
+    let rowH = 48;
 
     // Tick configurations for each column
-    const tickConfigs = [
-        { domain: accLim, ticks: [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0], fmt: v => v.toFixed(1) },
+    const tickConfigsFor = compact => [
+        { domain: accLim, ticks: compact ? [0, 0.5, 1.0] : [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0], fmt: v => v.toFixed(1) },
         { domain: costLim, ticks: [0, costLim[1]], fmt: v => '$' + v },
         { domain: finalBestLim, ticks: [0, .5, 1], fmt: v => v.toFixed(1) },
     ];
+    let tickConfigs = tickConfigsFor(false);
     const n = data.length;
     const rowRefs = [];
 
@@ -643,6 +666,7 @@ d3.json('assets/data/weirdml_v3.json').then(prepared => {
         (d.harnesses || []).forEach(harness => {
             const entry = document.createElement('div');
             entry.className = 'harness-entry';
+            entry.title = (harnessNames[harness.name] || harness.name) + (harness.version ? ' v' + String(harness.version).replace(/^v/, '') : '');
             const name = document.createElement('div');
             name.className = 'harness-name';
             name.textContent = harnessNames[harness.name] || harness.name;
@@ -673,6 +697,9 @@ d3.json('assets/data/weirdml_v3.json').then(prepared => {
     // ── Render all SVG charts and overlays ──
     function renderCharts() {
         buildLegend();
+        const compact = isCompact();
+        rowH = compact ? 40 : 48;
+        tickConfigs = tickConfigsFor(compact);
         // Clear existing SVGs from chart cells
         rowRefs.forEach(ref => {
             ref.cells.forEach(td => {
@@ -735,7 +762,7 @@ d3.json('assets/data/weirdml_v3.json').then(prepared => {
             const tdRect = td.getBoundingClientRect();
             const cfg = tickConfigs[ci];
             const w = td.clientWidth;
-            const tickH = 16;
+            const tickH = compact ? 12 : 16;
             const pad = { l: 2, r: 2 };
             const iw = w - pad.l - pad.r;
             const x = d3.scaleLinear().domain(cfg.domain).range([pad.l, pad.l + iw]);
@@ -755,13 +782,14 @@ d3.json('assets/data/weirdml_v3.json').then(prepared => {
                .attr('y1', tickH).attr('y2', tickH)
                .attr('stroke', '#aaa').attr('stroke-width', 0.5);
 
-            cfg.ticks.forEach(v => {
+            cfg.ticks.forEach((v, i) => {
                 const tx = x(v);
                 svg.append('line').attr('x1', tx).attr('x2', tx)
                    .attr('y1', tickH).attr('y2', tickH - 4)
                    .attr('stroke', '#999').attr('stroke-width', 0.5);
                 svg.append('text').attr('x', tx).attr('y', tickH - 5)
-                   .attr('text-anchor', 'middle').attr('font-size', '9px')
+                   .attr('text-anchor', compact ? (i === 0 ? 'start' : i === cfg.ticks.length - 1 ? 'end' : 'middle') : 'middle')
+                   .attr('font-size', compact ? '7px' : '9px')
                    .attr('fill', '#777').text(cfg.fmt(v));
             });
         });
