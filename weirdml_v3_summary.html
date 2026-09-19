@@ -684,6 +684,10 @@ d3.json('assets/data/weirdml_v3.json').then(prepared => {
         const wrap = document.getElementById('table-wrap');
         wrap.querySelectorAll('.tick-overlay, .thead-bg-fill').forEach(el => el.remove());
 
+        // Narrow layouts stack each model as a card (see weirdml-v3-design.css): the shared
+        // header axis is hidden there, so every mini chart carries its own ticks.
+        const stacked = window.matchMedia('(max-width: 900px)').matches;
+
         // Draw SVGs in each row
         rowRefs.forEach(ref => {
             const { d, isLast, cells } = ref;
@@ -704,8 +708,9 @@ d3.json('assets/data/weirdml_v3.json').then(prepared => {
                 drawFns[ci](svg, w, rowH);
 
                 const cfg = tickConfigs[ci];
-                if (isLast) {
-                    drawTicksInCell(svg, cfg.domain, cfg.ticks, w, rowH, cfg.fmt, 'bottom');
+                if (isLast || stacked) {
+                    const ticks = stacked && ci === 0 ? cfg.ticks.filter((v, k) => k % 2 === 0) : cfg.ticks;
+                    drawTicksInCell(svg, cfg.domain, ticks, w, rowH, cfg.fmt, 'bottom');
                 }
             });
         });
