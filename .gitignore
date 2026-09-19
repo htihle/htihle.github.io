@@ -1,6 +1,7 @@
 _site/
 .jekyll-cache/
 .bundle/
+vendor/
 __pycache__/
 
 # Working notes and local tooling, not part of the published site
