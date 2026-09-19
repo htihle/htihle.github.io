@@ -456,7 +456,11 @@ html.embed, html.embed body { overflow: hidden !important; }
 /* Shareable chart proportions and local PNG exports. */
 html:has(body.v3-plot) { height: auto; overflow: auto; }
 body.v3-plot { height: auto; overflow: visible; }
-.v3-plot .chart-container { flex: none; height: auto; aspect-ratio: 2 / 1; min-height: 300px; }
+/* Explicit width: with only aspect-ratio + min-height, Safari sizes this column-flex item
+   from its height (2 x 300px = 600px) instead of stretching it, so on phones the chart
+   ran off the right edge of the embed. */
+.v3-plot .chart-container { flex: none; width: 100%; max-width: 100%; height: auto; aspect-ratio: 2 / 1; min-height: 300px; }
+.v3-plot #chart { max-width: 100%; }
 .v3-plot #chart { display: block; }
 /* A quiet download action beside the title, outside the plotting controls. */
 .v3-plot .header, .v3-summary .header { position: relative; padding-right: 125px; }
