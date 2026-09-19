@@ -102,7 +102,15 @@ function placeTooltip(event) {
     if (top + h > window.innerHeight + window.scrollY - 12) top = Math.max(8, event.pageY - h - 16);
     tooltip.style('left', left + 'px').style('top', top + 'px');
 }
+function dismiss() {
+    pinned = false; hideTooltip(); setHighlight(null); svg.select('.guide').style('display', 'none');
+}
 function showTooltip(event) {
+    // On phones the card is in flow beneath the chart; give it an explicit close control.
+    if (isPhoneNow() && tooltip.select('.tooltip-close').empty()) {
+        tooltip.select('.tooltip-title').append('button').attr('class', 'tooltip-close').attr('type', 'button')
+            .attr('aria-label', 'Close').text('Close').on('click', event => {event.stopPropagation(); dismiss();});
+    }
     tooltip.classed('visible', true);
     placeTooltip(event);
 }
@@ -207,9 +215,15 @@ function updateLegend() {
         }
         item.append('span').text(model.name);
         if (pngExport) return;
-        item.on('pointerenter', event => {if (!pinned) {setHighlight(model.id); modelCard(model, currentConfig()); showTooltip(event);}})
+        item.on('pointerenter', event => {if (!pinned && event.pointerType !== 'touch') {setHighlight(model.id); modelCard(model, currentConfig()); showTooltip(event);}})
             .on('pointermove', event => {if (!pinned) placeTooltip(event);})
             .on('pointerleave', () => {if (!pinned) {setHighlight(null); hideTooltip();}})
+            // A tap on a legend entry pins that model's card (hover is not available on touch).
+            .on('click', event => {
+                if (!isPhoneNow()) return;
+                if (pinned && highlighted === model.id) {dismiss(); return;}
+                pinned = true; setHighlight(model.id); modelCard(model, currentConfig()); showTooltip(event);
+            })
             .on('focus', () => {if (!pinned) setHighlight(model.id);})
             .on('blur', () => {if (!pinned) setHighlight(null);});
     });
@@ -351,7 +365,8 @@ function updateChart() {
         ? constructor(xScale).tickValues(logTicks()).tickFormat(d3.format('~s'))
         : constructor(xScale).ticks(tickCount, '~s');
     // Scoring window: the part of the token axis that contributes to the official score.
-    if (currentScale === 'log' && Number.isFinite(axis.start) && axis.start > plotStart) {
+    const hasWindow = currentScale === 'log' && Number.isFinite(axis.start) && axis.start > plotStart;
+    if (hasWindow) {
         const x0 = xScale(axis.start), x1 = xScale(axis.limit);
         const band = g.append('g').attr('class', 'scoring-window');
         band.append('rect').attr('x', x0).attr('y', 0).attr('width', Math.max(0, x1 - x0)).attr('height', innerHeight);
@@ -376,7 +391,8 @@ function updateChart() {
     const line = d3.line().x(p => xScale(Math.max(plotStart, p[0]))).y(p => yScale(p[1])).curve(d3.curveStepAfter);
     const bisect = d3.bisector(p => p[0]).right;
     const labels = series.map(s => ({model: s.model, y: yScale(s.points.at(-1)[1]) - (rightLabels ? 0 : 11)}));
-    spreadLabels(labels, rightLabels ? 17 : 11, rightLabels ? 7 : 10, innerHeight - (rightLabels ? 7 : 4));
+    // Phones draw labels inside the plot: keep them clear of the scoring-window caption at the top.
+    spreadLabels(labels, rightLabels ? 17 : 11, rightLabels ? 7 : hasWindow ? 24 : 10, innerHeight - (rightLabels ? 7 : 4));
     const labelY = new Map(labels.map(l => [l.model.id, l.y]));
     const seriesGroups = g.selectAll('.series').data(series).join('g').attr('class', 'series');
     seriesGroups.each(function ({model, points}) {
@@ -486,6 +502,11 @@ document.querySelectorAll('[data-scale]').forEach(button => button.addEventListe
 }));
 select.addEventListener('change', updateChart);
 document.addEventListener('keydown', event => {if (event.key === 'Escape') {pinned = false; setHighlight(null); hideTooltip();}});
-let resizeTimer;
-window.addEventListener('resize', () => {clearTimeout(resizeTimer); resizeTimer = setTimeout(updateChart, 150);});
+// Redraw only when the width changes: height changes come from the parent page fitting the
+// embed to its content (e.g. the phone card appearing) and must not reset a pinned card.
+let resizeTimer, lastWidth = window.innerWidth;
+window.addEventListener('resize', () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => {if (window.innerWidth !== lastWidth) {lastWidth = window.innerWidth; updateChart();}}, 150);
+});
 })();
