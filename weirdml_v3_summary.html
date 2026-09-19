@@ -233,6 +233,7 @@ title: WeirdML v3 Model Summary
         </div>
     </div>
     <div class="task-legend" id="task-legend"></div>
+    <p class="scroll-hint" id="scroll-hint">Swipe the table sideways for more columns</p>
     <div class="table-wrap" id="table-wrap">
     <table class="summary-table">
         <thead>
@@ -684,10 +685,6 @@ d3.json('assets/data/weirdml_v3.json').then(prepared => {
         const wrap = document.getElementById('table-wrap');
         wrap.querySelectorAll('.tick-overlay, .thead-bg-fill').forEach(el => el.remove());
 
-        // Narrow layouts stack each model as a card (see weirdml-v3-design.css): the shared
-        // header axis is hidden there, so every mini chart carries its own ticks.
-        const stacked = window.matchMedia('(max-width: 900px)').matches;
-
         // Draw SVGs in each row
         rowRefs.forEach(ref => {
             const { d, isLast, cells } = ref;
@@ -708,21 +705,23 @@ d3.json('assets/data/weirdml_v3.json').then(prepared => {
                 drawFns[ci](svg, w, rowH);
 
                 const cfg = tickConfigs[ci];
-                if (isLast || stacked) {
-                    const ticks = stacked && ci === 0 ? cfg.ticks.filter((v, k) => k % 2 === 0) : cfg.ticks;
-                    drawTicksInCell(svg, cfg.domain, ticks, w, rowH, cfg.fmt, 'bottom');
+                if (isLast) {
+                    drawTicksInCell(svg, cfg.domain, cfg.ticks, w, rowH, cfg.fmt, 'bottom');
                 }
             });
         });
 
         // Fill grey header gaps and draw top ticks as overlay divs
         const wrapRect = wrap.getBoundingClientRect();
+        const scrollX = wrap.scrollLeft;
+        // On narrow screens the table pans sideways inside the wrap (see weirdml-v3-design.css).
+        document.body.classList.toggle('can-scroll', wrap.scrollWidth > wrap.clientWidth + 1);
 
         const thead = document.querySelector('.summary-table thead');
         const theadRect = thead.getBoundingClientRect();
         const bgFill = document.createElement('div');
         bgFill.className = 'thead-bg-fill';
-        bgFill.style.left = (theadRect.left - wrapRect.left) + 'px';
+        bgFill.style.left = (theadRect.left - wrapRect.left + scrollX) + 'px';
         bgFill.style.top = (theadRect.top - wrapRect.top) + 'px';
         bgFill.style.width = theadRect.width + 'px';
         bgFill.style.height = theadRect.height + 'px';
@@ -743,7 +742,7 @@ d3.json('assets/data/weirdml_v3.json').then(prepared => {
 
             const overlay = document.createElement('div');
             overlay.className = 'tick-overlay';
-            overlay.style.left = (tdRect.left - wrapRect.left) + 'px';
+            overlay.style.left = (tdRect.left - wrapRect.left + scrollX) + 'px';
             overlay.style.top = (tdRect.top - wrapRect.top - tickH) + 'px';
             overlay.style.width = w + 'px';
             overlay.style.height = tickH + 'px';
