@@ -82,7 +82,7 @@ function modelCard(model, config) {
     if (Number.isFinite(model.mean_final_best)) rows.push(['Final best', fmtPct(model.mean_final_best)]);
     rows.push(['Cost / run', Number.isFinite(model.mean_api_cost_usd) ? fmtUsd(model.mean_api_cost_usd) : 'Unavailable']);
     rows.push(['Release date', model.release_date || 'Unknown']);
-    rows.push(['Weights', model.open_weights ? 'Open' : 'Closed']);
+    rows.push(['Weights', model.open_weights == null ? 'Unknown' : model.open_weights ? 'Open' : 'Closed']);
     const harness = harnessLabel(model);
     if (harness) rows.push(['Harness', harness]);
     if (Number.isFinite(model.runs)) rows.push(['Valid runs', String(model.runs)]);
