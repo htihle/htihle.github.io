@@ -7,3 +7,4 @@ Downloaded 2026-09-17; served locally. Brand names and marks belong to their own
 - The two SVGs above are from Lobe Icons; see LOBE-LICENSE.
 - Gemini CLI: https://geminicli.com/icon.png (official project site).
 - OpenCode: https://raw.githubusercontent.com/anomalyco/opencode/dev/packages/ui/src/assets/favicon/favicon.svg (official project repository).
+- Kimi Code: reuses the Moonshot Kimi logo already in assets/icons/kimi_logo.png.

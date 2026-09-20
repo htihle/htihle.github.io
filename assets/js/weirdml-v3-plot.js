@@ -19,8 +19,8 @@ const companyColors = {
             'Thinking Machines': '#161311',
             'Synthetic Strong': '#d97757', 'Synthetic Weak': '#74aa9c', 'Other': '#888888'
         };
-const companies = {openai: 'OpenAI', anthropic: 'Anthropic', google: 'Google', deepseek: 'DeepSeek', 'z-ai': 'ZhipuAI'};
-const icons = {OpenAI: 'openai_icon.png', Anthropic: 'claude_logo.png', Google: 'gemini_logo.png', DeepSeek: 'deepseek_whale.png', ZhipuAI: 'z-ai_logo.png'};
+const companies = {openai: 'OpenAI', anthropic: 'Anthropic', google: 'Google', deepseek: 'DeepSeek', 'z-ai': 'ZhipuAI', moonshotai: 'Moonshot'};
+const icons = {OpenAI: 'openai_icon.png', Anthropic: 'claude_logo.png', Google: 'gemini_logo.png', DeepSeek: 'deepseek_whale.png', ZhipuAI: 'z-ai_logo.png', Moonshot: 'kimi_logo.png'};
 const company = model => model.id === 'synthetic-strong' ? 'Synthetic Strong' : model.id === 'synthetic-weak' ? 'Synthetic Weak' : companies[model.slug.split('/')[0]] || 'Other';
 const color = model => companyColors[company(model)];
 const pngExport = new URLSearchParams(location.search).has('png');
@@ -42,7 +42,7 @@ function curveDash(model) {
     const patterns = [null, '8 4', '2 4', '8 4 2 4', '8 4 2 4 2 4'];
     return rank < patterns.length ? patterns[rank] : `12 4 ${'2 4 '.repeat(rank - 2).trim()}`;
 }
-const harnessNames = {codex_cli: 'Codex CLI', claude_code: 'Claude Code', gemini_cli: 'Gemini CLI', opencode: 'OpenCode'};
+const harnessNames = {codex_cli: 'Codex CLI', claude_code: 'Claude Code', gemini_cli: 'Gemini CLI', opencode: 'OpenCode', kimi_code: 'Kimi Code'};
 function harnessLabel(model) {
     const list = Array.isArray(model.harnesses) ? model.harnesses : [];
     const names = list.map(h => typeof h === 'string' ? (harnessNames[h] || h)

@@ -660,9 +660,9 @@ d3.json('assets/data/weirdml_v3.json').then(prepared => {
         tdHarness.className = 'harness-cell';
         tdHarness.style.background = `rgba(${rgb.join(',')},0.12)`;
         const harnessNames = {codex_cli: 'Codex CLI', claude_code: 'Claude Code',
-            gemini_cli: 'Gemini CLI', opencode: 'OpenCode'};
+            gemini_cli: 'Gemini CLI', opencode: 'OpenCode', kimi_code: 'Kimi Code'};
         const harnessIcons = {codex_cli: 'codex.svg', claude_code: 'claude-code.svg',
-            gemini_cli: 'gemini-cli.png', opencode: 'opencode.svg'};
+            gemini_cli: 'gemini-cli.png', opencode: 'opencode.svg', kimi_code: '../kimi_logo.png'};
         (d.harnesses || []).forEach(harness => {
             const entry = document.createElement('div');
             entry.className = 'harness-entry';
