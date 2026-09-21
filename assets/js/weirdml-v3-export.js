@@ -53,6 +53,7 @@
       const mode = document.querySelector('[data-mode].active')?.dataset.mode;
       const scale = document.querySelector('[data-scale].active')?.dataset.scale;
       const task = document.querySelector('#task-select')?.value;
+      const grid = document.querySelector('[data-grid].active')?.dataset.grid;
       frame = document.createElement('iframe');
       frame.style.cssText = `position:fixed;left:-10000px;top:0;width:${plot ? 1200 : 1440}px;height:${plot ? 675 : 1000}px;border:0;`;
       frame.setAttribute('aria-hidden', 'true');
@@ -79,10 +80,11 @@
       if (plot) {
         doc.querySelector(`[data-mode="${mode}"]`).click();
         doc.querySelector(`[data-scale="${scale}"]`).click();
+        if (grid) doc.querySelector(`[data-grid="${grid}"]`)?.click();
         doc.querySelector('#task-select').value = task;
         doc.querySelector('#task-select').dispatchEvent(new win.Event('change'));
         const label = mode === 'task' ? doc.querySelector('#task-select').selectedOptions[0].textContent
-          : {overall:'Score vs tokens', cost:'Score vs API cost', date:'Score vs release date', frontier:'Open vs closed weights'}[mode];
+          : {overall:'Score vs tokens', cost:'Score vs API cost', date:'Score vs release date', frontier:'Open vs closed weights', grid: grid === 'tasks' ? 'Score vs tokens, 11 tasks' : 'Score vs tokens, 15 configurations'}[mode];
         doc.querySelector('.header h1').textContent = `WeirdML v3 · ${label}`;
       }
       await doc.fonts.ready;
@@ -113,16 +115,19 @@
         labels[0]?.setAttribute('text-anchor', 'start');
         labels[labels.length - 1]?.setAttribute('text-anchor', 'end');
       });
-      const height = plot ? 675 : Math.ceil(doc.querySelector('#table-wrap').getBoundingClientRect().bottom + 32);
+      // The task grid grows with its rows, so its export takes the rendered height.
+      const height = plot ? (mode === 'grid' ? Math.ceil(doc.body.scrollHeight) : 675)
+        : Math.ceil(doc.querySelector('#table-wrap').getBoundingClientRect().bottom + 32);
+      if (mode === 'grid') frame.style.height = height + 'px';
       const canvas = await win.html2canvas(doc.body, {
         scale: 2, width: plot ? 1200 : 1440, height,
         backgroundColor: '#ffffff', logging: false,
-        windowWidth: plot ? 1200 : 1440, windowHeight: plot ? 675 : 1000
+        windowWidth: plot ? 1200 : 1440, windowHeight: plot ? (mode === 'grid' ? height : 675) : 1000
       });
       const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
       if (!blob) throw new Error('Image could not be generated.');
       const link = document.createElement('a');
-      link.download = `weirdml-${plot ? mode + (mode === 'task' ? '-' + task : '') : 'summary'}.png`;
+      link.download = `weirdml-${plot ? mode + (mode === 'task' ? '-' + task : mode === 'grid' ? '-' + grid : '') : 'summary'}.png`;
       link.href = URL.createObjectURL(blob);
       link.click();
       setTimeout(() => URL.revokeObjectURL(link.href), 30000);

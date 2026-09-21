@@ -26,7 +26,7 @@ const color = model => companyColors[company(model)];
 const pngExport = new URLSearchParams(location.search).has('png');
 const svg = d3.select('#chart');
 const tooltip = d3.select('#tooltip');
-let data, currentMode = 'overall', currentScale = 'log', pinned = false, highlighted = null;
+let data, currentMode = 'overall', currentScale = 'log', currentGrid = 'configs', pinned = false, highlighted = null;
 const select = document.getElementById('task-select');
 const openColor = '#1E90FF';
 const closedColor = '#2E8B57';
@@ -68,15 +68,16 @@ function modelCard(model, config) {
     head.append('span').attr('class', 'tooltip-swatch').style('background', color(model));
     head.append('span').text(model.name);
     const rows = [];
-    if (config) {
-        const c = model.configurations[config.id];
-        rows.push([config.name + (config.hint_mode === 'Hints allowed' ? ' (hints)' : ''), null, 'section']);
+    const configs = Array.isArray(config) ? config : config ? [config] : [];
+    configs.forEach(entry => {
+        const c = model.configurations[entry.id];
+        rows.push([entry.name + (entry.hint_mode === 'Hints allowed' ? ' (hints)' : ''), null, 'section']);
         rows.push(['Task score', fmtPct(c.score)]);
         rows.push(['Final best', fmtPct(c.final_best)]);
         rows.push(['Runs', String(c.n)]);
         if (Number.isFinite(c.mean_api_cost_usd)) rows.push(['Cost / run', fmtUsd(c.mean_api_cost_usd)]);
-        rows.push(['Overall', null, 'section']);
-    }
+    });
+    if (configs.length) rows.push(['Overall', null, 'section']);
     rows.push(['Official score', fmtPct(model.score), 'strong']);
     rows.push(['95% interval', model.interval.map(fmtPct).join(' – ')]);
     if (Number.isFinite(model.mean_final_best)) rows.push(['Final best', fmtPct(model.mean_final_best)]);
@@ -191,6 +192,7 @@ function drawSvgLegend(g, width, y) {
 function updateLegend() {
     const legend = d3.select('#legend');
     legend.selectAll('*').remove();
+    if (currentMode === 'grid') return;
     if (currentMode === 'frontier') {
         [{label: 'Closed Frontier', color: closedColor}, {label: 'Open Frontier', color: openColor},
          {label: 'Closed Model', color: closedColor, dot: true}, {label: 'Open Model', color: openColor, dot: true}].forEach(entry => {
@@ -311,9 +313,236 @@ function updateComparison() {
     if (pngExport) drawSvgLegend(g, innerWidth + margin.right - 10, innerHeight + 68);
 }
 
+// ── Task grid: one small token-vs-score panel per model (row) and configuration (column). ──
+function updateGrid() {
+    const isPhone = isPhoneNow();
+    const container = document.getElementById('chart').parentElement;
+    const ordered = data.legend_columns.flat().map(id => data.configurations.find(c => c.id === id)).filter(Boolean);
+    // Columns: every configuration on its own, or one column per base task with its hint twins overlaid.
+    let columns;
+    if (currentGrid === 'tasks') {
+        const byTask = new Map();
+        ordered.forEach(c => {if (!byTask.has(c.task)) byTask.set(c.task, []); byTask.get(c.task).push(c);});
+        columns = [...byTask.entries()].map(([task, configs]) => ({
+            id: task, task, name: configs[0].name,
+            configs: [...configs].sort((a, b) => (b.hint_mode === 'Hints allowed') - (a.hint_mode === 'Hints allowed'))
+        }));
+    } else {
+        columns = ordered.map(c => ({id: c.id, task: c.task, name: c.name, configs: [c]}));
+    }
+    const models = data.models;
+    const fullWidth = container.clientWidth - 20;
+    // Row headers live in their own SVG so they can stay pinned while narrow screens pan the cells.
+    let heads = d3.select(container).select('svg.grid-heads');
+    if (heads.empty()) heads = d3.select(container).insert('svg', '#chart').attr('class', 'grid-heads').attr('aria-hidden', 'true');
+    heads.selectAll('*').remove();
+    const iconSpace = isPhone ? 22 : 26;
+    const labelWidth = isPhone ? 124 : 186;
+    const nameWidth = labelWidth - iconSpace - 8;
+    const probe = heads.append('text').attr('class', 'grid-model-name').style('visibility', 'hidden');
+    const textWidth = t => {probe.text(t); return probe.node().getComputedTextLength();};
+    const wrapName = name => {
+        if (textWidth(name) <= nameWidth) return [name];
+        const words = name.split(' '), lines = [];
+        let current = '';
+        words.forEach(word => {
+            const next = current ? current + ' ' + word : word;
+            if (current && textWidth(next) > nameWidth) {lines.push(current); current = word;} else current = next;
+        });
+        if (current) lines.push(current);
+        return lines;
+    };
+    const nameLines = new Map(models.map(m => [m.id, wrapName(m.name)]));
+    probe.remove();
+    const gapX = currentGrid === 'tasks' ? 8 : 5, gapY = 7, leftPad = 8;
+    const headerHeight = 60, footerHeight = 30;
+    const minCell = 54;
+    const availableWidth = fullWidth - labelWidth - leftPad - 4;
+    const cellWidth = Math.max(minCell, Math.floor((availableWidth - gapX * (columns.length - 1)) / columns.length));
+    const cellHeight = Math.min(60, Math.max(48, Math.round(cellWidth * 0.86)));
+    const gridWidth = leftPad + columns.length * cellWidth + gapX * (columns.length - 1) + 4;
+    const height = headerHeight + models.length * (cellHeight + gapY) - gapY + footerHeight;
+    // Inline sizes beat the stylesheet's 100% width so the cells can be wider than the frame.
+    heads.attr('width', labelWidth).attr('height', height).style('width', labelWidth + 'px').style('height', height + 'px');
+    svg.attr('width', gridWidth).attr('height', height).style('width', gridWidth + 'px').style('height', height + 'px')
+        .on('pointermove', null).on('pointerleave', null).on('click', null);
+    svg.selectAll('*').remove();
+    container.classList.toggle('can-scroll', labelWidth + 10 + gridWidth > container.clientWidth - 10);
+    tooltip.classed('mobile-panel', isPhone).classed('visible', false);
+    pinned = false; highlighted = null;
+    const g = svg.append('g').attr('class', 'task-grid');
+    const colX = i => leftPad + i * (cellWidth + gapX);
+    const rowY = i => headerHeight + i * (cellHeight + gapY);
+    const yScale = d3.scaleLinear().domain([0, 1]).range([cellHeight, 0]);
+    const bisect = d3.bisector(p => p[0]).right;
+    const twins = new Map();
+    columns.forEach((c, i) => {if (!twins.has(c.task)) twins.set(c.task, []); twins.get(c.task).push(i);});
+
+    // Column headers: the task name spans its hinted/hintless pair; the hint mode sits beneath.
+    const headers = g.append('g').attr('class', 'grid-headers');
+    const nameBaseline = headerHeight - (currentGrid === 'tasks' ? 12 : 22);
+    twins.forEach((indices, task) => {
+        const first = columns[indices[0]];
+        const x0 = colX(indices[0]), x1 = colX(indices.at(-1)) + cellWidth;
+        const cx = (x0 + x1) / 2;
+        const label = headers.append('text').attr('class', 'grid-task-name').attr('x', cx).attr('text-anchor', 'middle');
+        const words = first.name.split(' ');
+        const probe2 = headers.append('text').attr('class', 'grid-task-name').style('visibility', 'hidden').text(first.name);
+        const fits = probe2.node().getComputedTextLength() <= x1 - x0 - 2;
+        probe2.remove();
+        if (fits || words.length === 1) {
+            label.attr('y', nameBaseline).text(first.name);
+        } else {
+            const mid = Math.ceil(words.length / 2);
+            label.attr('y', nameBaseline - 13);
+            label.append('tspan').attr('x', cx).text(words.slice(0, mid).join(' '));
+            label.append('tspan').attr('x', cx).attr('dy', 13).text(words.slice(mid).join(' '));
+        }
+        if (indices.length > 1) {
+            headers.append('line').attr('class', 'grid-twin-bracket').attr('x1', x0 + 1).attr('x2', x1 - 1)
+                .attr('y1', nameBaseline + 5).attr('y2', nameBaseline + 5);
+            indices.forEach(i => {
+                headers.append('text').attr('class', 'grid-hint-mode').attr('x', colX(i) + cellWidth / 2).attr('y', headerHeight - 7)
+                    .attr('text-anchor', 'middle').text(columns[i].configs[0].hint_mode === 'Hints allowed' ? 'hints' : 'no hints');
+            });
+        }
+    });
+
+    // Row headers: lab icon, model name (wrapped when long) and official score.
+    const headRows = heads.selectAll('.grid-row-head').data(models).join('g').attr('class', 'grid-row-head')
+        .datum(m => ({model: m})).attr('transform', (d, i) => `translate(0,${rowY(i)})`);
+    headRows.each(function ({model}) {
+        const head = d3.select(this);
+        const icon = icons[company(model)];
+        const iconSize = isPhone ? 16 : 18;
+        const lines = nameLines.get(model.id);
+        const lineHeight = 14, scoreGap = 15;
+        const block = lines.length * lineHeight + scoreGap;
+        const top = cellHeight / 2 - block / 2 + lineHeight / 2;
+        if (icon) head.append('image').attr('href', 'assets/icons/' + icon).attr('x', 0).attr('y', cellHeight / 2 - iconSize / 2)
+            .attr('width', iconSize).attr('height', iconSize);
+        else head.append('circle').attr('cx', iconSize / 2).attr('cy', cellHeight / 2).attr('r', iconSize / 2 - 3).attr('fill', color(model));
+        const name = head.append('text').attr('class', 'grid-model-name').attr('x', iconSpace).attr('y', top).attr('dominant-baseline', 'middle');
+        lines.forEach((line, i) => name.append('tspan').attr('x', iconSpace).attr('dy', i ? lineHeight : 0).text(line));
+        head.append('text').attr('class', 'grid-model-score').attr('x', iconSpace).attr('y', top + (lines.length - 1) * lineHeight + scoreGap)
+            .attr('dominant-baseline', 'middle').text(fmtPct(model.score) + ' overall');
+    });
+
+    // Cells. A task column draws its hinted twin solid with a fill and its hintless twin dashed.
+    const rows = g.selectAll('.grid-row').data(models).join('g').attr('class', 'grid-row')
+        .attr('transform', (m, i) => `translate(0,${rowY(i)})`);
+    rows.each(function (model, rowIndex) {
+        const row = d3.select(this);
+        columns.forEach((column, colIndex) => {
+            const entries = column.configs.map(config => ({config, c: model.configurations[config.id]})).filter(e => e.c);
+            if (!entries.length) return;
+            const axis = entries[0].c.axis;
+            const plotStart = currentScale === 'log' ? 100000 * axis.limit / data.overall_axis.limit : 0;
+            const xScale = currentScale === 'log'
+                ? d3.scaleLog().domain([plotStart, axis.limit]).range([0, cellWidth])
+                : d3.scaleLinear().domain([0, axis.limit]).range([0, cellWidth]);
+            const cell = row.append('g').attr('class', 'grid-cell').datum({model, config: column})
+                .attr('transform', `translate(${colX(colIndex)},0)`);
+            cell.append('rect').attr('class', 'grid-cell-bg').attr('width', cellWidth).attr('height', cellHeight).attr('rx', 3);
+            if (currentScale === 'log' && axis.start > plotStart) {
+                cell.append('rect').attr('class', 'grid-cell-window').attr('x', xScale(axis.start)).attr('y', 0)
+                    .attr('width', cellWidth - xScale(axis.start)).attr('height', cellHeight);
+            }
+            cell.append('line').attr('class', 'grid-cell-mid').attr('x1', 0).attr('x2', cellWidth).attr('y1', yScale(0.5)).attr('y2', yScale(0.5));
+            const area = d3.area().x(p => xScale(Math.max(plotStart, p[0]))).y0(yScale(0)).y1(p => yScale(p[1])).curve(d3.curveStepAfter);
+            const line = d3.line().x(p => xScale(Math.max(plotStart, p[0]))).y(p => yScale(p[1])).curve(d3.curveStepAfter);
+            // Draw the secondary (hintless) twin first so the primary curve sits on top.
+            [...entries].reverse().forEach(({config, c}, reverseIndex) => {
+                const primary = reverseIndex === entries.length - 1;
+                const secondary = entries.length > 1 && !primary;
+                const points = c.curve;
+                const first = Math.max(0, bisect(points, plotStart) - 1);
+                const visible = points.slice(first);
+                if (!secondary) cell.append('path').datum(visible).attr('class', 'grid-area').attr('d', area).attr('fill', color(model));
+                cell.append('path').datum(visible).attr('class', 'grid-line progress-line' + (secondary ? ' secondary' : '')).attr('d', line).attr('fill', 'none')
+                    .attr('stroke', color(model)).attr('stroke-width', secondary ? 1.3 : 1.6).attr('stroke-dasharray', secondary ? '3 2.5' : null);
+                const [lastX, lastY] = points.at(-1);
+                const end = cell.append('circle').attr('class', 'grid-end').attr('cx', xScale(lastX)).attr('cy', yScale(lastY)).attr('r', 2.4)
+                    .attr('stroke', secondary ? color(model) : '#fff').attr('stroke-width', 1);
+                end.attr('fill', secondary ? '#fff' : color(model));
+            });
+            // Curves rise from the bottom-left, so the top-left corner stays clear for the scores.
+            const score = cell.append('text').attr('class', 'grid-cell-score').attr('x', 4).attr('y', 4).attr('dominant-baseline', 'hanging');
+            entries.forEach(({c}, i) => {
+                score.append('tspan').attr('class', i ? 'secondary' : null).text((i ? ' / ' : '') + d3.format('.0%')(c.score));
+            });
+            cell.append('rect').attr('class', 'grid-cell-hit').attr('width', cellWidth).attr('height', cellHeight).attr('fill', 'transparent');
+            if (pngExport) return;
+            const describe = entries.map(({config, c}) => `${config.name}${config.hint_mode === 'Hints allowed' ? ' (hints)' : ''} ${fmtPct(c.score)}`).join(', ');
+            cell.attr('tabindex', 0).attr('role', 'button').attr('aria-label', `${model.name}: ${describe}`)
+                .on('pointerenter', event => {if (!pinned && event.pointerType !== 'touch') {focusCell(model, column); showTooltip(event);}})
+                .on('pointermove', event => {if (!pinned) placeTooltip(event);})
+                .on('pointerleave', () => {if (!pinned) {focusCell(null); hideTooltip();}})
+                .on('click', event => {
+                    event.stopPropagation();
+                    if (pinned && highlighted === model.id + '/' + column.id) {pinned = false; focusCell(null); hideTooltip(); return;}
+                    pinned = true; focusCell(model, column); showTooltip(event);
+                })
+                .on('keydown', event => {
+                    if (event.key === 'Enter' || event.key === ' ') {event.preventDefault(); pinned = true; focusCell(model, column); showTooltip({pageX: labelWidth + colX(colIndex) + cellWidth, pageY: rowY(rowIndex) + cellHeight});}
+                    if (event.key === 'Escape') {pinned = false; focusCell(null); hideTooltip();}
+                });
+        });
+    });
+
+    // Footer: a tiny axis under the first column, and a reading note beside it.
+    const footerY = rowY(models.length) - gapY + 5;
+    const footer = g.append('g').attr('class', 'grid-footer').attr('transform', `translate(0,${footerY})`);
+    const axis0 = models[0].configurations[columns[0].configs[0].id].axis;
+    const start0 = currentScale === 'log' ? 100000 * axis0.limit / data.overall_axis.limit : 0;
+    const mini = footer.append('g').attr('class', 'grid-mini-axis').attr('transform', `translate(${colX(0)},0)`);
+    mini.append('line').attr('x1', 0).attr('x2', cellWidth).attr('y1', 0).attr('y2', 0);
+    [0, cellWidth].forEach(x => mini.append('line').attr('x1', x).attr('x2', x).attr('y1', 0).attr('y2', 3));
+    mini.append('text').attr('class', 'grid-axis-note').attr('x', 0).attr('y', 6).attr('dominant-baseline', 'hanging').text(fmtTokens(start0));
+    mini.append('text').attr('class', 'grid-axis-note').attr('x', cellWidth).attr('y', 6).attr('dominant-baseline', 'hanging')
+        .attr('text-anchor', 'end').text(fmtTokens(axis0.limit));
+    const shipNote = columns.some(c => c.configs.some(k => k.id === 'ship_detect')) ? ' (Ship Detect: cost-weighted, ×25)' : '';
+    const twinNote = currentGrid === 'tasks' ? ' · solid: hints, dashed: no hints' : '';
+    // The reading note wraps at its separators when the grid is narrower than the sentence.
+    const note = footer.append('text').attr('class', 'grid-axis-note').attr('x', colX(1) + 2).attr('y', 6).attr('dominant-baseline', 'hanging');
+    const parts = [`x: tokens per task, ${currentScale} scale${shipNote}`, 'y: best-so-far effective score, 0–100%', 'number: task score' + twinNote, 'shading: scoring window'];
+    const noteWidth = gridWidth - colX(1) - 6;
+    let lineText = '', lineCount = 0;
+    const flush = () => {note.append('tspan').attr('x', colX(1) + 2).attr('dy', lineCount ? 13 : 0).text(lineText); lineCount++;};
+    parts.forEach(part => {
+        const candidate = lineText ? lineText + ' · ' + part : part;
+        note.text(candidate);
+        if (lineText && note.node().getComputedTextLength() > noteWidth) {note.text(''); flush(); lineText = part;}
+        else {note.text(''); lineText = candidate;}
+    });
+    flush();
+    if (lineCount > 1) svg.attr('height', height + (lineCount - 1) * 13).style('height', height + (lineCount - 1) * 13 + 'px');
+    if (pngExport) {
+        footer.append('text').attr('class', 'svg-attribution').attr('x', gridWidth - 2).attr('y', 6).attr('dominant-baseline', 'hanging')
+            .attr('text-anchor', 'end').text('htihle.github.io/weirdml');
+    }
+
+    function focusCell(model, column) {
+        highlighted = model ? model.id + '/' + column.id : null;
+        svg.selectAll('.grid-cell').classed('focus', d => Boolean(model) && d.model.id === model.id && d.config.id === column.id)
+            .classed('same-row', d => Boolean(model) && d.model.id === model.id && d.config.id !== column.id)
+            .classed('same-col', d => Boolean(model) && d.config.id === column.id && d.model.id !== model.id)
+            .classed('dimmed', d => Boolean(model) && d.model.id !== model.id && d.config.id !== column.id);
+        heads.selectAll('.grid-row-head').classed('focus', d => Boolean(model) && d.model.id === model.id)
+            .classed('dimmed', d => Boolean(model) && d.model.id !== model.id);
+        if (model) modelCard(model, column.configs);
+    }
+    svg.on('click', () => {pinned = false; focusCell(null); hideTooltip();});
+}
+
 function updateChart() {
     if (!data || !data.models.length) return;
+    document.body.classList.toggle('grid-mode', currentMode === 'grid');
     updateLegend();
+    if (currentMode === 'grid') {updateGrid(); return;}
+    d3.select(svg.node().parentElement).select('svg.grid-heads').remove();
+    svg.node().parentElement.classList.remove('can-scroll');
+    svg.style('width', null).style('height', null);
     if (['cost', 'date', 'frontier'].includes(currentMode)) {updateComparison(); return;}
     const isPhone = isPhoneNow();
     const rightLabels = !isPhone;
@@ -493,6 +722,12 @@ document.querySelectorAll('[data-mode]').forEach(button => button.addEventListen
         button.style.opacity = button.disabled ? '.5' : '1';
     });
     document.getElementById('task-control').style.display = currentMode === 'task' ? 'flex' : 'none';
+    document.getElementById('grid-control').style.display = currentMode === 'grid' ? 'flex' : 'none';
+    updateChart();
+}));
+document.querySelectorAll('[data-grid]').forEach(button => button.addEventListener('click', () => {
+    currentGrid = button.dataset.grid;
+    document.querySelectorAll('[data-grid]').forEach(b => {b.classList.toggle('active', b === button); b.setAttribute('aria-pressed', String(b === button));});
     updateChart();
 }));
 document.querySelectorAll('[data-scale]').forEach(button => button.addEventListener('click', () => {

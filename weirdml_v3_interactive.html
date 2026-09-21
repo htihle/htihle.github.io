@@ -432,11 +432,19 @@ title: WeirdML v3 Interactive Plot
                 <button class="control-btn" data-mode="date">Date</button>
                 <button class="control-btn" data-mode="frontier">Open vs Closed</button>
                 <button class="control-btn" data-mode="task" aria-pressed="false">Per Task</button>
+                <button class="control-btn" data-mode="grid" aria-pressed="false">Task Grid</button>
             </div>
         </div>
         <div class="control-group" id="task-control" style="display: none;">
             <label for="task-select">Task Configuration</label>
             <select id="task-select" class="control-btn"></select>
+        </div>
+        <div class="control-group" id="grid-control" style="display: none;">
+            <label>Columns</label>
+            <div class="button-group">
+                <button class="control-btn grid-btn active" data-grid="configs" aria-pressed="true">15 configurations</button>
+                <button class="control-btn grid-btn" data-grid="tasks" aria-pressed="false">11 tasks, hints overlaid</button>
+            </div>
         </div>
         <div class="control-group">
             <label>Scale</label>

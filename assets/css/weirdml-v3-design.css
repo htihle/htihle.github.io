@@ -540,6 +540,40 @@ body.v3-plot { height: auto; overflow: visible; }
 .png-export .v3-plot .model-label { font-size: 14px; }
 .png-export .v3-plot .axis-label { font-size: 14px !important; }
 
+
+/* Task grid: one small token-vs-score panel per model and configuration. The container
+   grows with its rows (the embed height handshake follows) and pans sideways when narrow. */
+.v3-plot.grid-mode .chart-container { display: flex; align-items: flex-start; aspect-ratio: auto; min-height: 0; height: auto; overflow-x: auto; overflow-y: hidden; -webkit-overflow-scrolling: touch; }
+.v3-plot.grid-mode #chart { flex: none; max-width: none; cursor: default; display: block; }
+.v3-plot .grid-heads { flex: none; position: sticky; left: 0; z-index: 1; background: var(--v3-surface); display: block; }
+.v3-plot .chart-container.can-scroll .grid-heads { box-shadow: 8px 0 8px -8px rgb(23 33 43 / 0.12); }
+.v3-plot.grid-mode .chart-container { padding-left: 0; }
+.v3-plot .grid-heads { padding-left: 10px; box-sizing: content-box; }
+.v3-plot .grid-model-name { font-size: 12px; font-weight: 600; fill: var(--v3-ink); letter-spacing: -0.005em; }
+.v3-plot .grid-model-score { font-family: var(--v3-mono); font-size: 10px; fill: var(--v3-muted); }
+.v3-plot .grid-task-name { font-size: 10.5px; font-weight: 600; fill: var(--v3-ink-2); }
+.v3-plot .grid-hint-mode { font-family: var(--v3-mono); font-size: 9px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; fill: var(--v3-muted); }
+.v3-plot .grid-twin-bracket { stroke: var(--v3-line-strong); stroke-width: 1; }
+.v3-plot .grid-cell-bg { fill: var(--v3-surface-2); stroke: var(--v3-line); stroke-width: 1; }
+.v3-plot .grid-cell-window { fill: var(--v3-accent); opacity: .06; }
+.v3-plot .grid-cell-mid { stroke: var(--v3-line-strong); stroke-dasharray: 2 3; opacity: .8; }
+.v3-plot .grid-area { opacity: .16; }
+.v3-plot .grid-line { stroke-linejoin: round; stroke-linecap: round; }
+.v3-plot .grid-cell-score { font-family: var(--v3-mono); font-size: 9px; font-weight: 600; fill: var(--v3-ink-2); paint-order: stroke; stroke: var(--v3-surface-2); stroke-width: 3px; stroke-linejoin: round; }
+.v3-plot .grid-mini-axis line { stroke: var(--v3-line-strong); }
+.v3-plot .grid-cell-score .secondary { fill: var(--v3-muted); font-weight: 500; }
+.v3-plot .grid-axis-note { font-family: var(--v3-mono); font-size: 9.5px; fill: var(--v3-faint); letter-spacing: .02em; }
+.v3-plot .grid-cell { cursor: pointer; transition: opacity .15s ease; }
+.v3-plot .grid-cell:focus-visible { outline: none; }
+.v3-plot .grid-cell:focus-visible .grid-cell-bg, .v3-plot .grid-cell.focus .grid-cell-bg { stroke: var(--v3-accent); stroke-width: 1.5; fill: var(--v3-surface); }
+.v3-plot .grid-cell.same-row .grid-cell-bg, .v3-plot .grid-cell.same-col .grid-cell-bg { fill: var(--v3-surface); }
+.v3-plot .grid-cell.dimmed { opacity: .45; }
+.v3-plot .grid-row-head { transition: opacity .15s ease; }
+.v3-plot .grid-row-head.dimmed { opacity: .45; }
+.v3-plot .grid-row-head.focus .grid-model-name { fill: var(--v3-accent); }
+.png-export body.v3-plot.grid-mode { height: auto; overflow: visible; }
+.png-export .v3-plot.grid-mode .chart-container { flex: none; overflow: visible; }
+
 /* ------------------------------------------------------------------
    Scoring page
    ------------------------------------------------------------------ */
