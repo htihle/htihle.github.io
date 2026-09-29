@@ -128,6 +128,28 @@ def variance_pool(grouped):
             'fallback': fallback, 'prior_df': PRIOR_DF}
 
 
+def version_key(version):
+    return tuple(int(p) if p.isdigit() else -1 for p in str(version).split('.'))
+
+
+def select_harness(groups, required, default_agent):
+    """Keep one harness version per model: the complete one with the most runs.
+
+    Ties go to the newer version. Without any complete version, keep all runs.
+    """
+    counts, covered = defaultdict(int), defaultdict(set)
+    harness = lambda r: (r.get('agent') or default_agent, r.get('agent_version') or '')
+    for sid, runs in groups.items():
+        for r in runs:
+            counts[harness(r)] += 1
+            covered[harness(r)].add(sid)
+    complete = [h for h in counts if required <= covered[h]]
+    if len(counts) < 2 or not complete:
+        return groups
+    chosen = max(complete, key=lambda h: (counts[h], version_key(h[1]), h))
+    return {sid: [r for r in runs if harness(r) == chosen] for sid, runs in groups.items()}
+
+
 def run_interval(groups, configurations, pool, resamples, seed):
     """Approximate empirical-Bayes interval; fixed tasks and independent fresh runs.
 
@@ -306,6 +328,8 @@ def prepare(data, mode='synthetic', resamples=10000, seed=20260915):
         if missing:
             excluded.append({'id': mid, 'missing_configurations': missing})
             continue
+        # Mixed harness versions are not averaged: score the majority version only.
+        groups = select_harness(groups, required, meta['agent'])
         configs = {}
         for config in configurations:
             runs = groups[config['id']]

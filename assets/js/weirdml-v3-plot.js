@@ -27,6 +27,8 @@ const pngExport = new URLSearchParams(location.search).has('png');
 const svg = d3.select('#chart');
 const tooltip = d3.select('#tooltip');
 let data, currentMode = 'overall', currentScale = 'log', currentGrid = 'configs', pinned = false, highlighted = null;
+// Models picked in the legend stay highlighted across views; hover adds one more on top.
+const selected = new Set();
 const select = document.getElementById('task-select');
 const openColor = '#1E90FF';
 const closedColor = '#2E8B57';
@@ -50,15 +52,26 @@ function harnessLabel(model) {
     return names.length ? names.join(', ') : null;
 }
 
-// ── Highlighting: one model in focus, the rest recede. ──
+// ── Highlighting: hovered and legend-selected models in focus, the rest recede. ──
 function setHighlight(id) {
     highlighted = id;
+    const active = new Set(selected);
+    if (id) active.add(id);
+    const on = modelId => active.size > 0 && active.has(modelId);
+    const off = modelId => active.size > 0 && !active.has(modelId);
     svg.selectAll('.series, .comparison-model')
-        .classed('dimmed', d => Boolean(id) && d.model.id !== id)
-        .classed('focus', d => Boolean(id) && d.model.id === id);
+        .classed('dimmed', d => off(d.model.id))
+        .classed('focus', d => on(d.model.id));
     d3.select('#legend').selectAll('.legend-item')
-        .classed('dimmed', d => Boolean(id) && d && d.id !== id)
-        .classed('focus', d => Boolean(id) && d && d.id === id);
+        .classed('dimmed', d => Boolean(d) && off(d.id))
+        .classed('focus', d => Boolean(d) && on(d.id))
+        .classed('selected', d => Boolean(d) && selected.has(d.id))
+        .attr('aria-pressed', d => d && !pngExport ? String(selected.has(d.id)) : null);
+    d3.select('#legend').select('.legend-clear').style('display', selected.size ? null : 'none');
+}
+function toggleSelected(id) {
+    if (selected.has(id)) selected.delete(id); else selected.add(id);
+    setHighlight(highlighted);
 }
 
 // ── Model card: shown when a curve, marker or legend entry is hovered. ──
@@ -205,7 +218,8 @@ function updateLegend() {
         return;
     }
     data.models.forEach(model => {
-        const item = legend.append('div').attr('class', 'legend-item').datum(model).attr('tabindex', pngExport ? null : 0);
+        const item = legend.append('div').attr('class', 'legend-item').datum(model).attr('tabindex', pngExport ? null : 0)
+            .attr('role', pngExport ? null : 'button').attr('title', pngExport ? null : 'Click to highlight; click more to compare');
         const icon = icons[company(model)];
         if (icon) item.append('img').attr('class', 'legend-icon').attr('src', 'assets/icons/' + icon).attr('alt', '');
         else item.append('span').attr('class', 'legend-dot').style('background', color(model));
@@ -220,15 +234,22 @@ function updateLegend() {
         item.on('pointerenter', event => {if (!pinned && event.pointerType !== 'touch') {setHighlight(model.id); modelCard(model, currentConfig()); showTooltip(event);}})
             .on('pointermove', event => {if (!pinned) placeTooltip(event);})
             .on('pointerleave', () => {if (!pinned) {setHighlight(null); hideTooltip();}})
-            // A tap on a legend entry pins that model's card (hover is not available on touch).
+            // Clicking toggles a persistent highlight; several models can be selected at once.
             .on('click', event => {
+                toggleSelected(model.id);
+                // On phones (no hover) the tap also shows the card of a newly selected model.
                 if (!isPhoneNow()) return;
-                if (pinned && highlighted === model.id) {dismiss(); return;}
-                pinned = true; setHighlight(model.id); modelCard(model, currentConfig()); showTooltip(event);
+                if (selected.has(model.id)) {pinned = true; setHighlight(model.id); modelCard(model, currentConfig()); showTooltip(event);}
+                else dismiss();
             })
+            .on('keydown', event => {if (event.key === 'Enter' || event.key === ' ') {event.preventDefault(); toggleSelected(model.id);}})
             .on('focus', () => {if (!pinned) setHighlight(model.id);})
             .on('blur', () => {if (!pinned) setHighlight(null);});
     });
+    if (pngExport) return;
+    legend.append('button').attr('type', 'button').attr('class', 'legend-clear').text('Clear selection')
+        .style('display', selected.size ? null : 'none')
+        .on('click', () => {selected.clear(); dismiss();});
 }
 const currentConfig = () => currentMode === 'task' ? data.configurations.find(c => c.id === select.value) : null;
 
@@ -537,6 +558,11 @@ function updateGrid() {
 
 function updateChart() {
     if (!data || !data.models.length) return;
+    renderChart();
+    // Redraws reset hover state; reapply legend selections to the new marks.
+    if (currentMode !== 'grid') setHighlight(null);
+}
+function renderChart() {
     document.body.classList.toggle('grid-mode', currentMode === 'grid');
     updateLegend();
     if (currentMode === 'grid') {updateGrid(); return;}

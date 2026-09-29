@@ -199,7 +199,7 @@ class ExportTests(unittest.TestCase):
         self.assertEqual(result['uncertainty'], pipeline.prepare(data, resamples=1000)['uncertainty'])
         self.assertEqual(result['models'], pipeline.prepare(data, resamples=1000)['models'])
 
-    def test_harness_versions_include_all_valid_runs(self):
+    def test_harness_uses_complete_version_with_most_runs(self):
         data = copy.deepcopy(self.data)
         runs = [r for r in data['samples'] if r['model_id'] == 'synthetic-strong']
         for r in runs:
@@ -208,8 +208,17 @@ class ExportTests(unittest.TestCase):
         runs[0]['agent_version'] = '2.0'
         result = pipeline.prepare(data, resamples=100)
         model = next(m for m in result['models'] if m['id'] == 'synthetic-strong')
-        self.assertEqual(model['harnesses'], [{'name': 'codex_cli', 'version': '1.0'},
-                                             {'name': 'codex_cli', 'version': '2.0'}])
+        self.assertEqual(model['harnesses'], [{'name': 'codex_cli', 'version': '1.0'}])
+        self.assertEqual(model['runs'], len(runs) - 1)
+
+    def test_select_harness_prefers_complete_version(self):
+        run = lambda version: {'agent': 'codex_cli', 'agent_version': version}
+        groups = {'a': [run('1.0'), run('1.0'), run('2.0')], 'b': [run('2.0')]}
+        selected = pipeline.select_harness(groups, {'a', 'b'}, 'codex_cli')
+        self.assertEqual({r['agent_version'] for rs in selected.values() for r in rs}, {'2.0'})
+        groups['b'].append(run('1.0'))
+        selected = pipeline.select_harness(groups, {'a', 'b'}, 'codex_cli')
+        self.assertEqual(sum(map(len, selected.values())), 3)
 
     def test_missing_cost_keeps_scores_and_does_not_average_partial_costs(self):
         original = pipeline.prepare(self.data, resamples=100)
