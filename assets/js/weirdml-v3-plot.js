@@ -34,6 +34,8 @@ const openColor = '#1E90FF';
 const closedColor = '#2E8B57';
 const fmtPct = d3.format('.1%'), fmtUsd = d3.format('$.2f'), fmtTokens = d3.format('.3~s');
 const isPhoneNow = () => window.innerWidth <= 600;
+// Wording follows the input method: devices without hover get "tap".
+const tapVerb = () => window.matchMedia('(hover: none), (pointer: coarse)').matches ? 'Tap' : 'Click';
 
 // Rank within each lab by official overall score, keeping styles stable across tasks.
 function curveDash(model) {
@@ -55,7 +57,8 @@ function harnessLabel(model) {
 // ── Highlighting: hovered and legend-selected models in focus, the rest recede. ──
 function setHighlight(id) {
     highlighted = id;
-    const active = new Set(selected);
+    // Open vs Closed has no model legend to show or clear a selection, so only hover applies there.
+    const active = new Set(currentMode === 'frontier' ? [] : selected);
     if (id) active.add(id);
     const on = modelId => active.size > 0 && active.has(modelId);
     const off = modelId => active.size > 0 && !active.has(modelId);
@@ -67,8 +70,11 @@ function setHighlight(id) {
         .classed('focus', d => Boolean(d) && on(d.id))
         .classed('selected', d => Boolean(d) && selected.has(d.id))
         .attr('aria-pressed', d => d && !pngExport ? String(selected.has(d.id)) : null);
-    d3.select('#legend').select('.legend-clear').style('display', selected.size ? null : 'none');
+    d3.select('#legend').classed('has-selection', selected.size > 0).select('.legend-clear')
+        .text(`Clear ${selected.size} selected`);
+    tooltip.selectAll('.tooltip-hint').text(function () {return selectHint(this.dataset.model);});
 }
+const selectHint = id => tapVerb() + (selected.has(id) ? ' to remove highlight' : ' to keep highlighted');
 function toggleSelected(id) {
     if (selected.has(id)) selected.delete(id); else selected.add(id);
     setHighlight(highlighted);
@@ -106,6 +112,8 @@ function modelCard(model, config) {
         row.append('span').attr('class', 'tooltip-label').text(label);
         row.append('span').attr('class', 'tooltip-value').text(value);
     });
+    if (currentMode !== 'grid' && currentMode !== 'frontier')
+        tooltip.append('div').attr('class', 'tooltip-hint').attr('data-model', model.id).text(selectHint(model.id));
 }
 function placeTooltip(event) {
     if (isPhoneNow()) return;
@@ -207,9 +215,10 @@ function updateLegend() {
     legend.selectAll('*').remove();
     if (currentMode === 'grid') return;
     if (currentMode === 'frontier') {
+        const row = legend.append('div').attr('class', 'legend-items static');
         [{label: 'Closed Frontier', color: closedColor}, {label: 'Open Frontier', color: openColor},
          {label: 'Closed Model', color: closedColor, dot: true}, {label: 'Open Model', color: openColor, dot: true}].forEach(entry => {
-            const item = legend.append('div').attr('class', 'legend-item').datum(null);
+            const item = row.append('div').attr('class', 'legend-item').datum(null);
             if (entry.dot) item.append('span').attr('class', 'legend-dot').style('background', entry.color);
             else item.append('svg').attr('width', 24).attr('height', 14).append('line')
                 .attr('x1', 0).attr('x2', 24).attr('y1', 7).attr('y2', 7).attr('stroke', entry.color).attr('stroke-width', 3);
@@ -217,39 +226,48 @@ function updateLegend() {
         });
         return;
     }
+    if (!pngExport) {
+        const head = legend.append('div').attr('class', 'legend-head');
+        head.append('span').attr('class', 'legend-title').text('Models');
+        head.append('span').attr('class', 'legend-hint')
+            .text(`${tapVerb()} to highlight` + (isPhoneNow() ? '' : ' · select several to compare'));
+        head.append('button').attr('type', 'button').attr('class', 'legend-clear')
+            .on('click', () => {selected.clear(); dismiss();});
+    }
+    const row = legend.append('div').attr('class', 'legend-items').attr('role', pngExport ? null : 'group')
+        .attr('aria-label', pngExport ? null : 'Highlight models');
+    const lines = currentMode === 'overall' || currentMode === 'task';
     data.models.forEach(model => {
-        const item = legend.append('div').attr('class', 'legend-item').datum(model).attr('tabindex', pngExport ? null : 0)
-            .attr('role', pngExport ? null : 'button').attr('title', pngExport ? null : 'Click to highlight; click more to compare');
+        const item = row.append(pngExport ? 'div' : 'button').attr('class', 'legend-item').datum(model)
+            .attr('type', pngExport ? null : 'button').style('--c', color(model));
         const icon = icons[company(model)];
         if (icon) item.append('img').attr('class', 'legend-icon').attr('src', 'assets/icons/' + icon).attr('alt', '');
         else item.append('span').attr('class', 'legend-dot').style('background', color(model));
-        if (currentMode === 'overall' || currentMode === 'task') {
-            item.append('svg').attr('width', 30).attr('height', 14).append('line')
-                .attr('x1', 1).attr('x2', 29).attr('y1', 7).attr('y2', 7)
+        if (lines) {
+            item.append('svg').attr('class', 'legend-line').attr('width', 26).attr('height', 12).append('line')
+                .attr('x1', 1).attr('x2', 25).attr('y1', 6).attr('y2', 6)
                 .attr('stroke', color(model)).attr('stroke-width', 3)
                 .attr('stroke-dasharray', curveDash(model));
         }
-        item.append('span').text(model.name);
+        item.append('span').attr('class', 'legend-name').text(model.name);
         if (pngExport) return;
         item.on('pointerenter', event => {if (!pinned && event.pointerType !== 'touch') {setHighlight(model.id); modelCard(model, currentConfig()); showTooltip(event);}})
             .on('pointermove', event => {if (!pinned) placeTooltip(event);})
             .on('pointerleave', () => {if (!pinned) {setHighlight(null); hideTooltip();}})
             // Clicking toggles a persistent highlight; several models can be selected at once.
-            .on('click', event => {
-                toggleSelected(model.id);
-                // On phones (no hover) the tap also shows the card of a newly selected model.
-                if (!isPhoneNow()) return;
-                if (selected.has(model.id)) {pinned = true; setHighlight(model.id); modelCard(model, currentConfig()); showTooltip(event);}
-                else dismiss();
-            })
-            .on('keydown', event => {if (event.key === 'Enter' || event.key === ' ') {event.preventDefault(); toggleSelected(model.id);}})
+            .on('click', event => selectFromClick(model, event))
             .on('focus', () => {if (!pinned) setHighlight(model.id);})
             .on('blur', () => {if (!pinned) setHighlight(null);});
     });
-    if (pngExport) return;
-    legend.append('button').attr('type', 'button').attr('class', 'legend-clear').text('Clear selection')
-        .style('display', selected.size ? null : 'none')
-        .on('click', () => {selected.clear(); dismiss();});
+}
+// A click (or tap) on a model anywhere toggles its selection. Touch has no hover,
+// so a tap that selects also pins the model's card; deselecting closes it.
+function selectFromClick(model, event, config = currentConfig()) {
+    toggleSelected(model.id);
+    if (event.pointerType === 'touch' || isPhoneNow()) {
+        if (selected.has(model.id)) {pinned = true; setHighlight(model.id); modelCard(model, config); showTooltip(event);}
+        else dismiss();
+    }
 }
 const currentConfig = () => currentMode === 'task' ? data.configurations.find(c => c.id === select.value) : null;
 
@@ -327,8 +345,12 @@ function updateComparison() {
         group.on('pointerenter', event => {if (!pinned) {setHighlight(model.id); modelCard(model); showTooltip(event);}})
             .on('pointermove', event => {if (!pinned) placeTooltip(event);})
             .on('pointerleave', () => {if (!pinned) {setHighlight(null); hideTooltip();}})
-            .on('click', event => {event.stopPropagation(); pinned = !pinned; if (pinned) {setHighlight(model.id); modelCard(model); showTooltip(event);} else {setHighlight(null); hideTooltip();}})
-            .on('keydown', event => {if (event.key === 'Enter' || event.key === ' ') {event.preventDefault(); setHighlight(model.id); modelCard(model); showTooltip({pageX: cx + margin.left, pageY: cy + margin.top});} if (event.key === 'Escape') {pinned = false; setHighlight(null); hideTooltip();}});
+            .on('click', event => {
+                event.stopPropagation();
+                if (currentMode !== 'frontier') {selectFromClick(model, event, null); return;}
+                pinned = !pinned; if (pinned) {setHighlight(model.id); modelCard(model); showTooltip(event);} else {setHighlight(null); hideTooltip();}
+            })
+            .on('keydown', event => {if (event.key === 'Enter' || event.key === ' ') {event.preventDefault(); if (currentMode !== 'frontier') toggleSelected(model.id); setHighlight(model.id); modelCard(model); showTooltip({pageX: cx + margin.left, pageY: cy + margin.top});} if (event.key === 'Escape') {pinned = false; setHighlight(null); hideTooltip();}});
     });
     svg.on('click', () => {pinned = false; setHighlight(null); hideTooltip();});
     if (pngExport) drawSvgLegend(g, innerWidth + margin.right - 10, innerHeight + 68);
@@ -558,6 +580,7 @@ function updateGrid() {
 
 function updateChart() {
     if (!data || !data.models.length) return;
+    svg.style('cursor', null);
     renderChart();
     // Redraws reset hover state; reapply legend selections to the new marks.
     if (currentMode !== 'grid') setHighlight(null);
@@ -694,22 +717,31 @@ function renderChart() {
         });
         showTooltip(event);
     }
+    // Nearest curve at the pointer's x, its end marker, or its end label; null if none is close.
+    function nearest(event) {
+        const [mouseX, mouseY] = d3.pointer(event, g.node());
+        const resource = Math.max(plotStart, Math.min(axis.limit, xScale.invert(Math.max(0, Math.min(innerWidth, mouseX)))));
+        const onCurve = mouseX >= 0 && mouseX <= innerWidth;
+        let best = null, bestDistance = Infinity;
+        series.forEach(s => {
+            const [ex, ey] = s.points.at(-1);
+            const endDistance = Math.hypot(mouseX - xScale(ex), mouseY - yScale(ey));
+            const curveDistance = onCurve ? Math.abs(mouseY - yScale(valueAt(s.points, resource))) : Infinity;
+            const labelDistance = rightLabels && mouseX > innerWidth + chipR ? Math.abs(mouseY - labelY.get(s.model.id)) : Infinity;
+            const distance = Math.min(curveDistance, endDistance, labelDistance);
+            if (distance < bestDistance) {bestDistance = distance; best = s;}
+        });
+        return best && bestDistance <= (isPhone ? 14 : 10) ? best : null;
+    }
     function inspect(event) {
         const [mouseX, mouseY] = d3.pointer(event, g.node());
         if (mouseX < -margin.left || mouseX > innerWidth + margin.right || mouseY < -margin.top || mouseY > innerHeight + margin.bottom) {
             leave(); return;
         }
         const resource = Math.max(plotStart, Math.min(axis.limit, xScale.invert(Math.max(0, Math.min(innerWidth, mouseX)))));
-        // Nearest curve at this x, or the end marker under the pointer, takes focus.
-        let best = null, bestDistance = Infinity;
-        series.forEach(s => {
-            const y = yScale(valueAt(s.points, resource));
-            const [ex, ey] = s.points.at(-1);
-            const endDistance = Math.hypot(mouseX - xScale(ex), mouseY - yScale(ey));
-            const distance = Math.min(Math.abs(mouseY - y), endDistance);
-            if (distance < bestDistance) {bestDistance = distance; best = s;}
-        });
-        if (best && bestDistance <= (isPhone ? 14 : 10)) {
+        const best = nearest(event);
+        svg.style('cursor', best ? 'pointer' : null);
+        if (best) {
             guide.style('display', 'none');
             if (highlighted !== best.model.id) {setHighlight(best.model.id); modelCard(best.model, config);}
             showTooltip(event);
@@ -722,11 +754,15 @@ function renderChart() {
         readout(event, resource);
     }
     function leave() {
-        hideTooltip(); guide.style('display', 'none'); if (highlighted) setHighlight(null);
+        svg.style('cursor', null); hideTooltip(); guide.style('display', 'none'); if (highlighted) setHighlight(null);
     }
     svg.on('pointermove', event => {if (!pinned && event.pointerType !== 'touch') inspect(event);})
         .on('pointerleave', () => {if (!pinned) leave();})
-        .on('click', event => {pinned = !pinned; if (pinned) inspect(event); else leave();});
+        .on('click', event => {
+            const hit = nearest(event);
+            if (hit) {selectFromClick(hit.model, event, config); if (!pinned) inspect(event); return;}
+            pinned = !pinned; if (pinned) inspect(event); else leave();
+        });
     if (pngExport) drawSvgLegend(g, innerWidth + margin.right - 10, innerHeight + 68);
 }
 d3.json('assets/data/weirdml_v3.json').then(prepared => {
@@ -762,7 +798,12 @@ document.querySelectorAll('[data-scale]').forEach(button => button.addEventListe
     updateChart();
 }));
 select.addEventListener('change', updateChart);
-document.addEventListener('keydown', event => {if (event.key === 'Escape') {pinned = false; setHighlight(null); hideTooltip();}});
+// Escape closes a pinned card first, then clears the legend selection.
+document.addEventListener('keydown', event => {
+    if (event.key !== 'Escape') return;
+    if (!['grid', 'frontier'].includes(currentMode) && !pinned && !tooltip.classed('visible')) selected.clear();
+    pinned = false; setHighlight(null); hideTooltip();
+});
 // Redraw only when the width changes: height changes come from the parent page fitting the
 // embed to its content (e.g. the phone card appearing) and must not reset a pinned card.
 let resizeTimer, lastWidth = window.innerWidth;
