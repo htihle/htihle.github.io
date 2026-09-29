@@ -72,9 +72,7 @@ function setHighlight(id) {
         .attr('aria-pressed', d => d && !pngExport ? String(selected.has(d.id)) : null);
     d3.select('#legend').classed('has-selection', selected.size > 0).select('.legend-clear')
         .text(`Clear ${selected.size} selected`);
-    tooltip.selectAll('.tooltip-hint').text(function () {return selectHint(this.dataset.model);});
 }
-const selectHint = id => tapVerb() + (selected.has(id) ? ' to remove highlight' : ' to keep highlighted');
 function toggleSelected(id) {
     if (selected.has(id)) selected.delete(id); else selected.add(id);
     setHighlight(highlighted);
@@ -98,7 +96,6 @@ function modelCard(model, config) {
     });
     if (configs.length) rows.push(['Overall', null, 'section']);
     rows.push(['Official score', fmtPct(model.score), 'strong']);
-    rows.push(['95% interval', model.interval.map(fmtPct).join(' – ')]);
     if (Number.isFinite(model.mean_final_best)) rows.push(['Final best', fmtPct(model.mean_final_best)]);
     rows.push(['Cost / run', Number.isFinite(model.mean_api_cost_usd) ? fmtUsd(model.mean_api_cost_usd) : 'Unavailable']);
     rows.push(['Release date', model.release_date || 'Unknown']);
@@ -112,8 +109,6 @@ function modelCard(model, config) {
         row.append('span').attr('class', 'tooltip-label').text(label);
         row.append('span').attr('class', 'tooltip-value').text(value);
     });
-    if (currentMode !== 'grid' && currentMode !== 'frontier')
-        tooltip.append('div').attr('class', 'tooltip-hint').attr('data-model', model.id).text(selectHint(model.id));
 }
 function placeTooltip(event) {
     if (isPhoneNow()) return;

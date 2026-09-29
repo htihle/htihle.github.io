@@ -375,15 +375,14 @@ html.embed, html.embed body { overflow: hidden !important; }
 .v3-plot .legend-item.dimmed { opacity: .5; }
 .v3-plot .legend-item.dimmed:hover { opacity: .85; }
 .v3-plot .legend-item:focus-visible { outline: 2px solid var(--v3-accent); outline-offset: 2px; }
-.v3-plot .tooltip-hint { margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--v3-line); font-size: 11px; color: var(--v3-muted); }
 .v3-plot .tooltip {
   border: 1px solid var(--v3-line-strong);
   border-radius: 10px;
   box-shadow: 0 12px 32px -8px rgb(23 33 43 / 0.25);
-  padding: 14px;
+  padding: 10px 12px;
   font-family: var(--v3-font);
 }
-.v3-plot .tooltip { min-width: 250px; max-width: 330px; font-size: 12.5px; line-height: 1.45; }
+.v3-plot .tooltip { min-width: 210px; max-width: 290px; font-size: 11.5px; line-height: 1.35; }
 /* Phones: the card sits in flow under the chart (fixed positioning would pin it to the
    iframe, not the screen), so the embed grows and the card stays next to the tap. */
 .v3-plot .tooltip.mobile-panel {
@@ -397,12 +396,12 @@ html.embed, html.embed body { overflow: hidden !important; }
   background: var(--v3-surface); color: var(--v3-ink-2); font: inherit; font-size: 11.5px;
   line-height: 1; padding: 5px 8px; cursor: pointer;
 }
-.v3-plot .tooltip-title { display: flex; align-items: center; gap: 8px; color: var(--v3-ink); border-bottom-color: var(--v3-line); font-size: 13px; font-weight: 650; }
+.v3-plot .tooltip-title { display: flex; align-items: center; gap: 8px; color: var(--v3-ink); border-bottom-color: var(--v3-line); font-size: 12px; font-weight: 650; margin-bottom: 6px; padding-bottom: 5px; }
 .v3-plot .tooltip-swatch { display: inline-block; width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
-.v3-plot .tooltip-section { font-family: var(--v3-mono); font-size: 9.5px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--v3-muted); margin: 10px 0 4px; }
-.v3-plot .tooltip-row { gap: 16px; margin: 3px 0; }
-.v3-plot .tooltip-row.strong { margin-top: 6px; }
-.v3-plot .tooltip-row.strong .tooltip-value { color: var(--v3-accent); font-weight: 700; font-size: 13.5px; }
+.v3-plot .tooltip-section { font-family: var(--v3-mono); font-size: 9.5px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--v3-muted); margin: 7px 0 3px; }
+.v3-plot .tooltip-row { gap: 14px; margin: 2px 0; }
+.v3-plot .tooltip-row.strong { margin-top: 4px; }
+.v3-plot .tooltip-row.strong .tooltip-value { color: var(--v3-accent); font-weight: 700; font-size: 12.5px; }
 .v3-plot .tooltip-label { display: inline-flex; align-items: center; gap: 7px; color: var(--v3-muted); }
 .v3-plot .tooltip-value { color: var(--v3-ink); font-weight: 550; font-variant-numeric: tabular-nums; }
 
