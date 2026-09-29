@@ -121,7 +121,10 @@ function placeTooltip(event) {
     const w = node.offsetWidth || 300, h = node.offsetHeight || 200;
     let left = event.pageX + 18, top = event.pageY + 16;
     if (left + w > window.innerWidth - 12) left = Math.max(8, event.pageX - w - 18);
-    if (top + h > window.innerHeight + window.scrollY - 12) top = Math.max(8, event.pageY - h - 16);
+    // Stay beside the cursor and below it; near the bottom edge, slide up only as far as needed
+    // (never flipping over the cursor), since the embed has no room below the legend.
+    const bottom = window.innerHeight + window.scrollY - 12;
+    if (top + h > bottom) top = Math.max(window.scrollY + 8, bottom - h);
     tooltip.style('left', left + 'px').style('top', top + 'px');
 }
 function dismiss() {
