@@ -19,8 +19,8 @@ const companyColors = {
             'Thinking Machines': '#161311',
             'Synthetic Strong': '#d97757', 'Synthetic Weak': '#74aa9c', 'Other': '#888888'
         };
-const companies = {openai: 'OpenAI', anthropic: 'Anthropic', google: 'Google', deepseek: 'DeepSeek', 'z-ai': 'ZhipuAI', moonshotai: 'Moonshot'};
-const icons = {OpenAI: 'openai_icon.png', Anthropic: 'claude_logo.png', Google: 'gemini_logo.png', DeepSeek: 'deepseek_whale.png', ZhipuAI: 'z-ai_logo.png', Moonshot: 'kimi_logo.png'};
+const companies = {openai: 'OpenAI', anthropic: 'Anthropic', google: 'Google', deepseek: 'DeepSeek', 'z-ai': 'ZhipuAI', moonshotai: 'Moonshot', 'x-ai': 'xAI'};
+const icons = {OpenAI: 'openai_icon.png', Anthropic: 'claude_logo.png', Google: 'gemini_logo.png', DeepSeek: 'deepseek_whale.png', ZhipuAI: 'z-ai_logo.png', Moonshot: 'kimi_logo.png', xAI: 'grok_logo.png'};
 const company = model => model.id === 'synthetic-strong' ? 'Synthetic Strong' : model.id === 'synthetic-weak' ? 'Synthetic Weak' : companies[model.slug.split('/')[0]] || 'Other';
 const color = model => companyColors[company(model)];
 const pngExport = new URLSearchParams(location.search).has('png');
