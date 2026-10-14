@@ -139,12 +139,14 @@ function hideTooltip() {
 }
 
 // ── Markers: the lab icon at the end of each curve, or a coloured dot for labs without one. ──
+const iconSize = (model, isPhone) => (pngExport ? 24 : isPhone ? 16 : 22) * (company(model) === 'OpenAI' ? 1.6 : 1);
+// Half-width of the visible marker; the OpenAI image carries extra transparent padding.
+const markerRadius = (model, isPhone) => icons[company(model)] ? iconSize(model, isPhone) / 2 * (company(model) === 'OpenAI' ? .75 : 1) : isPhone ? 5 : 8;
 function drawMarker(parent, cx, cy, model, stroke, isPhone) {
     const icon = icons[company(model)];
     const marker = parent.append('g').attr('class', 'model-marker').attr('transform', `translate(${cx},${cy})`);
     if (icon) {
-        const base = pngExport ? 24 : isPhone ? 16 : 22;
-        const size = company(model) === 'OpenAI' ? base * 1.6 : base;
+        const size = iconSize(model, isPhone);
         marker.append('image').attr('class', 'model-icon').attr('href', 'assets/icons/' + icon)
             .attr('x', -size / 2).attr('y', -size / 2).attr('width', size).attr('height', size);
     } else {
@@ -165,6 +167,132 @@ function spreadLabels(items, minGap, lower, upper) {
         const floor = i === 0 ? lower : items[i - 1].y + minGap;
         if (items[i].y < floor) items[i].y = floor;
     }
+}
+
+// Scatter labels go beside their own marker where they can, and otherwise as close as space allows, with a leader
+// line. Each label gets candidate spots (hugging its marker, or anywhere nearby clear of markers); a seeded annealing
+// search then picks one per label, minimising leader length plus penalties for overlaps, leaders crossing markers,
+// labels or other leaders, and labels sitting nearer another model's marker than their own. Deterministic per layout.
+function placeScatterLabels(items, bounds, gap) {
+    const overlapArea = (a, b) => Math.max(0, Math.min(a.x1, b.x1) - Math.max(a.x0, b.x0)) * Math.max(0, Math.min(a.y1, b.y1) - Math.max(a.y0, b.y0));
+    const box = (cx, cy, w, h) => ({x0: cx - w / 2, x1: cx + w / 2, y0: cy - h / 2, y1: cy + h / 2});
+    const inside = b => b.x0 >= bounds.x0 && b.x1 <= bounds.x1 && b.y0 >= bounds.y0 && b.y1 <= bounds.y1;
+    const nearest = (item, b) => [Math.min(Math.max(item.x, b.x0), b.x1), Math.min(Math.max(item.y, b.y0), b.y1)];
+    // Liang–Barsky: does the segment from p to q pass through box b?
+    const crossesBox = (p, q, b) => {
+        let t0 = 0, t1 = 1;
+        const dx = q[0] - p[0], dy = q[1] - p[1];
+        const clip = (a, c) => {
+            if (a === 0) return c >= 0;
+            const t = c / a;
+            if (a < 0) {if (t > t1) return false; if (t > t0) t0 = t;} else {if (t < t0) return false; if (t < t1) t1 = t;}
+            return true;
+        };
+        return clip(-dx, p[0] - b.x0) && clip(dx, b.x1 - p[0]) && clip(-dy, p[1] - b.y0) && clip(dy, b.y1 - p[1]) && t0 < t1;
+    };
+    const side = (p, q, r) => Math.sign((q[0] - p[0]) * (r[1] - p[1]) - (q[1] - p[1]) * (r[0] - p[0]));
+    const segmentsCross = (a, b) => side(a[0], a[1], b[0]) * side(a[0], a[1], b[1]) < 0 && side(b[0], b[1], a[0]) * side(b[0], b[1], a[1]) < 0;
+    const markers = items.map(i => ({x0: i.x - i.r, x1: i.x + i.r, y0: i.y - i.r, y1: i.y + i.r}));
+    const markerClash = b => markers.reduce((sum, m) => sum + overlapArea(b, m), 0);
+    const reachLimit = Math.max(80, .45 * Math.min(bounds.x1 - bounds.x0, bounds.y1 - bounds.y0) + 60);
+    const directions = [0, 180, -90, 90, -35, -145, 35, 145].map(d => d * Math.PI / 180);
+    // Candidate spots, each with the cost that does not depend on other labels.
+    const candidates = items.map((item, index) => {
+        const {x, y, r, w, h} = item;
+        const own = [x, y];
+        const make = (b, near, rank) => {
+            const end = nearest(item, b);
+            const leader = near ? null : [own, end];
+            const length = near ? rank * .5 : Math.hypot(end[0] - x, end[1] - y) + 8;
+            const clash = markerClash(b);
+            let cost = length + (clash > 0 ? 400 + clash * 4 : 0), misread = false;
+            items.forEach((other, j) => {
+                if (j === index) return;
+                if (leader && crossesBox(own, end, markers[j])) cost += 40;
+                const [ox, oy] = nearest(other, b);
+                if (Math.hypot(ox - other.x, oy - other.y) + 2 < (near ? r + gap : Math.hypot(end[0] - x, end[1] - y))) misread = true;
+            });
+            // Read as belonging to a nearer marker: worse than a long leader.
+            if (misread) cost += 150;
+            return {b, leader, cost};
+        };
+        const list = [];
+        directions.forEach((angle, rank) => {
+            const cos = Math.cos(angle), sin = Math.sin(angle);
+            // Push the box out along the direction until its nearest edge clears the marker by the gap.
+            const half = Math.min(Math.abs(cos) > 1e-9 ? w / 2 / Math.abs(cos) : Infinity, Math.abs(sin) > 1e-9 ? h / 2 / Math.abs(sin) : Infinity);
+            const b = box(x + cos * (r + gap + half), y + sin * (r + gap + half), w, h);
+            if (inside(b)) list.push(make(b, true, rank));
+        });
+        // Grid spots clear of every marker, thinned to the nearest per coarse cell so they spread out and stay cheap.
+        const cells = new Map();
+        const top = bounds.y0 + h / 2 + Math.max(0, Math.floor((y - reachLimit - h - bounds.y0) / 5)) * 5;
+        const left = bounds.x0 + w / 2 + Math.max(0, Math.floor((x - reachLimit - w - bounds.x0) / 6)) * 6;
+        for (let cy = top; cy <= Math.min(bounds.y1 - h / 2, y + reachLimit + h); cy += 5) {
+            for (let cx = left; cx <= Math.min(bounds.x1 - w / 2, x + reachLimit + w); cx += 6) {
+                const dx = Math.max(cx - w / 2 - x, 0, x - cx - w / 2), dy = Math.max(cy - h / 2 - y, 0, y - cy - h / 2);
+                const length = Math.hypot(dx, dy);
+                if (length < r + gap * 2 || length > reachLimit) continue;
+                const key = Math.floor((cx - w / 2) / 24) * 4096 + Math.floor((cy - h / 2) / 12);
+                if ((cells.get(key)?.length ?? Infinity) <= length) continue;
+                const b = box(cx, cy, w, h);
+                if (markerClash(b) === 0) cells.set(key, {b, length});
+            }
+        }
+        const closest = [...cells.values()].sort((a, b) => a.length - b.length).slice(0, 400);
+        list.push(...closest.map(c => make(c.b, false, 0)).sort((a, b) => a.cost - b.cost).slice(0, 220));
+        // Nothing fits (a tiny chart): fall back to the plain spot beside the marker.
+        if (!list.length) list.push(make(box(Math.max(bounds.x0 + w / 2, x + r + gap + w / 2), y, w, h), true, 0));
+        return list;
+    });
+    const pairCost = (a, b) => {
+        const area = overlapArea(a.b, b.b);
+        let cost = area > 0 ? 400 + area * 4 : 0;
+        if (a.leader && crossesBox(a.leader[0], a.leader[1], b.b)) cost += 60;
+        if (b.leader && crossesBox(b.leader[0], b.leader[1], a.b)) cost += 60;
+        if (a.leader && b.leader && segmentsCross(a.leader, b.leader)) cost += 25;
+        return cost;
+    };
+    const n = items.length;
+    const choice = new Array(n).fill(0);
+    const labelCost = (i, c) => {
+        let cost = c.cost;
+        for (let j = 0; j < n; j++) if (j !== i) cost += pairCost(c, candidates[j][choice[j]]);
+        return cost;
+    };
+    // Start greedily, best scores first, then anneal and finish with a best-response sweep.
+    const placedOrder = items.map((item, i) => i).sort((a, b) => items[a].priority - items[b].priority);
+    const placed = new Set();
+    placedOrder.forEach(i => {
+        let best = 0, bestCost = Infinity;
+        candidates[i].forEach((c, k) => {
+            let cost = c.cost;
+            placed.forEach(j => {cost += pairCost(c, candidates[j][choice[j]]);});
+            if (cost < bestCost) {bestCost = cost; best = k;}
+        });
+        choice[i] = best; placed.add(i);
+    });
+    let seed = 20261014;
+    const random = () => {seed = (seed + 0x6D2B79F5) | 0; let t = Math.imul(seed ^ (seed >>> 15), 1 | seed); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296;};
+    const steps = 300 * n;
+    for (let step = 0; step < steps; step++) {
+        const temperature = 60 * Math.pow(.5 / 60, step / steps);
+        const i = Math.floor(random() * n), list = candidates[i];
+        if (list.length < 2) continue;
+        const k = Math.floor(random() * list.length);
+        const delta = labelCost(i, list[k]) - labelCost(i, list[choice[i]]);
+        if (delta < 0 || random() < Math.exp(-delta / temperature)) choice[i] = k;
+    }
+    for (let sweep = 0, changed = true; sweep < 10 && changed; sweep++) {
+        changed = false;
+        for (let i = 0; i < n; i++) {
+            let best = choice[i], bestCost = labelCost(i, candidates[i][best]);
+            candidates[i].forEach((c, k) => {const cost = labelCost(i, c); if (cost < bestCost - 1e-9) {bestCost = cost; best = k;}});
+            if (best !== choice[i]) {choice[i] = best; changed = true;}
+        }
+    }
+    items.forEach((item, i) => {const c = candidates[i][choice[i]]; item.box = c.b; item.leader = Boolean(c.leader);});
+    return items;
 }
 
 // PNG exports draw the legend inside the SVG so the rasteriser sees one consistent image.
@@ -328,18 +456,29 @@ function updateComparison() {
                 .attr('fill', 'none').attr('stroke', stroke).attr('stroke-width', 3).attr('opacity', .8);
         }
     }
-    const labels = models.map(model => ({model, y: yScale(model.score) - 16}));
-    spreadLabels(labels, isPhone ? 11 : 15, 8, innerHeight - 4);
-    const labelY = new Map(labels.map(l => [l.model.id, l.y]));
-    models.forEach(model => {
-        const cx = xScale(getX(model)), cy = yScale(model.score);
+    // Measure every label, then place them all before drawing, so each sits next to its own marker.
+    const probe = g.append('text').attr('class', 'model-label').style('visibility', 'hidden');
+    const items = models.map((model, i) => {
+        const size = probe.text(model.name).node().getBBox();
+        return {model, priority: i, x: xScale(getX(model)), y: yScale(model.score), r: markerRadius(model, isPhone), w: size.width + 4, h: size.height};
+    });
+    probe.remove();
+    // Labels may use the right margin, but stay clear of the axes and their titles.
+    placeScatterLabels(items, {x0: 2, x1: innerWidth + margin.right - 4, y0: -margin.top + 2, y1: innerHeight - 2}, isPhone ? 2 : 3);
+    items.forEach(({model, x: cx, y: cy, r, box, leader}) => {
         const modelStroke = currentMode === 'frontier' ? (model.open_weights ? openColor : closedColor) : color(model);
         const group = g.append('g').datum({model}).attr('class', 'comparison-model').attr('tabindex', 0).attr('role', 'button')
             .attr('aria-label', `${model.name}, score ${fmtPct(model.score)}`);
+        if (leader) {
+            // Run from the marker's edge to the nearest point of the label box.
+            const tx = Math.min(Math.max(cx, box.x0), box.x1), ty = Math.min(Math.max(cy, box.y0), box.y1);
+            const length = Math.hypot(tx - cx, ty - cy) || 1;
+            group.append('line').attr('class', 'label-connector').attr('stroke', modelStroke)
+                .attr('x1', cx + (tx - cx) / length * (r + 1)).attr('y1', cy + (ty - cy) / length * (r + 1)).attr('x2', tx).attr('y2', ty);
+        }
         drawMarker(group, cx, cy, model, modelStroke, isPhone);
-        const rightSide = cx > innerWidth * .65;
-        group.append('text').attr('class', 'model-label').attr('x', cx + (rightSide ? -15 : 15)).attr('y', labelY.get(model.id))
-            .attr('text-anchor', rightSide ? 'end' : 'start').attr('fill', modelStroke).text(model.name);
+        group.append('text').attr('class', 'model-label').attr('x', box.x0 + 2).attr('y', (box.y0 + box.y1) / 2)
+            .attr('dominant-baseline', 'central').attr('text-anchor', 'start').attr('fill', modelStroke).text(model.name);
         group.on('pointerenter', event => {if (!pinned) {setHighlight(model.id); modelCard(model); showTooltip(event);}})
             .on('pointermove', event => {if (!pinned) placeTooltip(event);})
             .on('pointerleave', () => {if (!pinned) {setHighlight(null); hideTooltip();}})
