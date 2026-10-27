@@ -328,7 +328,7 @@ html.embed, html.embed body { overflow: hidden !important; }
 .v3-plot .series, .v3-plot .comparison-model, .v3-plot .legend-item { transition: opacity .15s ease; }
 .v3-plot .series.dimmed, .v3-plot .comparison-model.dimmed { opacity: .32; }
 .v3-plot .series.focus .progress-line { stroke-width: 4.5; }
-.v3-plot .series.focus .model-label, .v3-plot .comparison-model.focus .model-label { font-size: 14px; }
+.v3-plot .series.focus .model-label, .v3-plot .comparison-model.focus .model-label { font-size: var(--focus-size, 14px); }
 .v3-plot .model-marker { cursor: pointer; }
 .v3-plot .scoring-window rect { fill: var(--v3-accent); opacity: .05; }
 .v3-plot .scoring-window line { stroke: var(--v3-accent); stroke-dasharray: 4 4; opacity: .55; }

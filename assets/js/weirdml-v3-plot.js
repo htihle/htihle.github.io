@@ -155,16 +155,20 @@ function drawMarker(parent, cx, cy, model, stroke, isPhone) {
     }
     return marker;
 }
-// Spread end labels apart vertically so nearby finishes stay legible.
+// Spread end labels apart vertically so nearby finishes stay legible. An item's `extra` is the added half-height of
+// a wrapped label. When the labels cannot all fit, the gaps shrink evenly instead of spilling past the bounds.
 function spreadLabels(items, minGap, lower, upper) {
     items.sort((a, b) => a.y - b.y);
-    for (let i = 1; i < items.length; i++) if (items[i].y - items[i - 1].y < minGap) items[i].y = items[i - 1].y + minGap;
+    const gaps = items.slice(1).map((b, i) => minGap + (items[i].extra || 0) + (b.extra || 0));
+    const needed = d3.sum(gaps), room = upper - lower;
+    if (needed > room && needed > 0) gaps.forEach((v, i) => {gaps[i] = v * room / needed;});
+    for (let i = 1; i < items.length; i++) if (items[i].y - items[i - 1].y < gaps[i - 1]) items[i].y = items[i - 1].y + gaps[i - 1];
     for (let i = items.length - 1; i >= 0; i--) {
-        const cap = i === items.length - 1 ? upper : items[i + 1].y - minGap;
+        const cap = i === items.length - 1 ? upper : items[i + 1].y - gaps[i];
         if (items[i].y > cap) items[i].y = cap;
     }
     for (let i = 0; i < items.length; i++) {
-        const floor = i === 0 ? lower : items[i - 1].y + minGap;
+        const floor = i === 0 ? lower : items[i - 1].y + gaps[i - 1];
         if (items[i].y < floor) items[i].y = floor;
     }
 }
@@ -733,11 +737,26 @@ function renderChart() {
     const isPhone = isPhoneNow();
     const rightLabels = !isPhone;
     const chipR = pngExport ? 13 : 12; // half-width reserved for the end marker
-    let labelWidth = 0;
+    // End labels sit right of the plot. Names much longer than usual wrap before their "(effort, provider)" part, so
+    // one long name does not squeeze the plot. The margin fits the widest label with some room to grow on hover;
+    // a label that would outgrow it on hover is enlarged less (--focus-size).
+    const lineHeight = 1.15, focusSize = 14;
+    const labelLines = new Map();
+    let labelWidth = 0, baseSize = 10;
     if (rightLabels) {
-        const probe = svg.append('text').attr('class', 'model-label').style('font-size', '14px').style('visibility', 'hidden');
-        data.models.forEach(m => {probe.text(m.name); labelWidth = Math.max(labelWidth, probe.node().getComputedTextLength());});
+        const probe = svg.append('text').attr('class', 'model-label').style('visibility', 'hidden');
+        baseSize = parseFloat(getComputedStyle(probe.node()).fontSize) || 10;
+        const measure = text => {probe.text(text); return probe.node().getComputedTextLength();};
+        data.models.forEach(m => {
+            let lines = [m.name];
+            const split = m.name.lastIndexOf(' (');
+            if (measure(m.name) > baseSize * 18 && split > 0) lines = [m.name.slice(0, split), m.name.slice(split + 1)];
+            const width = d3.max(lines, measure);
+            labelLines.set(m.id, {lines, width});
+            labelWidth = Math.max(labelWidth, width);
+        });
         probe.remove();
+        if (!pngExport) labelWidth *= 1.25;
     }
     const container = document.getElementById('chart').parentElement;
     const width = container.clientWidth - 20;
@@ -805,7 +824,8 @@ function renderChart() {
         .text(currentMode === 'overall' ? 'Average Effective Score Across 11 Tasks' : 'Mean Best-So-Far Effective Score');
     const line = d3.line().x(p => xScale(Math.max(plotStart, p[0]))).y(p => yScale(p[1])).curve(d3.curveStepAfter);
     const bisect = d3.bisector(p => p[0]).right;
-    const labels = series.map(s => ({model: s.model, y: yScale(s.points.at(-1)[1]) - (rightLabels ? 0 : 11)}));
+    const labels = series.map(s => ({model: s.model, y: yScale(s.points.at(-1)[1]) - (rightLabels ? 0 : 11),
+        extra: rightLabels ? (labelLines.get(s.model.id).lines.length - 1) * lineHeight * baseSize / 2 : 0}));
     // Phones draw labels inside the plot: keep them clear of the scoring-window caption at the top.
     spreadLabels(labels, rightLabels ? 17 : 11, rightLabels ? 7 : hasWindow ? 24 : 10, innerHeight - (rightLabels ? 7 : 4));
     const labelY = new Map(labels.map(l => [l.model.id, l.y]));
@@ -825,8 +845,13 @@ function renderChart() {
         }
         drawMarker(sg, ex, ey, model, color(model), isPhone);
         if (rightLabels) {
-            sg.append('text').attr('class', 'model-label').attr('x', ex + chipR + 10).attr('y', ly)
-                .attr('dominant-baseline', 'middle').attr('text-anchor', 'start').text(model.name);
+            const {lines, width} = labelLines.get(model.id);
+            const text = sg.append('text').attr('class', 'model-label').attr('x', ex + chipR + 10).attr('y', ly)
+                .attr('dominant-baseline', 'middle').attr('text-anchor', 'start')
+                .style('--focus-size', Math.min(focusSize, baseSize * labelWidth / width).toFixed(1) + 'px');
+            if (lines.length === 1) text.text(model.name);
+            else lines.forEach((part, i) => text.append('tspan').attr('x', ex + chipR + 10)
+                .attr('dy', `${i ? lineHeight : -(lines.length - 1) * lineHeight / 2}em`).text(part));
         } else {
             sg.append('text').attr('class', 'model-label').attr('x', ex - 11)
                 .attr('y', ly).attr('text-anchor', 'end').text(model.name);
