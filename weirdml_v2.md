@@ -12,6 +12,10 @@ permalink: /weirdml_v2.html
   <strong>Version 2 of WeirdML is now out!</strong> We're also pleased to announce that WeirdML is now included in <a href="https://epoch.ai/data/ai-benchmarking-dashboard">Epoch AI's Benchmarking Hub</a>. We're grateful to <a href="https://metr.org">METR</a> for supporting the API costs of this project.
 </div>
 
+<div class="highlight-box">
+  <strong>WeirdML v2 is now final.</strong> There will be no more official runs on these tasks; new models are evaluated on <a href="weirdml.html">WeirdML v3</a>. The final results cover 162 models and 16,785 runs. You can dig into every model, task, run and iteration in the <a href="weirdml_v2_explorer.html">results explorer</a>, or download the <a href="{{ "/data/weirdml_v2_results.json.gz" | relative_url }}">full final dataset</a> (gzipped JSON, 8 MB).
+</div>
+
 Most recent updates and discussion can be found on [X (@htihle)](https://x.com/htihle).
 
 For the original WeirdML v1 results and analysis, visit the archived page: [WeirdML v1](weirdml_v1.html).
@@ -32,7 +36,7 @@ Each task comes with a task prompt describing the problem precisely and some exa
 ## Results
 
 <p style="font-size: 0.9rem; color: #64748b; margin-top: -0.5rem;">
-  Open standalone: <a href="/weirdml_interactive.html">Interactive plot</a> · <a href="/weirdml_summary.html">Model summary</a> · <a href="/weirdml_table.html">Data table</a> · <a href="{{ "/data/weirdml_data.csv" | relative_url }}">CSV</a>
+  Open standalone: <a href="/weirdml_interactive.html">Interactive plot</a> · <a href="/weirdml_summary.html">Model summary</a> · <a href="/weirdml_table.html">Data table</a> · <a href="/weirdml_v2_explorer.html">Results explorer</a> · <a href="{{ "/data/weirdml_data.csv" | relative_url }}">CSV</a>
 </p>
 
 <div style="margin: 20px 0;">

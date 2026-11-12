@@ -1,0 +1,599 @@
+---
+layout: nothing
+title: WeirdML v2 Results Explorer
+---
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WeirdML v2 Results Explorer</title>
+<script src="assets/js/vendor/d3.v7.min.js"></script>
+{% raw %}
+<style>
+:root {
+    --bg: #f8f9fa; --surface: #ffffff; --border: #e2e8f0; --grid: #edf0f3;
+    --ink: #1f2933; --ink2: #52606d; --muted: #8492a0; --link: #2a78d6;
+    --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #eda100; --s5: #e87ba4; --s6: #008300;
+    --o-s: #2a78d6; --o-e: #e34948; --o-t: #eda100; --o-n: #6250d6; --o-c: #9aa5b1; --o-x: #3e4c59;
+}
+* { box-sizing: border-box; }
+body {
+    margin: 0; padding: 16px; background: var(--bg); color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+    font-size: 14px; line-height: 1.45;
+}
+.wrap { max-width: 1280px; margin: 0 auto; }
+a { color: var(--link); text-decoration: none; }
+a:hover { text-decoration: underline; }
+header h1 { margin: 0 0 2px; font-size: 1.4rem; color: #2c3e50; }
+header p { margin: 0; color: var(--ink2); font-size: 0.88rem; }
+.links { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 0.85rem; margin: 6px 0 12px; }
+.tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--border); margin-bottom: 14px; flex-wrap: wrap; }
+.tabs button {
+    font: inherit; font-weight: 600; background: none; border: none; padding: 8px 14px; cursor: pointer;
+    color: var(--ink2); border-bottom: 3px solid transparent; margin-bottom: -1px;
+}
+.tabs button[aria-selected="true"] { color: var(--link); border-bottom-color: var(--link); }
+.controls { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center; margin-bottom: 12px; }
+.controls label { font-size: 0.82rem; color: var(--ink2); display: flex; align-items: center; gap: 6px; }
+input[type="search"], input[type="text"], select {
+    font: inherit; padding: 5px 8px; border: 1px solid #cbd2d9; border-radius: 6px; background: #fff; color: var(--ink);
+    max-width: 100%;
+}
+.seg { display: inline-flex; border: 1px solid #cbd2d9; border-radius: 6px; overflow: hidden; background: #fff; }
+.seg button { font: inherit; font-size: 0.82rem; border: none; background: none; padding: 5px 10px; cursor: pointer; color: var(--ink2); }
+.seg button + button { border-left: 1px solid #cbd2d9; }
+.seg button.on { background: var(--link); color: #fff; }
+.btn { font: inherit; font-size: 0.82rem; border: 1px solid #cbd2d9; background: #fff; border-radius: 6px; padding: 5px 10px; cursor: pointer; color: var(--ink); }
+.btn:hover { border-color: var(--link); color: var(--link); }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px; margin-bottom: 14px; }
+.card h2 { margin: 0 0 2px; font-size: 1rem; color: #2c3e50; }
+.card .sub { margin: 0 0 10px; color: var(--ink2); font-size: 0.82rem; }
+.note { color: var(--muted); font-size: 0.8rem; }
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-bottom: 14px; }
+.tile { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; }
+.tile .k { font-size: 0.74rem; color: var(--ink2); }
+.tile .v { font-size: 1.25rem; font-weight: 650; }
+.tile .s { font-size: 0.74rem; color: var(--muted); }
+.dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 6px; vertical-align: baseline; }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+@media (max-width: 860px) { .two { grid-template-columns: 1fr; } }
+
+/* overview table */
+.tablewrap { overflow: auto; max-height: 78vh; border: 1px solid var(--border); border-radius: 10px; background: #fff; }
+table.ov { border-collapse: separate; border-spacing: 0; font-size: 0.8rem; white-space: nowrap; }
+table.ov th { position: sticky; top: 0; z-index: 2; background: #fff; border-bottom: 1px solid var(--border); padding: 6px 6px; text-align: right; cursor: pointer; font-weight: 600; color: var(--ink2); vertical-align: bottom; user-select: none; }
+table.ov th.l, table.ov td.l { text-align: left; }
+table.ov th.task { height: 108px; padding: 0 0 6px; width: 34px; min-width: 34px; }
+table.ov th.task div { writing-mode: vertical-rl; transform: rotate(180deg); margin: 0 auto; text-align: left; }
+table.ov th.sorted { color: var(--link); }
+table.ov td { padding: 3px 6px; border-bottom: 1px solid var(--grid); text-align: right; font-variant-numeric: tabular-nums; }
+table.ov td.name { position: sticky; left: 0; background: #fff; z-index: 1; font-weight: 600; cursor: pointer; max-width: 270px; overflow: hidden; text-overflow: ellipsis; }
+table.ov th.name { left: 0; z-index: 3; }
+table.ov td.name:hover { color: var(--link); }
+table.ov td.cell { padding: 2px 1px; }
+table.ov td.cell span { display: block; width: 32px; height: 20px; line-height: 20px; border-radius: 3px; text-align: center; font-size: 0.7rem; cursor: pointer; }
+table.ov td.cell span:hover { outline: 2px solid var(--ink); }
+table.ov tr:hover td { background: #f5f8fc; }
+.accbar { display: inline-block; width: 70px; height: 8px; background: var(--grid); border-radius: 2px; vertical-align: middle; margin-left: 6px; position: relative; }
+.accbar i { position: absolute; left: 0; top: 0; bottom: 0; background: var(--s1); border-radius: 2px 4px 4px 2px; }
+
+/* chips */
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { font: inherit; font-size: 0.8rem; border: 1px solid #cbd2d9; background: #fff; border-radius: 999px; padding: 3px 10px; cursor: pointer; color: var(--ink); display: inline-flex; align-items: center; gap: 6px; }
+.chip.on { background: var(--link); border-color: var(--link); color: #fff; }
+.chip .x { color: var(--muted); font-weight: 700; }
+.legend { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 0.78rem; color: var(--ink2); margin: 4px 0 8px; }
+.legend span { display: inline-flex; align-items: center; gap: 5px; }
+.legend i { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
+
+/* runs */
+.runs { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(330px, 100%), 1fr)); gap: 12px; }
+.run { border: 1px solid var(--border); border-radius: 8px; padding: 10px; background: #fff; overflow-x: auto; min-width: 0; }
+.run h3 { margin: 0; font-size: 0.86rem; display: flex; justify-content: space-between; gap: 8px; }
+.run .meta { font-size: 0.75rem; color: var(--muted); margin-bottom: 4px; }
+.flag { display: inline-block; font-size: 0.7rem; background: #fdf0d5; color: #7a4b00; border-radius: 4px; padding: 0 5px; margin-left: 4px; }
+table.it { width: 100%; border-collapse: collapse; font-size: 0.76rem; font-variant-numeric: tabular-nums; margin-top: 4px; }
+table.it th { text-align: right; color: var(--muted); font-weight: 500; padding: 2px 4px; border-bottom: 1px solid var(--border); }
+table.it td { white-space: nowrap; text-align: right; padding: 2px 3px; border-bottom: 1px solid var(--grid); }
+table.it th:nth-child(3), table.it td:nth-child(3) { text-align: left; }
+table.it tr.best td { font-weight: 700; }
+table.cmp { border-collapse: collapse; font-size: 0.8rem; font-variant-numeric: tabular-nums; width: 100%; }
+table.cmp th, table.cmp td { padding: 4px 8px; text-align: right; border-bottom: 1px solid var(--grid); }
+table.cmp th:first-child, table.cmp td:first-child { text-align: left; }
+
+svg text { font-family: inherit; fill: var(--ink2); font-size: 11px; }
+svg .lab { fill: var(--ink); font-size: 12px; }
+svg .val { fill: var(--ink); font-size: 11px; font-variant-numeric: tabular-nums; }
+svg .gridl { stroke: var(--grid); }
+svg .axisl { stroke: #cbd2d9; }
+svg .row { cursor: pointer; }
+svg .row:hover .hit { fill: #f0f5fb; }
+svg .row.sel .hit { fill: #e3eefb; }
+#tip {
+    position: fixed; pointer-events: none; background: #fff; border: 1px solid var(--border); border-radius: 8px;
+    padding: 8px 10px; font-size: 0.78rem; box-shadow: 0 4px 14px rgba(15,23,42,.14); max-width: 300px; z-index: 50; display: none;
+}
+#tip b { color: var(--ink); }
+#tip .r { display: flex; justify-content: space-between; gap: 14px; color: var(--ink2); }
+#loading { padding: 40px; text-align: center; color: var(--ink2); }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+    <h1>WeirdML v2 — Results Explorer</h1>
+    <p>Final results for WeirdML v2: <span id="counts">…</span>. Every run is 5 iterations; a run's score is its best iteration.</p>
+    <div class="links">
+        <a href="weirdml_v2.html">← WeirdML v2</a>
+        <a href="weirdml_interactive.html">Interactive plot</a>
+        <a href="weirdml_summary.html">Model summary</a>
+        <a href="data/weirdml_v2_results.json.gz">Full dataset (JSON, 8 MB)</a>
+    </div>
+</header>
+<div class="tabs" role="tablist">
+    <button data-view="overview">All models</button>
+    <button data-view="model">One model</button>
+    <button data-view="task">One task</button>
+    <button data-view="compare">Compare</button>
+</div>
+<div id="loading">Loading results…</div>
+<main id="main"></main>
+</div>
+<datalist id="modelnames"></datalist>
+<div id="tip"></div>
+
+<script>
+const OUT = {
+    s: { label: 'Scored', short: 'Scored', color: 'var(--o-s)' },
+    e: { label: 'Execution error', short: 'Exec error', color: 'var(--o-e)' },
+    t: { label: 'Timeout', short: 'Timeout', color: 'var(--o-t)' },
+    n: { label: 'No predictions file', short: 'No preds', color: 'var(--o-n)' },
+    c: { label: 'No code in response', short: 'No code', color: 'var(--o-c)' },
+    l: { label: 'Unreadable predictions', short: 'Bad preds', color: 'var(--o-x)' },
+    a: { label: 'API failure', short: 'API failure', color: 'var(--o-x)' },
+};
+const OUT_ORDER = ['s', 'e', 't', 'n', 'c', 'x'];
+const OUT_GROUP = k => (k === 'l' || k === 'a') ? 'x' : k;
+const OUT_LEGEND = { s: OUT.s, e: OUT.e, t: OUT.t, n: OUT.n, c: OUT.c, x: { label: 'Other failure', color: 'var(--o-x)' } };
+const COMPANY_COLORS = {
+    'OpenAI': '#74aa9c', 'Anthropic': '#d97757', 'Google': '#4285f4', 'DeepSeek': '#536dfe', 'xAI': '#4d4d4d',
+    'Meta': '#0668e1', 'Mistral': '#ff7000', 'Alibaba (Qwen)': '#b9770e', 'Moonshot': '#0084ff', 'Z.ai': '#10b981',
+    'Inception': '#1a1a2e', 'NVIDIA': '#76b900', 'MiniMax': '#ff4d6a', 'Thinking Machines': '#161311',
+};
+const SERIES = ['var(--s1)', 'var(--s2)', 'var(--s3)', 'var(--s4)', 'var(--s5)', 'var(--s6)'];
+const MAX_CMP = SERIES.length;
+
+let D, MODELS, TASKS, byName = new Map();
+const S = { view: 'overview', m: null, t: 0, k: 5, q: '', co: '', sort: 'a', dir: -1, cmp: [], cmpTask: -1, scope: 'all' };
+
+// ---------- helpers ----------
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const pct = (v, d = 1) => v == null || isNaN(v) ? '–' : (v * 100).toFixed(d) + '%';
+const usd = v => v == null ? '–' : v >= 100 ? '$' + v.toFixed(0) : v >= 1 ? '$' + v.toFixed(2) : v >= 0.01 ? '$' + v.toFixed(3) : '$' + v.toFixed(4);
+const num = v => v == null ? '–' : v >= 1e6 ? (v / 1e6).toFixed(2) + 'M' : v >= 1e4 ? (v / 1e3).toFixed(0) + 'k' : v >= 1e3 ? (v / 1e3).toFixed(1) + 'k' : String(Math.round(v));
+const taskLabel = t => t.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+const mean = a => a.length ? a.reduce((x, y) => x + y, 0) / a.length : NaN;
+const coColor = m => COMPANY_COLORS[m.c] || '#888';
+const runBest = (run, k) => Math.max(...run.i.slice(0, k).map(i => i[0]));
+const taskScore = (m, ti, k) => mean(m.r[ti].map(r => runBest(r, k)));
+const allScore = (m, k) => mean(TASKS.map((_, ti) => taskScore(m, ti, k)));
+const scoreAt = (m, ti, k) => ti < 0 ? allScore(m, k) : taskScore(m, ti, k);
+const iterMean = (m, ti, k) => {   // mean accuracy of iteration k itself (failures count as 0)
+    const one = t => mean(m.r[t].filter(r => r.i.length >= k).map(r => r.i[k - 1][0]));
+    return ti < 0 ? mean(TASKS.map((_, t) => one(t)).filter(v => !isNaN(v))) : one(ti);
+};
+const heat = d3.scaleLinear().domain([0, .25, .5, .75, 1]).range(['#f1f6fd', '#b7d3f6', '#5598e7', '#1c5cab', '#0d366b']).clamp(true);
+
+const tip = document.getElementById('tip');
+function showTip(ev, html) {
+    tip.innerHTML = html; tip.style.display = 'block';
+    const w = tip.offsetWidth, h = tip.offsetHeight;
+    let x = ev.clientX + 14, y = ev.clientY + 14;
+    if (x + w > innerWidth - 8) x = ev.clientX - w - 14;
+    if (y + h > innerHeight - 8) y = ev.clientY - h - 14;
+    tip.style.left = Math.max(4, x) + 'px'; tip.style.top = Math.max(4, y) + 'px';
+}
+const hideTip = () => { tip.style.display = 'none'; };
+const tipRow = (k, v) => `<div class="r"><span>${k}</span><b>${v}</b></div>`;
+
+// ---------- state <-> URL ----------
+function writeHash() {
+    const p = new URLSearchParams();
+    p.set('view', S.view);
+    if (S.m && (S.view === 'model')) p.set('m', S.m.n);
+    if (S.view === 'model' || S.view === 'task') p.set('t', TASKS[S.t]);
+    if (S.view === 'task' && S.k !== 5) p.set('k', S.k);
+    if (S.view === 'compare') { p.set('cmp', S.cmp.map(m => m.n).join('|')); if (S.cmpTask >= 0) p.set('t', TASKS[S.cmpTask]); }
+    history.replaceState(null, '', '#' + p.toString());
+}
+function readHash() {
+    const p = new URLSearchParams(location.hash.slice(1));
+    if (['overview', 'model', 'task', 'compare'].includes(p.get('view'))) S.view = p.get('view');
+    if (byName.has(p.get('m'))) S.m = byName.get(p.get('m'));
+    const ti = TASKS.indexOf(p.get('t'));
+    if (ti >= 0) { if (S.view === 'compare') S.cmpTask = ti; else S.t = ti; }
+    const k = +p.get('k'); if (k >= 1 && k <= 5) S.k = k;
+    if (p.get('cmp')) { const c = p.get('cmp').split('|').map(n => byName.get(n)).filter(Boolean).slice(0, MAX_CMP); if (c.length) S.cmp = c; }
+}
+function go(patch) { Object.assign(S, patch); render(); window.scrollTo({ top: 0 }); }
+
+// ---------- shared controls ----------
+function filteredModels() {
+    const q = S.q.trim().toLowerCase();
+    return MODELS.filter(m => (!q || m.n.toLowerCase().includes(q)) && (!S.co || m.c === S.co));
+}
+function filterControls() {
+    const cos = [...new Set(MODELS.map(m => m.c))].sort();
+    return `<label>Search <input type="search" id="q" placeholder="model name" value="${esc(S.q)}"></label>
+        <label>Lab <select id="co"><option value="">All labs</option>${cos.map(c => `<option${c === S.co ? ' selected' : ''}>${esc(c)}</option>`).join('')}</select></label>`;
+}
+function bindFilters(rerender) {
+    const q = document.getElementById('q');
+    q.oninput = () => { S.q = q.value; rerender(); };
+    document.getElementById('co').onchange = e => { S.co = e.target.value; rerender(); };
+}
+function taskSelect(id, value, withAll) {
+    return `<select id="${id}">${withAll ? `<option value="-1"${value < 0 ? ' selected' : ''}>All 17 tasks (average)</option>` : ''}${TASKS.map((t, i) => `<option value="${i}"${i === value ? ' selected' : ''}>${taskLabel(t)}</option>`).join('')}</select>`;
+}
+function outcomeLegend(keys) {
+    return `<div class="legend">${keys.map(k => `<span><i style="background:${OUT_LEGEND[k].color}"></i>${OUT_LEGEND[k].label}</span>`).join('')}</div>`;
+}
+
+// ---------- view: overview ----------
+function renderOverview(main) {
+    main.innerHTML = `<div class="controls">${filterControls()}<span class="note" id="ovcount"></span></div>
+        <div class="tablewrap"><table class="ov"><thead></thead><tbody></tbody></table></div>
+        <p class="note">Task cells show the mean run score in percent (darker is higher). Click a column header to sort, a model name to open that model, or a cell to open that model's runs on that task. ± is the 95% interval (1.96 × bootstrap standard error over runs).</p>`;
+    const cols = [
+        { k: 'rank', label: '#', get: m => m.rank },
+        { k: 'n', label: 'Model', get: m => m.n.toLowerCase(), cls: 'l name' },
+        { k: 'c', label: 'Lab', get: m => m.c, cls: 'l' },
+        { k: 'd', label: 'Released', get: m => m.d || '' },
+        { k: 'a', label: 'Average accuracy', get: m => m.a },
+        { k: 'cost', label: 'Cost / run', get: m => m.cost },
+        ...TASKS.map((t, i) => ({ k: 't' + i, label: taskLabel(t), get: m => m.t[i], cls: 'task', ti: i })),
+        { k: 'runs', label: 'Runs', get: m => m.nruns },
+    ];
+    const thead = main.querySelector('thead'), tbody = main.querySelector('tbody');
+    function draw() {
+        const col = cols.find(c => c.k === S.sort) || cols[4];
+        const rows = filteredModels().sort((a, b) => { const x = col.get(a), y = col.get(b); return (x < y ? -1 : x > y ? 1 : 0) * S.dir || a.rank - b.rank; });
+        thead.innerHTML = '<tr>' + cols.map(c => `<th data-k="${c.k}" class="${c.cls || ''}${c.k === S.sort ? ' sorted' : ''}" title="Sort by ${esc(c.label)}"><div>${esc(c.label)}${c.k === S.sort ? (S.dir > 0 ? ' ▲' : ' ▼') : ''}</div></th>`).join('') + '</tr>';
+        tbody.innerHTML = rows.map(m => `<tr data-m="${esc(m.n)}">
+            <td>${m.rank}</td>
+            <td class="l name" title="${esc(m.n)}"><span class="dot" style="background:${coColor(m)}"></span>${esc(m.n)}</td>
+            <td class="l">${esc(m.c)}</td><td>${m.d || '–'}</td>
+            <td><b>${pct(m.a)}</b> <span class="note">±${(m.se * 196).toFixed(1)}</span><span class="accbar"><i style="width:${m.a * 100}%"></i></span></td>
+            <td>${usd(m.cost)}${m.est ? '<span class="note" title="Estimated cost">*</span>' : ''}</td>
+            ${m.t.map((v, i) => `<td class="cell"><span data-t="${i}" style="background:${heat(v)};color:${v > 0.45 ? '#fff' : 'var(--ink)'}">${Math.round(v * 100)}</span></td>`).join('')}
+            <td>${m.nruns}</td></tr>`).join('');
+        document.getElementById('ovcount').textContent = `${rows.length} of ${MODELS.length} models`;
+    }
+    thead.onclick = e => {
+        const th = e.target.closest('th'); if (!th) return;
+        const k = th.dataset.k;
+        if (S.sort === k) S.dir = -S.dir; else { S.sort = k; S.dir = (k === 'n' || k === 'c' || k === 'rank') ? 1 : -1; }
+        draw();
+    };
+    tbody.onclick = e => {
+        const tr = e.target.closest('tr'); if (!tr) return;
+        const m = byName.get(tr.dataset.m);
+        const cell = e.target.closest('td.cell span');
+        if (cell) go({ view: 'model', m, t: +cell.dataset.t });
+        else if (e.target.closest('td.name')) go({ view: 'model', m });
+    };
+    tbody.onmousemove = e => {
+        const cell = e.target.closest('td.cell span');
+        if (!cell) return hideTip();
+        const m = byName.get(cell.closest('tr').dataset.m), ti = +cell.dataset.t;
+        const scores = m.r[ti].map(r => runBest(r, 5));
+        showTip(e, `<b>${esc(m.n)}</b><div>${taskLabel(TASKS[ti])}</div>${tipRow('Mean run score', pct(m.t[ti]))}${tipRow('Runs', scores.length)}${tipRow('Range', pct(Math.min(...scores)) + ' – ' + pct(Math.max(...scores)))}${tipRow('Random chance', pct(D.chance[ti], 0))}`);
+    };
+    tbody.onmouseleave = hideTip;
+    bindFilters(draw);
+    draw();
+}
+
+// ---------- view: model ----------
+function modelPicker(id, value, placeholder) {
+    return `<input type="text" id="${id}" list="modelnames" value="${esc(value || '')}" placeholder="${placeholder}" size="34" autocomplete="off">`;
+}
+function renderModel(main) {
+    const m = S.m || (S.m = MODELS[0]);
+    const idx = MODELS.indexOf(m);
+    const iters = m.r.flat().flatMap(r => r.i);
+    const scored = iters.filter(i => i[1] === 's').length;
+    main.innerHTML = `
+    <div class="controls">
+        <label>Model ${modelPicker('mpick', m.n, 'type a model name')}</label>
+        <button class="btn" id="prev" ${idx === 0 ? 'disabled' : ''}>← Higher ranked</button>
+        <button class="btn" id="next" ${idx === MODELS.length - 1 ? 'disabled' : ''}>Lower ranked →</button>
+        <button class="btn" id="addcmp">Add to compare</button>
+    </div>
+    <div class="tiles">
+        <div class="tile"><div class="k">Average accuracy</div><div class="v">${pct(m.a)}</div><div class="s">±${(m.se * 196).toFixed(1)} pts (95%)</div></div>
+        <div class="tile"><div class="k">Rank</div><div class="v">${m.rank} <span class="s">of ${MODELS.length}</span></div><div class="s"><span class="dot" style="background:${coColor(m)}"></span>${esc(m.c)}</div></div>
+        <div class="tile"><div class="k">Cost per run</div><div class="v">${usd(m.cost)}</div><div class="s">${m.est ? 'estimated' : 'all 5 iterations'}</div></div>
+        <div class="tile"><div class="k">Released</div><div class="v" style="font-size:1.05rem;line-height:1.9">${m.d || '–'}</div><div class="s">&nbsp;</div></div>
+        <div class="tile"><div class="k">Runs</div><div class="v">${m.nruns}</div><div class="s">${iters.length} iterations</div></div>
+        <div class="tile"><div class="k">Iterations scored</div><div class="v">${pct(scored / iters.length, 0)}</div><div class="s">produced valid predictions</div></div>
+        <div class="tile"><div class="k">Median code length</div><div class="v">${m.len ?? '–'}</div><div class="s">lines</div></div>
+        <div class="tile"><div class="k">Output tokens</div><div class="v">${num(m.tok)}</div><div class="s">mean per iteration</div></div>
+    </div>
+    <div class="card"><h2>Score by task</h2><p class="sub">Each dot is one run (its best iteration); the dark tick is the task mean and the dashed tick is random chance. Click a task to see its runs below.</p><div id="taskstrip"></div></div>
+    <div class="card">
+        <div class="controls" style="margin-bottom:6px"><h2 style="margin:0">Across the 5 iterations</h2>
+        <span class="seg" id="scope"><button data-s="all" class="${S.scope === 'all' ? 'on' : ''}">All tasks</button><button data-s="task" class="${S.scope === 'task' ? 'on' : ''}">${taskLabel(TASKS[S.t])}</button></span></div>
+        <div class="two">
+            <div><p class="sub">Mean accuracy: best so far after each iteration, and each iteration's own submission (failed submissions count as 0).</p><div id="itercurve"></div></div>
+            <div><p class="sub">What happened to each iteration's submission.</p>${outcomeLegend(OUT_ORDER)}<div id="outmix"></div></div>
+        </div>
+    </div>
+    <div class="card"><h2>Runs on ${taskLabel(TASKS[S.t])}</h2>
+        <p class="sub">${m.r[S.t].length} runs · task mean ${pct(m.t[S.t])} · random chance ${pct(D.chance[S.t], 0)}. The line is the best accuracy so far; markers show each iteration's submission.</p>
+        <div class="chips" id="taskchips" style="margin-bottom:10px">${TASKS.map((t, i) => `<button class="chip${i === S.t ? ' on' : ''}" data-t="${i}">${taskLabel(t)}</button>`).join('')}</div>
+        ${outcomeLegend(OUT_ORDER)}
+        <div class="runs" id="runs"></div></div>`;
+
+    const pick = document.getElementById('mpick');
+    pick.onchange = () => { const mm = byName.get(pick.value); if (mm) go({ m: mm }); };
+    pick.onfocus = () => pick.select();
+    document.getElementById('prev').onclick = () => go({ m: MODELS[idx - 1] });
+    document.getElementById('next').onclick = () => go({ m: MODELS[idx + 1] });
+    document.getElementById('addcmp').onclick = () => { if (!S.cmp.includes(m)) S.cmp = [...S.cmp, m].slice(-MAX_CMP); go({ view: 'compare' }); };
+    document.getElementById('scope').onclick = e => { const b = e.target.closest('button'); if (b) { S.scope = b.dataset.s; render(); } };
+    document.getElementById('taskchips').onclick = e => { const b = e.target.closest('button'); if (b) { S.t = +b.dataset.t; render(); } };
+
+    // task strip
+    stripChart(document.getElementById('taskstrip'), TASKS.map((t, i) => ({
+        label: taskLabel(t), values: m.r[i].map(r => runBest(r, 5)), mean: m.t[i], chance: D.chance[i], selected: i === S.t,
+        onClick: () => { S.t = i; render(); },
+        tip: () => `<b>${taskLabel(t)}</b>${tipRow('Mean run score', pct(m.t[i]))}${tipRow('Runs', m.r[i].length)}${tipRow('Random chance', pct(D.chance[i], 0))}`,
+    })), { labelW: 150, rowH: 22 });
+
+    const ti = S.scope === 'all' ? -1 : S.t;
+    lineChart(document.getElementById('itercurve'), [
+        { name: 'Best so far', color: 'var(--s1)', values: d3.range(1, 6).map(k => scoreAt(m, ti, k)) },
+        { name: 'This iteration', color: 'var(--s2)', values: d3.range(1, 6).map(k => iterMean(m, ti, k)), dashed: true },
+    ], { height: 230, chance: ti < 0 ? null : D.chance[ti] });
+    outcomeMix(document.getElementById('outmix'), ti < 0 ? m.r.flat() : m.r[ti]);
+
+    const runs = document.getElementById('runs');
+    m.r[S.t].forEach((run, ri) => runs.appendChild(runCard(run, ri, D.chance[S.t])));
+}
+
+function runCard(run, ri, chance) {
+    const el = document.createElement('div'); el.className = 'run';
+    const best = runBest(run, 5), bi = run.i.findIndex(i => i[0] === best);
+    const cost = d3.sum(run.i, i => i[5] || 0);
+    const flags = run.f ? run.f.split(';').map(f => `<span class="flag">${esc(f.replace(/_/g, ' '))}</span>`).join('') : '';
+    el.innerHTML = `<h3><span>Run ${ri + 1}${flags}</span><span>${pct(best)}</span></h3>
+        <div class="meta">${run.d} · ${esc(run.id)} · ${usd(cost)} total</div><div class="plot"></div>
+        <table class="it"><thead><tr><th>Iter</th><th>Accuracy</th><th>Outcome</th><th>Lines</th><th>Time</th><th>Tokens</th><th>Cost</th></tr></thead><tbody>
+        ${run.i.map((i, k) => `<tr class="${k === bi && best > 0 ? 'best' : ''}"><td>${k + 1}</td><td>${i[1] === 's' ? pct(i[0]) : '–'}</td>
+            <td><span class="dot" style="background:${OUT[i[1]].color};border-radius:2px"></span>${OUT[i[1]].short}</td>
+            <td>${i[2] ?? '–'}</td><td>${i[3] == null ? '–' : i[3].toFixed(1) + 's'}</td><td>${num(i[4])}</td><td>${usd(i[5])}</td></tr>`).join('')}
+        </tbody></table>`;
+    const W = 310, H = 120, mg = { l: 36, r: 10, t: 8, b: 20 };
+    const svg = d3.select(el.querySelector('.plot')).append('svg').attr('viewBox', `0 0 ${W} ${H}`).attr('width', '100%');
+    const x = d3.scaleLinear([1, 5], [mg.l + 8, W - mg.r - 8]), y = d3.scaleLinear([0, 1], [H - mg.b, mg.t]);
+    [0, .5, 1].forEach(v => {
+        svg.append('line').attr('class', 'gridl').attr('x1', mg.l).attr('x2', W - mg.r).attr('y1', y(v)).attr('y2', y(v));
+        svg.append('text').attr('x', mg.l - 5).attr('y', y(v) + 3.5).attr('text-anchor', 'end').text(v * 100 + '%');
+    });
+    svg.append('line').attr('x1', mg.l).attr('x2', W - mg.r).attr('y1', y(chance)).attr('y2', y(chance)).attr('stroke', '#9aa5b1').attr('stroke-dasharray', '3 3');
+    d3.range(1, 6).forEach(k => svg.append('text').attr('x', x(k)).attr('y', H - 5).attr('text-anchor', 'middle').text(k));
+    const bsf = run.i.map((_, k) => [k + 1, runBest(run, k + 1)]);
+    svg.append('path').attr('d', d3.line().x(d => x(d[0])).y(d => y(d[1])).curve(d3.curveStepAfter)(bsf.concat([[Math.min(5, bsf.length + .3), bsf[bsf.length - 1][1]]])))
+        .attr('fill', 'none').attr('stroke', 'var(--ink2)').attr('stroke-width', 1.5);
+    run.i.forEach((i, k) => {
+        const g = svg.append('g').attr('transform', `translate(${x(k + 1)},${y(i[0])})`).style('cursor', 'default');
+        if (i[1] === 's') g.append('circle').attr('r', 4.5).attr('fill', OUT.s.color).attr('stroke', '#fff').attr('stroke-width', 2);
+        else g.append('path').attr('d', d3.symbol(d3.symbolCross, 60)()).attr('transform', 'rotate(45)').attr('fill', OUT[i[1]].color).attr('stroke', '#fff').attr('stroke-width', 1);
+        g.append('circle').attr('r', 12).attr('fill', 'transparent')
+            .on('mousemove', ev => showTip(ev, `<b>Iteration ${k + 1}</b>${tipRow('Outcome', OUT[i[1]].label)}${tipRow('Accuracy', i[1] === 's' ? pct(i[0], 2) : '–')}${tipRow('Best so far', pct(runBest(run, k + 1), 2))}${tipRow('Code lines', i[2] ?? '–')}${tipRow('Run time', i[3] == null ? '–' : i[3].toFixed(1) + ' s')}${tipRow('Output tokens', num(i[4]))}${tipRow('Cost', usd(i[5]))}`))
+            .on('mouseleave', hideTip);
+    });
+    return el;
+}
+
+// rows: [{label, values, mean, chance, color?, selected?, onClick, tip, rank?}]
+function stripChart(host, rows, opt = {}) {
+    const W = Math.max(340, host.clientWidth || 900), rowH = opt.rowH || 20, labelW = Math.min(opt.labelW || 240, W * 0.42);
+    const mg = { l: labelW, r: 54, t: 22, b: 6 }, H = mg.t + rows.length * rowH + mg.b;
+    host.innerHTML = '';
+    const svg = d3.select(host).append('svg').attr('width', W).attr('height', H);
+    const x = d3.scaleLinear([0, 1], [mg.l, W - mg.r]);
+    d3.range(0, 1.01, .2).forEach(v => {
+        svg.append('line').attr('class', 'gridl').attr('x1', x(v)).attr('x2', x(v)).attr('y1', mg.t - 4).attr('y2', H - mg.b);
+        svg.append('text').attr('x', x(v)).attr('y', 11).attr('text-anchor', 'middle').text(Math.round(v * 100) + '%');
+    });
+    rows.forEach((r, i) => {
+        const cy = mg.t + i * rowH + rowH / 2;
+        const g = svg.append('g').attr('class', 'row' + (r.selected ? ' sel' : ''));
+        g.append('rect').attr('class', 'hit').attr('x', 0).attr('y', cy - rowH / 2).attr('width', W).attr('height', rowH).attr('fill', 'transparent');
+        let lx = 4;
+        if (r.color) { g.append('circle').attr('cx', 8).attr('cy', cy).attr('r', 4).attr('fill', r.color); lx = 17; }
+        const max = Math.floor((labelW - lx - 6) / 6.3);
+        const text = (r.rank ? r.rank + '. ' : '') + r.label;
+        g.append('text').attr('class', 'lab').attr('x', lx).attr('y', cy + 4).text(text.length > max ? text.slice(0, max - 1) + '…' : text);
+        g.append('line').attr('class', 'gridl').attr('x1', mg.l).attr('x2', W - mg.r).attr('y1', cy).attr('y2', cy);
+        if (r.chance != null) g.append('line').attr('x1', x(r.chance)).attr('x2', x(r.chance)).attr('y1', cy - rowH / 2 + 2).attr('y2', cy + rowH / 2 - 2).attr('stroke', '#9aa5b1').attr('stroke-dasharray', '2 2');
+        r.values.forEach(v => g.append('circle').attr('cx', x(v)).attr('cy', cy).attr('r', 3.5).attr('fill', 'var(--s1)').attr('fill-opacity', .45));
+        if (!isNaN(r.mean)) {
+            g.append('line').attr('x1', x(r.mean)).attr('x2', x(r.mean)).attr('y1', cy - rowH / 2 + 3).attr('y2', cy + rowH / 2 - 3).attr('stroke', 'var(--ink)').attr('stroke-width', 2);
+            g.append('text').attr('class', 'val').attr('x', W - 4).attr('y', cy + 4).attr('text-anchor', 'end').text(pct(r.mean));
+        }
+        g.on('click', r.onClick).on('mousemove', ev => showTip(ev, r.tip())).on('mouseleave', hideTip);
+    });
+}
+
+// series: [{name,color,values(5),dashed}]
+function lineChart(host, series, opt = {}) {
+    const W = Math.max(300, host.clientWidth || 500), H = opt.height || 260;
+    const labelW = d3.max(series, s => s.name.length) * 6.2 + 12;
+    const mg = { l: 40, r: Math.min(labelW, W * 0.34), t: 12, b: 34 };
+    host.innerHTML = '';
+    const svg = d3.select(host).append('svg').attr('width', W).attr('height', H);
+    const all = series.flatMap(s => s.values).filter(v => !isNaN(v));
+    let lo = Math.min(...all, opt.chance ?? 1), hi = Math.max(...all);
+    const pad = Math.max(.02, (hi - lo) * .12); lo = Math.max(0, lo - pad); hi = Math.min(1, hi + pad);
+    const x = d3.scaleLinear([1, 5], [mg.l + 10, W - mg.r - 6]), y = d3.scaleLinear([lo, hi], [H - mg.b, mg.t]).nice(5);
+    y.ticks(5).forEach(v => {
+        svg.append('line').attr('class', 'gridl').attr('x1', mg.l).attr('x2', W - mg.r).attr('y1', y(v)).attr('y2', y(v));
+        svg.append('text').attr('x', mg.l - 6).attr('y', y(v) + 3.5).attr('text-anchor', 'end').text(pct(v, 0));
+    });
+    d3.range(1, 6).forEach(k => svg.append('text').attr('x', x(k)).attr('y', H - mg.b + 15).attr('text-anchor', 'middle').text(k));
+    svg.append('text').attr('x', (mg.l + W - mg.r) / 2).attr('y', H - 4).attr('text-anchor', 'middle').text('Iteration');
+    if (opt.chance != null && opt.chance >= y.domain()[0]) {
+        svg.append('line').attr('x1', mg.l).attr('x2', W - mg.r).attr('y1', y(opt.chance)).attr('y2', y(opt.chance)).attr('stroke', '#9aa5b1').attr('stroke-dasharray', '3 3');
+        svg.append('text').attr('x', mg.l + 4).attr('y', y(opt.chance) - 4).text('random chance');
+    }
+    const line = d3.line().defined(d => !isNaN(d)).x((d, i) => x(i + 1)).y(d => y(d));
+    const ends = series.map(s => ({ s, y: y(s.values[4]) })).filter(e => !isNaN(e.y)).sort((a, b) => a.y - b.y);
+    for (let i = 1; i < ends.length; i++) if (ends[i].y - ends[i - 1].y < 13) ends[i].y = ends[i - 1].y + 13;
+    series.forEach(s => {
+        svg.append('path').attr('d', line(s.values)).attr('fill', 'none').attr('stroke', s.color).attr('stroke-width', 2).attr('stroke-dasharray', s.dashed ? '5 4' : null);
+        s.values.forEach((v, i) => { if (!isNaN(v)) svg.append('circle').attr('cx', x(i + 1)).attr('cy', y(v)).attr('r', 4).attr('fill', s.color).attr('stroke', '#fff').attr('stroke-width', 2); });
+    });
+    ends.forEach(e => {
+        svg.append('line').attr('x1', W - mg.r - 2).attr('x2', W - mg.r + 6).attr('y1', e.y).attr('y2', e.y).attr('stroke', e.s.color).attr('stroke-width', 2);
+        svg.append('text').attr('class', 'lab').attr('x', W - mg.r + 9).attr('y', e.y + 4).style('font-size', '11px').text(e.s.name);
+    });
+    // hover: nearest iteration
+    const guide = svg.append('line').attr('y1', mg.t).attr('y2', H - mg.b).attr('stroke', '#9aa5b1').style('display', 'none');
+    svg.append('rect').attr('x', mg.l).attr('y', mg.t).attr('width', W - mg.r - mg.l).attr('height', H - mg.b - mg.t).attr('fill', 'transparent')
+        .on('mousemove', ev => {
+            const k = Math.max(1, Math.min(5, Math.round(x.invert(d3.pointer(ev)[0]))));
+            guide.style('display', null).attr('x1', x(k)).attr('x2', x(k));
+            showTip(ev, `<b>After iteration ${k}</b>` + [...series].sort((a, b) => b.values[k - 1] - a.values[k - 1]).map(s => `<div class="r"><span><i class="dot" style="background:${s.color}"></i>${esc(s.name)}</span><b>${pct(s.values[k - 1], 2)}</b></div>`).join(''));
+        }).on('mouseleave', () => { guide.style('display', 'none'); hideTip(); });
+}
+
+function outcomeMix(host, runs) {
+    const W = Math.max(300, host.clientWidth || 500), rowH = 30, mg = { l: 74, r: 12, t: 4, b: 22 }, H = mg.t + 5 * rowH + mg.b;
+    host.innerHTML = '';
+    const svg = d3.select(host).append('svg').attr('width', W).attr('height', H);
+    const x = d3.scaleLinear([0, 1], [mg.l, W - mg.r]);
+    [0, .25, .5, .75, 1].forEach(v => svg.append('text').attr('x', x(v)).attr('y', H - 6).attr('text-anchor', 'middle').text(v * 100 + '%'));
+    d3.range(5).forEach(k => {
+        const its = runs.filter(r => r.i.length > k).map(r => OUT_GROUP(r.i[k][1]));
+        const cy = mg.t + k * rowH;
+        svg.append('text').attr('class', 'lab').attr('x', 2).attr('y', cy + rowH / 2 + 4).text('Iteration ' + (k + 1));
+        let acc = 0;
+        OUT_ORDER.forEach(o => {
+            const n = its.filter(v => v === o).length; if (!n) return;
+            const f = n / its.length, x0 = x(acc), w = x(acc + f) - x0;
+            svg.append('rect').attr('x', x0).attr('y', cy + 4).attr('width', Math.max(0, w - 2)).attr('height', rowH - 8).attr('rx', 3).attr('fill', OUT_LEGEND[o].color)
+                .on('mousemove', ev => showTip(ev, `<b>Iteration ${k + 1}</b>${tipRow(OUT_LEGEND[o].label, `${n} of ${its.length} (${pct(f, 0)})`)}`)).on('mouseleave', hideTip);
+            if (o === 's' && w > 40) svg.append('text').attr('x', x0 + 6).attr('y', cy + rowH / 2 + 4).style('fill', '#fff').style('pointer-events', 'none').text(pct(f, 0));
+            acc += f;
+        });
+    });
+}
+
+// ---------- view: task ----------
+function renderTask(main) {
+    main.innerHTML = `<div class="controls">
+        <label>Task ${taskSelect('tsel', S.t)}</label>
+        <label>Best score after iteration <span class="seg" id="kseg">${d3.range(1, 6).map(k => `<button data-k="${k}" class="${k === S.k ? 'on' : ''}">${k}</button>`).join('')}</span></label>
+        ${filterControls()}</div>
+        <div class="card"><h2 id="ttitle"></h2><p class="sub" id="tsub"></p><div id="tchart"></div></div>`;
+    function draw() {
+        const ti = S.t, k = S.k;
+        const rows = filteredModels().map(m => ({ m, mean: taskScore(m, ti, k) })).sort((a, b) => b.mean - a.mean);
+        document.getElementById('ttitle').textContent = `${taskLabel(TASKS[ti])} — ${rows.length} models`;
+        document.getElementById('tsub').textContent = `Each dot is one run's best accuracy within its first ${k} iteration${k > 1 ? 's' : ''}; the dark tick is the mean over runs. Dashed line: random chance (${pct(D.chance[ti], 0)}). Click a model to see its runs on this task.`;
+        stripChart(document.getElementById('tchart'), rows.map((r, i) => ({
+            label: r.m.n, rank: i + 1, color: coColor(r.m), values: r.m.r[ti].map(run => runBest(run, k)), mean: r.mean, chance: D.chance[ti],
+            onClick: () => go({ view: 'model', m: r.m, t: ti }),
+            tip: () => { const v = r.m.r[ti].map(run => runBest(run, k)); return `<b>${esc(r.m.n)}</b><div>${esc(r.m.c)}</div>${tipRow('Mean after iteration ' + k, pct(r.mean))}${tipRow('Runs', v.length)}${tipRow('Range', pct(Math.min(...v)) + ' – ' + pct(Math.max(...v)))}${tipRow('Overall rank', r.m.rank)}`; },
+        })), { labelW: 260, rowH: 19 });
+    }
+    document.getElementById('tsel').onchange = e => { S.t = +e.target.value; writeHash(); draw(); };
+    document.getElementById('kseg').onclick = e => { const b = e.target.closest('button'); if (!b) return; S.k = +b.dataset.k; [...e.currentTarget.children].forEach(c => c.classList.toggle('on', c === b)); writeHash(); draw(); };
+    bindFilters(draw);
+    draw();
+}
+
+// ---------- view: compare ----------
+function renderCompare(main) {
+    if (!S.cmp.length) S.cmp = ['OpenAI', 'Anthropic', 'Google'].map(c => MODELS.find(m => m.c === c)).filter(Boolean);
+    const color = m => SERIES[S.cmp.indexOf(m)];
+    const ti = S.cmpTask;
+    main.innerHTML = `<div class="controls">
+        <label>Add model ${modelPicker('cpick', '', S.cmp.length >= MAX_CMP ? 'remove one to add another' : 'type a model name')}</label>
+        <label>Task ${taskSelect('ctask', ti, true)}</label></div>
+        <div class="chips" style="margin-bottom:14px">${S.cmp.map((m, i) => `<button class="chip" data-i="${i}" title="Remove"><i class="dot" style="background:${SERIES[i]};margin:0"></i>${esc(m.n)}<span class="x">×</span></button>`).join('')}</div>
+        <div class="two">
+            <div class="card"><h2>Improvement over iterations</h2><p class="sub">Mean best-so-far accuracy after each iteration${ti < 0 ? ', averaged over the 17 tasks' : ' on ' + taskLabel(TASKS[ti])}.</p><div id="ccurve"></div></div>
+            <div class="card"><h2>Final score by task</h2><p class="sub">Mean run score per task. Click a task to focus the left chart on it.</p><div id="cdots"></div></div>
+        </div>
+        <div class="card" style="overflow-x:auto"><h2>Numbers</h2><table class="cmp"><thead><tr><th></th>${S.cmp.map((m, i) => `<th><i class="dot" style="background:${SERIES[i]}"></i><a href="#" data-m="${esc(m.n)}">${esc(m.n)}</a></th>`).join('')}</tr></thead><tbody>
+            <tr><td><b>Average accuracy</b></td>${S.cmp.map(m => `<td><b>${pct(m.a)}</b></td>`).join('')}</tr>
+            <tr><td>Rank</td>${S.cmp.map(m => `<td>${m.rank}</td>`).join('')}</tr>
+            <tr><td>Cost per run</td>${S.cmp.map(m => `<td>${usd(m.cost)}</td>`).join('')}</tr>
+            <tr><td>After iteration 1 (avg)</td>${S.cmp.map(m => `<td>${pct(allScore(m, 1))}</td>`).join('')}</tr>
+            <tr><td>Released</td>${S.cmp.map(m => `<td>${m.d || '–'}</td>`).join('')}</tr>
+            ${TASKS.map((t, i) => `<tr><td>${taskLabel(t)}</td>${S.cmp.map(m => `<td>${pct(m.t[i])}</td>`).join('')}</tr>`).join('')}
+        </tbody></table></div>`;
+    const pick = document.getElementById('cpick');
+    pick.disabled = S.cmp.length >= MAX_CMP;
+    pick.onchange = () => { const m = byName.get(pick.value); if (m && !S.cmp.includes(m)) { S.cmp = [...S.cmp, m]; render(); } };
+    main.querySelector('.chips').onclick = e => { const b = e.target.closest('button'); if (b) { S.cmp = S.cmp.filter((_, i) => i !== +b.dataset.i); render(); } };
+    document.getElementById('ctask').onchange = e => { S.cmpTask = +e.target.value; render(); };
+    main.querySelector('table.cmp thead').onclick = e => { const a = e.target.closest('a'); if (a) { e.preventDefault(); go({ view: 'model', m: byName.get(a.dataset.m) }); } };
+
+    lineChart(document.getElementById('ccurve'), S.cmp.map(m => ({ name: m.n, color: color(m), values: d3.range(1, 6).map(k => scoreAt(m, ti, k)) })), { height: 420, chance: ti < 0 ? null : D.chance[ti] });
+
+    // dot plot per task
+    const host = document.getElementById('cdots');
+    const W = Math.max(320, host.clientWidth || 500), rowH = 22, mg = { l: Math.min(140, W * .36), r: 14, t: 22, b: 6 }, H = mg.t + TASKS.length * rowH + mg.b;
+    const svg = d3.select(host).append('svg').attr('width', W).attr('height', H);
+    const x = d3.scaleLinear([0, 1], [mg.l, W - mg.r]);
+    d3.range(0, 1.01, .2).forEach(v => {
+        svg.append('line').attr('class', 'gridl').attr('x1', x(v)).attr('x2', x(v)).attr('y1', mg.t - 4).attr('y2', H - mg.b);
+        svg.append('text').attr('x', x(v)).attr('y', 11).attr('text-anchor', 'middle').text(Math.round(v * 100) + '%');
+    });
+    TASKS.forEach((t, i) => {
+        const cy = mg.t + i * rowH + rowH / 2;
+        const g = svg.append('g').attr('class', 'row' + (i === ti ? ' sel' : ''));
+        g.append('rect').attr('class', 'hit').attr('x', 0).attr('y', cy - rowH / 2).attr('width', W).attr('height', rowH).attr('fill', 'transparent');
+        g.append('text').attr('class', 'lab').attr('x', 4).attr('y', cy + 4).text(taskLabel(t));
+        const vals = S.cmp.map(m => m.t[i]);
+        g.append('line').attr('x1', x(Math.min(...vals))).attr('x2', x(Math.max(...vals))).attr('y1', cy).attr('y2', cy).attr('stroke', '#cbd2d9').attr('stroke-width', 2);
+        g.append('line').attr('x1', x(D.chance[i])).attr('x2', x(D.chance[i])).attr('y1', cy - 8).attr('y2', cy + 8).attr('stroke', '#9aa5b1').attr('stroke-dasharray', '2 2');
+        S.cmp.forEach(m => g.append('circle').attr('cx', x(m.t[i])).attr('cy', cy).attr('r', 5).attr('fill', color(m)).attr('stroke', '#fff').attr('stroke-width', 2));
+        g.on('click', () => { S.cmpTask = i === ti ? -1 : i; render(); })
+            .on('mousemove', ev => showTip(ev, `<b>${taskLabel(t)}</b>` + [...S.cmp].sort((a, b) => b.t[i] - a.t[i]).map(m => `<div class="r"><span><i class="dot" style="background:${color(m)}"></i>${esc(m.n)}</span><b>${pct(m.t[i])}</b></div>`).join('') + tipRow('Random chance', pct(D.chance[i], 0))))
+            .on('mouseleave', hideTip);
+    });
+}
+
+// ---------- shell ----------
+function render() {
+    hideTip();
+    document.querySelectorAll('.tabs button').forEach(b => b.setAttribute('aria-selected', b.dataset.view === S.view));
+    const main = document.getElementById('main');
+    ({ overview: renderOverview, model: renderModel, task: renderTask, compare: renderCompare })[S.view](main);
+    writeHash();
+}
+document.querySelector('.tabs').onclick = e => { const b = e.target.closest('button'); if (b) go({ view: b.dataset.view }); };
+let rz; window.addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => { if (D && S.view !== 'overview') render(); }, 200); });
+window.addEventListener('hashchange', () => { if (D) { readHash(); render(); } });
+
+fetch('assets/data/weirdml_v2_explorer.json').then(r => { if (!r.ok) throw new Error(r.status); return r.json(); }).then(data => {
+    D = data; TASKS = D.tasks; MODELS = D.models.slice().sort((a, b) => a.rank - b.rank);
+    MODELS.forEach(m => { m.nruns = d3.sum(m.r, r => r.length); byName.set(m.n, m); });
+    document.getElementById('modelnames').innerHTML = MODELS.map(m => `<option value="${esc(m.n)}">`).join('');
+    const nr = d3.sum(MODELS, m => m.nruns);
+    document.getElementById('counts').textContent = `${MODELS.length} models, ${TASKS.length} tasks, ${nr.toLocaleString('en')} runs, ${d3.sum(MODELS, m => d3.sum(m.r.flat(), r => r.i.length)).toLocaleString('en')} iterations (exported ${D.generated})`;
+    document.getElementById('loading').remove();
+    readHash(); render();
+}).catch(err => { document.getElementById('loading').textContent = 'Could not load the results data (' + err.message + ').'; });
+</script>
+{% endraw %}
+</body>
+</html>

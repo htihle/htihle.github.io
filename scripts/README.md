@@ -68,3 +68,7 @@ The new style is the sole active style. The comparison button, classic query beh
 - These changes authorize local preview only, not publication of the task material.
 
 Static scoring figures are hand-authored SVG emitted by `scripts/draw_scoring_figures.py` (standard library only, illustrative data only; regenerate with `python3 scripts/draw_scoring_figures.py`, which rewrites the six files in `assets/images/weirdml-v3/scoring/`). Checked-in SVGs require neither browser JavaScript nor a plotting dependency for ordinary site builds. The previous interactive version is backed up under scripts/backups. Hint browsing consumes run tokens and API cost; only accepting hints applies their score penalties.
+
+## V2 final results explorer
+
+WeirdML v2 is final. `data/weirdml_v2_results.json.gz` is the definitive export. `python scripts/prepare_weirdml_v2_explorer.py` reduces it to `assets/data/weirdml_v2_explorer.json` (the fields `weirdml_v2_explorer.html` shows: per-model summary plus accuracy, outcome, code lines, run time, output tokens and cost for every iteration) and updates any numbers in `data/weirdml_data.csv` that differ from the export.
